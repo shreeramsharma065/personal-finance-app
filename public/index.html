@@ -17,6 +17,11 @@
     .text-slate-300 { color: #cbd5e1; }
     .text-slate-400 { color: #94a3b8; }
     .text-slate-500 { color: #64748b; }
+    .highlight-flash { animation: flash-highlight 2.5s ease-out; }
+    @keyframes flash-highlight {
+      0% { background-color: #1e3a8a; }
+      100% { background-color: transparent; }
+    }
     @media print {
       aside, header, .no-print { display: none !important; }
       main { overflow: visible !important; }
@@ -111,7 +116,6 @@
       <h2 id="view-title" class="text-lg font-semibold tracking-tight text-white">Financial Position & Net Worth</h2>
 
       <div class="flex items-center gap-2.5">
-        <!-- EXPORT ENGINE CONTROLS -->
         <button onclick="exportCurrentViewCSV()" title="Export current view as CSV" class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg text-xs font-medium text-slate-200 border border-slate-700 transition">
           <i class="fa-solid fa-file-csv text-green-400"></i>
           <span>Export CSV</span>
@@ -200,7 +204,7 @@
         </div>
       </section>
 
-      <!-- TAB 2: CASH FLOW STATEMENT (OPTION 2) -->
+      <!-- TAB 2: CASH FLOW STATEMENT -->
       <section id="tab-cashflow" class="hidden space-y-6">
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-4">
@@ -260,7 +264,7 @@
         </div>
       </section>
 
-      <!-- TAB 3: MoM COMPARATIVE P&L (OPTION 2) -->
+      <!-- TAB 3: MoM COMPARATIVE P&L -->
       <section id="tab-comparativepnl" class="hidden space-y-6">
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
           <div class="flex flex-wrap items-center justify-between gap-4">
@@ -276,7 +280,6 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <!-- Expenses Column -->
           <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
             <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-800/40">
               <span class="font-bold text-sm text-red-400 uppercase tracking-wider">Expenses Variance</span>
@@ -297,7 +300,6 @@
             </div>
           </div>
 
-          <!-- Incomes Column -->
           <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
             <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-800/40">
               <span class="font-bold text-sm text-green-400 uppercase tracking-wider">Income Variance</span>
@@ -320,7 +322,7 @@
         </div>
       </section>
 
-      <!-- TAB 4: MONTHLY BUDGETS VS ACTUALS (OPTION 3) -->
+      <!-- TAB 4: MONTHLY BUDGETS VS ACTUALS -->
       <section id="tab-budgets" class="hidden space-y-6">
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -349,8 +351,7 @@
               </h3>
               <p class="text-xs text-slate-400">Audits equality of total Debit and Credit balances across all ledgers.</p>
             </div>
-            <div id="tbAuditBadge" class="px-3 py-1.5 rounded-lg border font-mono text-xs font-bold uppercase flex items-center gap-2">
-            </div>
+            <div id="tbAuditBadge" class="px-3 py-1.5 rounded-lg border font-mono text-xs font-bold uppercase flex items-center gap-2"></div>
           </div>
         </div>
 
@@ -380,8 +381,7 @@
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div class="flex-1 min-w-[280px]">
               <label class="block text-xs font-medium text-slate-400 mb-1">Select Account Group to Inspect</label>
-              <select id="groupSummarySelect" onchange="renderGroupSummary(this.value)" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm font-semibold text-purple-400 outline-none focus:border-purple-500">
-              </select>
+              <select id="groupSummarySelect" onchange="renderGroupSummary(this.value)" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm font-semibold text-purple-400 outline-none focus:border-purple-500"></select>
             </div>
             <div class="bg-slate-950 px-4 py-2.5 rounded-lg border border-slate-800 text-right min-w-[200px]">
               <span class="text-xs text-slate-500 block">Total Group Balance</span>
@@ -419,8 +419,7 @@
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div class="flex-1 min-w-[240px]">
               <label class="block text-xs font-medium text-slate-400 mb-1">Select Ledger Account</label>
-              <select id="statementLedgerSelect" onchange="applyStatementFilters()" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm font-semibold text-blue-400 outline-none focus:border-blue-500">
-              </select>
+              <select id="statementLedgerSelect" onchange="applyStatementFilters()" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm font-semibold text-blue-400 outline-none focus:border-blue-500"></select>
             </div>
 
             <div class="flex items-center gap-3">
@@ -488,11 +487,12 @@
           <div id="creditCardsDeck" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
 
+        <!-- RECONCILED RECEIVABLES: NO STATUS COLUMN, ONLY NET OUTSTANDING -->
         <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
           <div class="p-4 border-b border-slate-800 flex justify-between items-center">
             <div>
               <span class="font-bold text-sm text-white">Accounts Receivable • Bill-by-Bill Aging</span>
-              <p class="text-xs text-slate-400">Tracks due dates and aging on expected payments from Sundry Debtors.</p>
+              <p class="text-xs text-slate-400">Tracks active outstanding amounts from Sundry Debtors (cleared & settled parties excluded).</p>
             </div>
             <span id="receivablesCount" class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded">0 bills</span>
           </div>
@@ -503,10 +503,8 @@
                   <th class="p-3.5">Date</th>
                   <th class="p-3.5">Voucher No</th>
                   <th class="p-3.5">Debtor Account</th>
-                  <th class="p-3.5">Due Date</th>
-                  <th class="p-3.5">Status</th>
                   <th class="p-3.5">Narration</th>
-                  <th class="p-3.5 text-right">Amount (₹)</th>
+                  <th class="p-3.5 text-right">Net Due (₹)</th>
                 </tr>
               </thead>
               <tbody id="receivablesList" class="divide-y divide-slate-800"></tbody>
@@ -551,47 +549,88 @@
         </div>
       </section>
 
-      <!-- TAB 10: PROFIT & LOSS -->
-      <section id="tab-pnl" class="hidden grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
-          <div class="border-b border-slate-800 pb-3 mb-4 flex justify-between items-center">
-            <h3 class="font-bold text-red-400 uppercase text-xs tracking-wider">Expenses (Debit)</h3>
-            <span id="pnlTotalExpenses" class="font-mono font-bold text-sm text-red-400">₹0.00</span>
+      <!-- TAB 10: PROFIT & LOSS (WITH DATE FILTERS) -->
+      <section id="tab-pnl" class="hidden space-y-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div>
+              <label class="block text-[11px] font-medium text-slate-400 mb-0.5">P&L From Date</label>
+              <input type="date" id="pnlFromDate" onchange="renderPnL()" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-mono text-slate-200 outline-none focus:border-green-500">
+            </div>
+            <div>
+              <label class="block text-[11px] font-medium text-slate-400 mb-0.5">P&L To Date</label>
+              <input type="date" id="pnlToDate" onchange="renderPnL()" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-mono text-slate-200 outline-none focus:border-green-500">
+            </div>
           </div>
-          <div id="pnlExpensesList" class="space-y-2"></div>
+          <div class="flex items-center gap-1.5 pt-3">
+            <button onclick="setPnLDatePreset('this_month')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700">This Month</button>
+            <button onclick="setPnLDatePreset('this_fy')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700">Financial Year</button>
+            <button onclick="setPnLDatePreset('all')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700">All Time</button>
+          </div>
         </div>
 
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
-          <div class="border-b border-slate-800 pb-3 mb-4 flex justify-between items-center">
-            <h3 class="font-bold text-green-400 uppercase text-xs tracking-wider">Incomes (Credit)</h3>
-            <span id="pnlTotalIncomes" class="font-mono font-bold text-sm text-green-400">₹0.00</span>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+            <div class="border-b border-slate-800 pb-3 mb-4 flex justify-between items-center">
+              <h3 class="font-bold text-red-400 uppercase text-xs tracking-wider">Expenses (Debit)</h3>
+              <span id="pnlTotalExpenses" class="font-mono font-bold text-sm text-red-400">₹0.00</span>
+            </div>
+            <div id="pnlExpensesList" class="space-y-2"></div>
           </div>
-          <div id="pnlIncomesList" class="space-y-2"></div>
+
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+            <div class="border-b border-slate-800 pb-3 mb-4 flex justify-between items-center">
+              <h3 class="font-bold text-green-400 uppercase text-xs tracking-wider">Incomes (Credit)</h3>
+              <span id="pnlTotalIncomes" class="font-mono font-bold text-sm text-green-400">₹0.00</span>
+            </div>
+            <div id="pnlIncomesList" class="space-y-2"></div>
+          </div>
         </div>
       </section>
 
-      <!-- TAB 11: DAY BOOK -->
-      <section id="tab-daybook" class="hidden bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-        <div class="p-4 border-b border-slate-800 flex justify-between items-center">
-          <span class="font-semibold text-sm">Day Book • Audit Trail</span>
-          <span id="daybookCount" class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded">0 Vouchers</span>
+      <!-- TAB 11: DAY BOOK (WITH DATE & LEDGER FILTERS) -->
+      <section id="tab-daybook" class="hidden space-y-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+          <div class="flex flex-wrap items-center gap-3">
+            <div>
+              <label class="block text-[11px] font-medium text-slate-400 mb-0.5">Filter Ledger</label>
+              <select id="daybookLedgerFilter" onchange="renderDaybook()" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-blue-400 outline-none focus:border-blue-500">
+                <option value="ALL">● All Accounts</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-medium text-slate-400 mb-0.5">From Date</label>
+              <input type="date" id="daybookFromDate" onchange="renderDaybook()" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-mono text-slate-200 outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-[11px] font-medium text-slate-400 mb-0.5">To Date</label>
+              <input type="date" id="daybookToDate" onchange="renderDaybook()" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-mono text-slate-200 outline-none focus:border-blue-500">
+            </div>
+          </div>
+          <div class="flex items-center gap-2 pt-3">
+            <button onclick="resetDaybookFilters()" class="bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 border border-slate-700">Clear Filters</button>
+            <span id="daybookCount" class="text-xs bg-slate-800 text-slate-300 font-mono px-2.5 py-1.5 rounded border border-slate-700">0 Vouchers</span>
+          </div>
         </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm">
-            <thead class="bg-slate-800 text-slate-400 text-xs uppercase">
-              <tr>
-                <th class="p-3.5">Date</th>
-                <th class="p-3.5">Voucher No</th>
-                <th class="p-3.5">Type</th>
-                <th class="p-3.5">Debit (Dr) Accounts</th>
-                <th class="p-3.5">Credit (Cr) Accounts</th>
-                <th class="p-3.5">Narration</th>
-                <th class="p-3.5 text-right">Amount (₹)</th>
-                <th class="p-3.5 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="daybookList" class="divide-y divide-slate-800"></tbody>
-          </table>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-800 text-slate-400 text-xs uppercase">
+                <tr>
+                  <th class="p-3.5">Date</th>
+                  <th class="p-3.5">Voucher No</th>
+                  <th class="p-3.5">Type</th>
+                  <th class="p-3.5">Debit (Dr) Accounts</th>
+                  <th class="p-3.5">Credit (Cr) Accounts</th>
+                  <th class="p-3.5">Narration</th>
+                  <th class="p-3.5 text-right">Amount (₹)</th>
+                  <th class="p-3.5 text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="daybookList" class="divide-y divide-slate-800"></tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -627,7 +666,7 @@
     </div>
   </main>
 
-  <!-- MODAL: SET BUDGET LIMIT (OPTION 3) -->
+  <!-- MODAL: SET BUDGET LIMIT -->
   <div id="budgetModal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
       <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
@@ -652,7 +691,7 @@
     </div>
   </div>
 
-  <!-- MODAL: MULTI-LEG / COMPOUND VOUCHER -->
+  <!-- MODAL: MULTI-LEG VOUCHER -->
   <div id="voucherModal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-2xl overflow-hidden shadow-2xl">
       <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
@@ -665,7 +704,7 @@
 
       <form id="voucherForm" class="p-6 space-y-4">
         <input type="hidden" id="vId">
-        <div class="grid grid-cols-3 gap-3">
+        <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-slate-400 mb-1">Voucher Type</label>
             <select id="vType" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-blue-500 text-slate-200">
@@ -678,10 +717,6 @@
           <div>
             <label class="block text-xs font-medium text-slate-400 mb-1">Transaction Date</label>
             <input type="date" id="vDate" required class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-blue-500 text-slate-200">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1">Promised Due Date</label>
-            <input type="date" id="vDueDate" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-blue-500 text-slate-200">
           </div>
         </div>
 
@@ -875,10 +910,10 @@
         if (el) {
           if (t === tab) {
             el.classList.remove('hidden');
-            if (t === 'dashboard' || t === 'balancesheet' || t === 'pnl') el.classList.add('grid');
+            if (t === 'dashboard' || t === 'balancesheet') el.classList.add('grid');
           } else {
             el.classList.add('hidden');
-            el.classList.remove('grid');
+            if (t === 'dashboard' || t === 'balancesheet') el.classList.remove('grid');
           }
         }
       });
@@ -910,10 +945,13 @@
       } else if (tab === 'ledgerstatement') {
         populateStatementLedgerDropdown();
         applyStatementFilters();
+      } else if (tab === 'daybook') {
+        renderDaybook();
+      } else if (tab === 'pnl') {
+        renderPnL();
       }
     }
 
-    // EXPORT ENGINE: Export Current Tab to CSV
     function exportCurrentViewCSV() {
       let csv = [];
       let filename = `${activeTab}_export_${new Date().toISOString().split('T')[0]}.csv`;
@@ -957,7 +995,6 @@
       link.remove();
     }
 
-    // CASH FLOW RENDERER (OPTION 2)
     function renderCashFlow() {
       if (!reportData || !reportData.cashFlow) return;
       const cf = reportData.cashFlow;
@@ -1002,7 +1039,6 @@
         '</tr>';
     }
 
-    // MoM COMPARATIVE P&L RENDERER (OPTION 2)
     function renderComparativePnL() {
       if (!reportData || !reportData.comparativePnL) return;
       const cp = reportData.comparativePnL;
@@ -1034,7 +1070,6 @@
       }).join('') || '<tr><td colspan="4" class="p-4 text-center text-slate-500">No comparative income activity.</td></tr>';
     }
 
-    // MONTHLY BUDGETS RENDERER (OPTION 3)
     function renderBudgets() {
       if (!reportData || !reportData.budgets) return;
       const bGrid = document.getElementById('budgetsGrid');
@@ -1088,7 +1123,6 @@
       document.getElementById('budgetForm').reset();
     }
 
-    // TRIAL BALANCE
     function renderTrialBalance() {
       if (!reportData || !reportData.trialBalance) return;
       const tb = reportData.trialBalance;
@@ -1124,7 +1158,6 @@
         '</tr>';
     }
 
-    // MULTI-LEG VOUCHERS
     function addVoucherEntryRow(type = 'Dr', ledger = '', amount = '') {
       const container = document.getElementById('voucherEntriesContainer');
       const rowId = 'ventry_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
@@ -1206,7 +1239,6 @@
       document.getElementById('voucherModalTitle').innerText = voucher ? 'Edit Split Voucher' : 'Record Split Voucher';
       document.getElementById('voucherNoPreview').innerText = voucher && voucher.voucher_no ? `Voucher No: ${voucher.voucher_no}` : 'Voucher No: Auto-Generated Sequential';
       document.getElementById('vDate').value = voucher && voucher.date ? voucher.date : today;
-      document.getElementById('vDueDate').value = voucher && voucher.dueDate ? voucher.dueDate : (voucher && voucher.date ? voucher.date : today);
       document.getElementById('vType').value = voucher ? voucher.voucher_type : 'Payment';
       document.getElementById('vNarration').value = voucher ? voucher.narration : '';
 
@@ -1237,7 +1269,6 @@
       document.getElementById('voucherForm').reset();
     }
 
-    // GROUP SUMMARY
     function populateGroupSummaryDropdown() {
       const sel = document.getElementById('groupSummarySelect');
       if (!sel || !masterData.groups) return;
@@ -1363,7 +1394,6 @@
       document.getElementById('groupSummaryTableHeader').innerText = targetGroupName + ' • Group Summary';
     }
 
-    // LEDGER STATEMENT
     function openLedgerStatement(ledgerName) {
       currentStatementLedger = ledgerName;
       switchTab('ledgerstatement');
@@ -1407,6 +1437,19 @@
       if (currentVal) sel.value = currentVal;
     }
 
+    // INTERACTIVE LEDGER STATEMENT: CLICKING ROW JUMPS TO DAYBOOK
+    function jumpToDaybookVoucher(voucherId) {
+      switchTab('daybook');
+      setTimeout(() => {
+        const row = document.getElementById('db_vch_' + voucherId);
+        if (row) {
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          row.classList.add('highlight-flash');
+          setTimeout(() => row.classList.remove('highlight-flash'), 2600);
+        }
+      }, 100);
+    }
+
     function applyStatementFilters() {
       const sel = document.getElementById('statementLedgerSelect');
       if (!sel || !masterData.ledgers || masterData.ledgers.length === 0) return;
@@ -1421,7 +1464,7 @@
       const toDate = document.getElementById('filterToDate').value;
 
       const allVouchers = (reportData && reportData.vouchers) ? reportData.vouchers.slice() : [];
-      allVouchers.sort((a, b) => (a.date > b.date ? 1 : -1));
+      allVouchers.sort((a, b) => (a.date || '').localeCompare(b.date || '') || a.id - b.id);
 
       const isDebitNature = (ledgerObj.nature === 'Asset' || ledgerObj.nature === 'Expense');
       let runningOpBal = parseFloat(ledgerObj.openingBalance) || 0;
@@ -1489,12 +1532,12 @@
           const curSign = currentRunningBal >= 0 ? (isDebitNature ? 'Dr' : 'Cr') : (isDebitNature ? 'Cr' : 'Dr');
           const runningStr = '₹' + Math.abs(currentRunningBal).toFixed(2) + ' ' + curSign;
 
-          rowsHtml += '<tr class="hover:bg-slate-800 transition">' +
+          rowsHtml += '<tr class="hover:bg-slate-800 transition cursor-pointer group" onclick="jumpToDaybookVoucher(' + v.id + ')" title="Click to view full voucher in Day Book">' +
             '<td class="p-3.5 text-xs font-mono text-slate-400">' + v.date + '</td>' +
-            '<td class="p-3.5"><div class="font-medium text-slate-200">' + oppositeAccounts + '</div>' +
+            '<td class="p-3.5"><div class="font-medium text-slate-200 group-hover:text-blue-400 transition flex items-center gap-1.5">' + oppositeAccounts + ' <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-500 opacity-0 group-hover:opacity-100 transition"></i></div>' +
             (v.narration ? '<div class="text-xs text-slate-500 italic">' + v.narration + '</div>' : '') + '</td>' +
             '<td class="p-3.5"><span class="px-2 py-0.5 rounded text-xs font-mono bg-slate-800 text-slate-300">' + v.voucher_type + '</span></td>' +
-            '<td class="p-3.5 text-xs font-mono text-slate-400">' + (v.voucher_no || `#${String(v.id).slice(-6)}`) + '</td>' +
+            '<td class="p-3.5 text-xs font-mono text-blue-400 font-semibold">' + (v.voucher_no || `#${String(v.id).slice(-6)}`) + '</td>' +
             '<td class="p-3.5 text-right font-mono font-semibold ' + (isDr ? 'text-green-400' : 'text-slate-600') + '">' + (isDr ? '₹' + amt.toFixed(2) : '-') + '</td>' +
             '<td class="p-3.5 text-right font-mono font-semibold ' + (!isDr ? 'text-red-400' : 'text-slate-600') + '">' + (!isDr ? '₹' + amt.toFixed(2) : '-') + '</td>' +
             '<td class="p-3.5 text-right font-mono font-bold text-white">' + runningStr + '</td>' +
@@ -1510,7 +1553,6 @@
       document.getElementById('stmtClBal').innerText = '₹' + Math.abs(currentRunningBal).toFixed(2) + ' ' + clSign;
     }
 
-    // GROUP MODAL
     function handleGroupParentChange() {
       const p = document.getElementById('gParentGroup').value;
       const nf = document.getElementById('gNatureField');
@@ -1560,7 +1602,6 @@
       else await loadData();
     }
 
-    // LEDGER MODAL
     function openLedgerModal(id = null) {
       let ledger = null;
       if (id && masterData && masterData.ledgers) {
@@ -1611,6 +1652,7 @@
           masterData = mRes;
           populateStatementLedgerDropdown();
           populateGroupSummaryDropdown();
+          populateDaybookLedgerFilter();
           renderMasters();
         }
       } catch (e) {
@@ -1707,38 +1749,41 @@
           deck.innerHTML = '<div class="text-xs text-slate-500 py-4">No Credit Card ledgers configured.</div>';
         } else {
           deck.innerHTML = cards.map(c => {
-            const badgeClass = c.status === 'OVERDUE' ? 'bg-red-900 text-red-300 border border-red-700' : (c.status === 'URGENT' ? 'bg-yellow-900 text-yellow-300 border border-yellow-700' : 'bg-green-900 text-green-300 border border-green-700');
+            let badgeClass = 'bg-slate-800 text-slate-400 border border-slate-700';
+            if (c.statusLevel === 'OVERDUE') badgeClass = 'bg-red-950 text-red-300 border border-red-700';
+            else if (c.statusLevel === 'URGENT') badgeClass = 'bg-yellow-950 text-yellow-300 border border-yellow-700';
+            else if (c.statusLevel === 'SAFE') badgeClass = 'bg-blue-950 text-blue-300 border border-blue-700';
+            else if (c.statusLevel === 'PAID') badgeClass = 'bg-green-950 text-green-300 border border-green-700';
+            else if (c.statusLevel === 'CLEAN') badgeClass = 'bg-slate-800 text-slate-300 border border-slate-700';
+
             return '<div class="bg-slate-800 border border-slate-700 p-5 rounded-xl space-y-4">' +
-              '<div class="flex justify-between items-start"><div>' +
+              '<div class="flex justify-between items-start gap-2"><div>' +
               '<h4 class="font-bold text-slate-100 text-sm"><a href="javascript:void(0)" onclick="openLedgerStatement(\'' + c.name + '\')" class="hover:text-blue-400">' + c.name + '</a></h4>' +
               '<span class="text-xs text-slate-400 font-mono">Bill Day: ' + c.statementDay + 'th • Grace: ' + c.gracePeriodDays + 'd</span></div>' +
-              '<span class="text-xs font-mono px-2 py-0.5 rounded uppercase ' + badgeClass + '">' + c.status + ' (' + c.daysLeft + 'd left)</span></div>' +
+              '<span class="text-xs font-mono font-bold px-2.5 py-1 rounded whitespace-nowrap ' + badgeClass + '">' + c.statusTag + '</span></div>' +
               '<div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-700 text-xs"><div><span class="text-slate-400 block text-xs">Billed Due</span>' +
-              '<span class="font-mono font-bold text-red-400 text-sm">₹' + (c.billedAmount || 0).toFixed(2) + '</span></div><div><span class="text-slate-400 block text-xs">Unbilled Amount</span>' +
-              '<span class="font-mono font-semibold text-slate-300 text-sm">₹' + (c.unbilledAmount || 0).toFixed(2) + '</span></div></div>' +
-              '<div class="text-xs text-slate-400 bg-slate-900 p-2.5 rounded-lg flex justify-between">' +
+              '<span class="font-mono font-bold ' + (c.billedAmount > 0 ? 'text-red-400' : 'text-slate-400') + ' text-sm">₹' + (c.billedAmount || 0).toFixed(2) + '</span></div><div><span class="text-slate-400 block text-xs">Unbilled Amount</span>' +
+              '<span class="font-mono font-semibold text-slate-200 text-sm">₹' + (c.unbilledAmount || 0).toFixed(2) + '</span></div></div>' +
+              '<div class="text-xs text-slate-400 bg-slate-900 p-2.5 rounded-lg flex justify-between items-center">' +
               '<span>Bill Gen: <b class="text-slate-300 font-mono">' + c.statementDate + '</b></span>' +
-              '<span>Due: <b class="text-red-300 font-mono">' + c.dueDate + '</b></span></div></div>';
+              '<span class="text-right text-[11px] font-mono ' + (c.billedAmount > 0 ? 'text-red-300' : 'text-green-400') + '">' + c.subMessage + '</span></div></div>';
           }).join('');
         }
       }
 
       const rCount = document.getElementById('receivablesCount');
-      if (rCount) rCount.innerText = recs.length + ' bills';
+      if (rCount) rCount.innerText = recs.length + ' parties';
 
       const rList = document.getElementById('receivablesList');
       if (rList) {
         if (recs.length === 0) {
-          rList.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-500">No open accounts receivables recorded under Sundry Debtors.</td></tr>';
+          rList.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-500">No active accounts receivable. All debtor balances are cleared or in credit.</td></tr>';
         } else {
           rList.innerHTML = recs.map(r => {
-            const statusClass = r.daysLeft < 0 ? 'bg-red-900 text-red-300' : 'bg-green-900 text-green-300';
             return '<tr class="hover:bg-slate-800">' +
               '<td class="p-3.5 text-xs font-mono text-slate-400">' + r.invoiceDate + '</td>' +
               '<td class="p-3.5 text-xs font-mono text-slate-400">' + r.voucher_no + '</td>' +
               '<td class="p-3.5 font-medium text-slate-200"><a href="javascript:void(0)" onclick="openLedgerStatement(\'' + r.debtor + '\')" class="hover:text-blue-400">' + r.debtor + '</a></td>' +
-              '<td class="p-3.5 text-xs font-mono text-yellow-400">' + r.dueDate + '</td>' +
-              '<td class="p-3.5 text-xs font-mono"><span class="px-2 py-0.5 rounded ' + statusClass + '">' + r.status + '</span></td>' +
               '<td class="p-3.5 text-xs text-slate-400 truncate max-w-xs">' + (r.narration || '-') + '</td>' +
               '<td class="p-3.5 text-right font-mono font-bold text-white">₹' + Number(r.amount).toFixed(2) + '</td></tr>';
           }).join('');
@@ -1746,23 +1791,69 @@
       }
     }
 
+    // DAY BOOK: POPULATE LEDGER FILTER
+    function populateDaybookLedgerFilter() {
+      const sel = document.getElementById('daybookLedgerFilter');
+      if (!sel || !masterData.ledgers) return;
+
+      const cur = sel.value;
+      sel.innerHTML = '<option value="ALL">● All Accounts</option>' +
+        (masterData.ledgers || []).map(l => '<option value="' + l.name + '">' + l.name + ' [' + l.group + ']</option>').join('');
+
+      if (cur) sel.value = cur;
+    }
+
+    function resetDaybookFilters() {
+      document.getElementById('daybookLedgerFilter').value = 'ALL';
+      document.getElementById('daybookFromDate').value = '';
+      document.getElementById('daybookToDate').value = '';
+      renderDaybook();
+    }
+
+    // DAY BOOK: FILTERED & SORTED NEWEST TO OLDEST
     function renderDaybook() {
       if (!reportData || !reportData.vouchers) return;
       const list = document.getElementById('daybookList');
       const count = document.getElementById('daybookCount');
-      if (count) count.innerText = reportData.vouchers.length + ' Vouchers';
       if (!list) return;
 
-      if (reportData.vouchers.length === 0) {
-        list.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-500">No accounting vouchers found.</td></tr>';
+      const ledgerFilter = document.getElementById('daybookLedgerFilter') ? document.getElementById('daybookLedgerFilter').value : 'ALL';
+      const fromDate = document.getElementById('daybookFromDate') ? document.getElementById('daybookFromDate').value : '';
+      const toDate = document.getElementById('daybookToDate') ? document.getElementById('daybookToDate').value : '';
+
+      let vouchers = reportData.vouchers.slice();
+
+      // Sort newest to oldest
+      vouchers.sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.id - a.id);
+
+      if (ledgerFilter && ledgerFilter !== 'ALL') {
+        vouchers = vouchers.filter(v => {
+          const entries = (Array.isArray(v.entries) && v.entries.length > 0)
+            ? v.entries
+            : [{ type: 'Dr', ledger: v.dr_ledger }, { type: 'Cr', ledger: v.cr_ledger }];
+          return entries.some(e => e.ledger === ledgerFilter);
+        });
+      }
+
+      if (fromDate) {
+        vouchers = vouchers.filter(v => (v.date || '') >= fromDate);
+      }
+      if (toDate) {
+        vouchers = vouchers.filter(v => (v.date || '') <= toDate);
+      }
+
+      if (count) count.innerText = vouchers.length + ' Vouchers';
+
+      if (vouchers.length === 0) {
+        list.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-500">No vouchers match the selected filter.</td></tr>';
         return;
       }
 
-      list.innerHTML = reportData.vouchers.map(v => {
+      list.innerHTML = vouchers.map(v => {
         const vNo = v.voucher_no || `#${String(v.id).slice(-6)}`;
-        return '<tr class="hover:bg-slate-800 transition">' +
+        return '<tr id="db_vch_' + v.id + '" class="hover:bg-slate-800 transition">' +
           '<td class="p-3.5 text-xs font-mono text-slate-400">' + v.date + '</td>' +
-          '<td class="p-3.5 text-xs font-mono font-semibold text-blue-400">' + vNo + '</td>' +
+          '<td class="p-3.5 text-xs font-mono font-semibold text-blue-400"><a href="javascript:void(0)" onclick="openVoucherModal(' + v.id + ')" class="hover:underline">' + vNo + '</a></td>' +
           '<td class="p-3.5"><span class="px-2 py-0.5 rounded text-xs font-mono bg-slate-800 text-slate-300">' + v.voucher_type + '</span></td>' +
           '<td class="p-3.5 text-sm font-medium text-green-400">' + (v.dr_ledger || '-') + '</td>' +
           '<td class="p-3.5 text-sm font-medium text-red-400">' + (v.cr_ledger || '-') + '</td>' +
@@ -1808,34 +1899,94 @@
       }
     }
 
+    // P&L PRESETS & FILTER ENGINE
+    function setPnLDatePreset(preset) {
+      const now = new Date();
+      const fromEl = document.getElementById('pnlFromDate');
+      const toEl = document.getElementById('pnlToDate');
+
+      if (preset === 'this_month') {
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+        fromEl.value = firstDay;
+        toEl.value = lastDay;
+      } else if (preset === 'this_fy') {
+        let fyStartYear = now.getFullYear();
+        if (now.getMonth() < 3) fyStartYear -= 1;
+        fromEl.value = fyStartYear + '-04-01';
+        toEl.value = (fyStartYear + 1) + '-03-31';
+      } else if (preset === 'all') {
+        fromEl.value = '';
+        toEl.value = '';
+      }
+
+      renderPnL();
+    }
+
     function renderPnL() {
-      if (!reportData || !reportData.profitAndLoss) return;
-      const pnl = reportData.profitAndLoss;
+      if (!reportData || !reportData.vouchers || !masterData.ledgers) return;
+
+      const fromDate = document.getElementById('pnlFromDate') ? document.getElementById('pnlFromDate').value : '';
+      const toDate = document.getElementById('pnlToDate') ? document.getElementById('pnlToDate').value : '';
+
+      const expMap = {};
+      const incMap = {};
+
+      masterData.ledgers.forEach(l => {
+        if (l.nature === 'Expense') expMap[l.name] = { name: l.name, group: l.group, balance: 0 };
+        if (l.nature === 'Income') incMap[l.name] = { name: l.name, group: l.group, balance: 0 };
+      });
+
+      reportData.vouchers.forEach(v => {
+        const vDate = v.date || '';
+        if (fromDate && vDate < fromDate) return;
+        if (toDate && vDate > toDate) return;
+
+        const entries = (Array.isArray(v.entries) && v.entries.length > 0)
+          ? v.entries
+          : [{ type: 'Dr', ledger: v.dr_ledger, amount: v.amount }, { type: 'Cr', ledger: v.cr_ledger, amount: v.amount }];
+
+        entries.forEach(e => {
+          const amt = parseFloat(e.amount) || 0;
+          if (expMap[e.ledger]) {
+            expMap[e.ledger].balance += (e.type === 'Dr' ? amt : -amt);
+          }
+          if (incMap[e.ledger]) {
+            incMap[e.ledger].balance += (e.type === 'Cr' ? amt : -amt);
+          }
+        });
+      });
+
+      const expList = Object.values(expMap).filter(e => Math.abs(e.balance) > 0.01);
+      const incList = Object.values(incMap).filter(i => Math.abs(i.balance) > 0.01);
+
+      const totalExp = expList.reduce((acc, e) => acc + e.balance, 0);
+      const totalInc = incList.reduce((acc, i) => acc + i.balance, 0);
 
       const te = document.getElementById('pnlTotalExpenses');
       const ti = document.getElementById('pnlTotalIncomes');
 
-      if (te) te.innerText = '₹' + ((reportData.metrics && reportData.metrics.totalExpenses) || 0).toFixed(2);
-      if (ti) ti.innerText = '₹' + ((reportData.metrics && reportData.metrics.totalIncome) || 0).toFixed(2);
+      if (te) te.innerText = '₹' + totalExp.toFixed(2);
+      if (ti) ti.innerText = '₹' + totalInc.toFixed(2);
 
-      const eList = document.getElementById('pnlExpensesList');
-      if (eList) {
-        eList.innerHTML = (pnl.expenses || []).map(e => {
+      const eContainer = document.getElementById('pnlExpensesList');
+      if (eContainer) {
+        eContainer.innerHTML = expList.map(e => {
           return '<div class="flex justify-between items-center text-xs py-2 border-b border-slate-800"><div>' +
             '<a href="javascript:void(0)" onclick="openLedgerStatement(\'' + e.name + '\')" class="text-slate-200 font-medium hover:text-blue-400">' + e.name + '</a>' +
             '<span class="text-slate-500 block text-xs"><a href="javascript:void(0)" onclick="drillIntoGroup(\'' + e.group + '\'); switchTab(\'groupsummary\');" class="hover:underline text-purple-400">' + e.group + '</a></span></div>' +
-            '<span class="font-mono text-red-400 font-semibold">₹' + (e.balance || 0).toFixed(2) + '</span></div>';
-        }).join('') || '<div class="text-xs text-slate-500">No expenses recorded yet.</div>';
+            '<span class="font-mono text-red-400 font-semibold">₹' + e.balance.toFixed(2) + '</span></div>';
+        }).join('') || '<div class="text-xs text-slate-500">No expenses recorded for this period.</div>';
       }
 
-      const iList = document.getElementById('pnlIncomesList');
-      if (iList) {
-        iList.innerHTML = (pnl.incomes || []).map(i => {
+      const iContainer = document.getElementById('pnlIncomesList');
+      if (iContainer) {
+        iContainer.innerHTML = incList.map(i => {
           return '<div class="flex justify-between items-center text-xs py-2 border-b border-slate-800"><div>' +
             '<a href="javascript:void(0)" onclick="openLedgerStatement(\'' + i.name + '\')" class="text-slate-200 font-medium hover:text-blue-400">' + i.name + '</a>' +
             '<span class="text-slate-500 block text-xs"><a href="javascript:void(0)" onclick="drillIntoGroup(\'' + i.group + '\'); switchTab(\'groupsummary\');" class="hover:underline text-purple-400">' + i.group + '</a></span></div>' +
-            '<span class="font-mono text-green-400 font-semibold">₹' + (i.balance || 0).toFixed(2) + '</span></div>';
-        }).join('') || '<div class="text-xs text-slate-500">No incomes recorded yet.</div>';
+            '<span class="font-mono text-green-400 font-semibold">₹' + i.balance.toFixed(2) + '</span></div>';
+        }).join('') || '<div class="text-xs text-slate-500">No incomes recorded for this period.</div>';
       }
     }
 
@@ -1909,7 +2060,6 @@
       else await loadData();
     }
 
-    // FORM SUBMITTERS
     const bForm = document.getElementById('budgetForm');
     if (bForm) {
       bForm.addEventListener('submit', async (e) => {
@@ -1954,7 +2104,6 @@
           id: document.getElementById('vId').value || undefined,
           voucher_type: document.getElementById('vType').value,
           date: document.getElementById('vDate').value,
-          dueDate: document.getElementById('vDueDate').value || document.getElementById('vDate').value,
           entries,
           narration: document.getElementById('vNarration').value
         };
