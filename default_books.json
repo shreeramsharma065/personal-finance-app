@@ -1,0 +1,87 @@
+{
+  "groups": [
+    { "id": 1, "name": "Primary", "parentGroup": null, "nature": "Asset" },
+    { "id": 2, "name": "Current Assets", "parentGroup": "Primary", "nature": "Asset" },
+    { "id": 3, "name": "Bank Accounts", "parentGroup": "Current Assets", "nature": "Asset" },
+    { "id": 4, "name": "Cash-in-Hand", "parentGroup": "Current Assets", "nature": "Asset" },
+    { "id": 5, "name": "Sundry Debtors", "parentGroup": "Current Assets", "nature": "Asset" },
+    { "id": 6, "name": "Fixed Assets", "parentGroup": "Primary", "nature": "Asset" },
+    { "id": 7, "name": "Current Liabilities", "parentGroup": "Primary", "nature": "Liability" },
+    { "id": 8, "name": "Credit Cards", "parentGroup": "Current Liabilities", "nature": "Liability" },
+    { "id": 9, "name": "Loans & Borrowings", "parentGroup": "Primary", "nature": "Liability" },
+    { "id": 10, "name": "Capital Account", "parentGroup": "Primary", "nature": "Liability" },
+    { "id": 11, "name": "Direct Incomes", "parentGroup": "Primary", "nature": "Income" },
+    { "id": 12, "name": "Indirect Incomes", "parentGroup": "Primary", "nature": "Income" },
+    { "id": 13, "name": "Direct Expenses", "parentGroup": "Primary", "nature": "Expense" },
+    { "id": 14, "name": "Indirect Expenses", "parentGroup": "Primary", "nature": "Expense" }
+  ],
+  "ledgers": [
+    {
+      "id": 101,
+      "name": "Cash Wallet",
+      "group": "Cash-in-Hand",
+      "nature": "Asset",
+      "openingBalance": 0
+    },
+    {
+      "id": 102,
+      "name": "Salary Bank Account",
+      "group": "Bank Accounts",
+      "nature": "Asset",
+      "openingBalance": 0
+    },
+    {
+      "id": 103,
+      "name": "Primary Credit Card",
+      "group": "Credit Cards",
+      "nature": "Liability",
+      "openingBalance": 0,
+      "billingDay": 15,
+      "gracePeriodDays": 20
+    },
+    {
+      "id": 104,
+      "name": "Salary Income",
+      "group": "Direct Incomes",
+      "nature": "Income",
+      "openingBalance": 0
+    },
+    {
+      "id": 105,
+      "name": "Daily Allowance Income",
+      "group": "Indirect Incomes",
+      "nature": "Income",
+      "openingBalance": 0
+    },
+    {
+      "id": 106,
+      "name": "Groceries & Food",
+      "group": "Indirect Expenses",
+      "nature": "Expense",
+      "openingBalance": 0
+    },
+    {
+      "id": 107,
+      "name": "Fuel & Travel",
+      "group": "Indirect Expenses",
+      "nature": "Expense",
+      "openingBalance": 0
+    },
+    {
+      "id": 108,
+      "name": "Utilities & Bills",
+      "group": "Indirect Expenses",
+      "nature": "Expense",
+      "openingBalance": 0
+    },
+    {
+      "id": 109,
+      "name": "General Expenses",
+      "group": "Indirect Expenses",
+      "nature": "Expense",
+      "openingBalance": 0
+    }
+  ],
+  "vouchers": [],
+  "budgets": {}
+}
