@@ -22,12 +22,20 @@
       0% { background-color: #1e3a8a; }
       100% { background-color: transparent; }
     }
+    @page {
+      size: A4 portrait;
+      margin: 12mm;
+    }
     @media print {
-      aside, header, .no-print { display: none !important; }
-      main { overflow: visible !important; }
-      body { background: white !important; color: black !important; }
-      table { border-collapse: collapse; width: 100%; }
-      th, td { border: 1px solid #ccc !important; padding: 6px !important; color: black !important; }
+      aside, header, .no-print, #daybookPagination, #daybookFilters { display: none !important; }
+      main { overflow: visible !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+      body, html { background: #ffffff !important; color: #000000 !important; height: auto !important; overflow: visible !important; }
+      .bg-slate-950, .bg-slate-900, .bg-slate-800 { background: #ffffff !important; color: #000000 !important; border-color: #cbd5e1 !important; box-shadow: none !important; }
+      .text-slate-100, .text-slate-200, .text-slate-300, .text-slate-400, .text-slate-500, .text-white { color: #0f172a !important; }
+      table { border-collapse: collapse !important; width: 100% !important; font-size: 11px !important; }
+      th, td { border: 1px solid #94a3b8 !important; padding: 5px 8px !important; color: #000000 !important; }
+      thead { background-color: #f1f5f9 !important; }
+      a { text-decoration: none !important; color: #000000 !important; }
     }
   </style>
 </head>
@@ -113,7 +121,15 @@
   <!-- MAIN WORKSPACE -->
   <main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-950">
     <header class="h-16 border-b border-slate-800 flex items-center justify-between px-8 bg-slate-900 no-print">
-      <h2 id="view-title" class="text-lg font-semibold tracking-tight text-white">Financial Position & Net Worth</h2>
+      <div class="flex items-center gap-4">
+        <h2 id="view-title" class="text-lg font-semibold tracking-tight text-white">Financial Position & Net Worth</h2>
+        <!-- GLOBAL QUICK SEARCH TRIGGER (Ctrl + K) -->
+        <button onclick="openSearchModal()" class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs text-slate-300 border border-slate-700 transition">
+          <i class="fa-solid fa-magnifying-glass text-slate-400"></i>
+          <span>Search vouchers...</span>
+          <kbd class="ml-2 font-mono bg-slate-900 border border-slate-700 px-1.5 py-0.5 rounded text-[10px] text-slate-400">Ctrl K</kbd>
+        </button>
+      </div>
 
       <div class="flex items-center gap-2.5">
         <button onclick="exportCurrentViewCSV()" title="Export current view as CSV" class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg text-xs font-medium text-slate-200 border border-slate-700 transition">
@@ -146,15 +162,15 @@
 
     <div class="flex-1 overflow-y-auto p-8 space-y-6">
 
-      <!-- TOP METRICS -->
-      <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 no-print">
+      <!-- TOP METRICS (WITH EMERGENCY RUNWAY METER) -->
+      <section class="grid grid-cols-2 lg:grid-cols-5 gap-4 no-print">
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
           <div class="text-xs text-slate-400 font-medium flex justify-between">
             <span>Net Worth (Capital)</span>
             <i class="fa-solid fa-vault text-blue-400"></i>
           </div>
           <div id="metricNetWorth" class="text-2xl font-bold mt-2 text-blue-400">₹0.00</div>
-          <div class="text-xs text-slate-500 mt-1">Total Assets − Total Liabilities</div>
+          <div class="text-[11px] text-slate-500 mt-1">All-Time Assets − Debts</div>
         </div>
 
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
@@ -163,7 +179,7 @@
             <i class="fa-solid fa-building-columns text-green-400"></i>
           </div>
           <div id="metricCashBank" class="text-2xl font-bold mt-2 text-green-400">₹0.00</div>
-          <div class="text-xs text-slate-500 mt-1">Readily available funds</div>
+          <div class="text-[11px] text-slate-500 mt-1">Available liquid funds</div>
         </div>
 
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
@@ -172,27 +188,46 @@
             <i class="fa-solid fa-credit-card text-red-400"></i>
           </div>
           <div id="metricDebt" class="text-2xl font-bold mt-2 text-red-400">₹0.00</div>
-          <div class="text-xs text-slate-500 mt-1">Cards & Loans</div>
+          <div class="text-[11px] text-slate-500 mt-1">Cards & loan commitments</div>
         </div>
 
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
           <div class="text-xs text-slate-400 font-medium flex justify-between">
-            <span>Net Surplus (P&L)</span>
+            <span>Net Surplus (All-Time)</span>
             <i class="fa-solid fa-arrow-trend-up text-purple-400"></i>
           </div>
           <div id="metricSurplus" class="text-2xl font-bold mt-2 text-purple-400">₹0.00</div>
-          <div class="text-xs text-slate-500 mt-1">Income − Expenses</div>
+          <div class="text-[11px] text-slate-500 mt-1">Cumulative Income − Expenses</div>
+        </div>
+
+        <!-- EMERGENCY RUNWAY HEALTH METER -->
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+          <div class="text-xs text-slate-400 font-medium flex justify-between">
+            <span>Emergency Runway</span>
+            <i class="fa-solid fa-heart-pulse text-amber-400"></i>
+          </div>
+          <div id="metricRunway" class="text-2xl font-bold mt-2 text-amber-400">0.0 mo</div>
+          <div id="metricRunwayNote" class="text-[11px] text-slate-500 mt-1">Safety buffer at burn rate</div>
         </div>
       </section>
 
-      <!-- TAB 1: SUMMARY -->
-      <section id="tab-dashboard" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- TAB 1: SUMMARY (WITH FRIENDS & SHARED BALANCES TRACKER) -->
+      <section id="tab-dashboard" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
           <h3 class="font-semibold text-sm text-slate-200 border-b border-slate-800 pb-3 flex items-center justify-between">
             <span>Liquid & Debt Positions</span>
-            <span class="text-xs text-slate-500 font-normal">Real-Time Balances</span>
+            <span class="text-xs text-slate-500 font-normal">Real-Time</span>
           </h3>
           <div id="quickBalancesList" class="divide-y divide-slate-800 mt-2"></div>
+        </div>
+
+        <!-- FRIENDS & FAMILY SHARED BALANCES TRACKER -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
+          <h3 class="font-semibold text-sm text-slate-200 border-b border-slate-800 pb-3 flex items-center justify-between">
+            <span>Friends & Shared Outstandings</span>
+            <span class="text-xs text-slate-500 font-normal">Sundry Debtors</span>
+          </h3>
+          <div id="quickFriendsList" class="divide-y divide-slate-800 mt-2"></div>
         </div>
 
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
@@ -204,8 +239,26 @@
         </div>
       </section>
 
-      <!-- TAB 2: CASH FLOW STATEMENT -->
+      <!-- TAB 2: CASH FLOW STATEMENT (NOW WITH DATE FILTERS) -->
       <section id="tab-cashflow" class="hidden space-y-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4 no-print">
+          <div class="flex items-center gap-3">
+            <div>
+              <label class="block text-[11px] font-medium text-slate-400 mb-0.5">Cash Flow From</label>
+              <input type="date" id="cfFromDate" onchange="renderCashFlow()" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-mono text-slate-200 outline-none focus:border-emerald-500">
+            </div>
+            <div>
+              <label class="block text-[11px] font-medium text-slate-400 mb-0.5">Cash Flow To</label>
+              <input type="date" id="cfToDate" onchange="renderCashFlow()" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-mono text-slate-200 outline-none focus:border-emerald-500">
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 pt-3">
+            <button onclick="setCFDatePreset('this_month')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700">This Month</button>
+            <button onclick="setCFDatePreset('this_fy')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700">Financial Year</button>
+            <button onclick="setCFDatePreset('all')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700">All Time</button>
+          </div>
+        </div>
+
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -245,7 +298,7 @@
         <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
           <div class="p-4 border-b border-slate-800 flex justify-between items-center">
             <span class="font-semibold text-sm text-white">Cash & Bank Movement Ledger</span>
-            <span class="text-xs font-mono text-slate-500">Reconciled with Balance Sheet</span>
+            <span class="text-xs font-mono text-slate-500">Reconciled</span>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-sm">
@@ -487,24 +540,23 @@
           <div id="creditCardsDeck" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
 
-        <!-- RECONCILED RECEIVABLES: NO STATUS COLUMN, ONLY NET OUTSTANDING -->
         <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
           <div class="p-4 border-b border-slate-800 flex justify-between items-center">
             <div>
-              <span class="font-bold text-sm text-white">Accounts Receivable • Bill-by-Bill Aging</span>
-              <p class="text-xs text-slate-400">Tracks active outstanding amounts from Sundry Debtors (cleared & settled parties excluded).</p>
+              <span class="font-bold text-sm text-white">Accounts Receivable • Active Due Parties</span>
+              <p class="text-xs text-slate-400">Tracks active debtor balances (fully settled and overpaid parties excluded automatically).</p>
             </div>
-            <span id="receivablesCount" class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded">0 bills</span>
+            <span id="receivablesCount" class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded">0 parties</span>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-sm">
               <thead class="bg-slate-800 text-slate-400 text-xs uppercase">
                 <tr>
                   <th class="p-3.5">Date</th>
-                  <th class="p-3.5">Voucher No</th>
+                  <th class="p-3.5">Ref Voucher</th>
                   <th class="p-3.5">Debtor Account</th>
                   <th class="p-3.5">Narration</th>
-                  <th class="p-3.5 text-right">Net Due (₹)</th>
+                  <th class="p-3.5 text-right">Net Due Balance (₹)</th>
                 </tr>
               </thead>
               <tbody id="receivablesList" class="divide-y divide-slate-800"></tbody>
@@ -517,19 +569,25 @@
       <section id="tab-balancesheet" class="hidden grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
           <div class="border-b border-slate-800 pb-3 mb-4 flex justify-between items-center">
-            <h3 class="font-bold text-red-400 uppercase text-xs tracking-wider">Liabilities & Capital</h3>
+            <h3 class="font-bold text-red-400 uppercase text-xs tracking-wider">Liabilities & Capital Equity</h3>
             <span id="bsTotalLiabilities" class="font-mono font-bold text-sm text-red-400">₹0.00</span>
           </div>
           <div class="space-y-4">
             <div>
-              <div class="text-xs font-semibold text-slate-400 uppercase mb-2">Capital / Net Worth</div>
-              <div class="flex justify-between text-sm py-1.5 border-b border-slate-800">
-                <span class="text-slate-300">Net Surplus / Capital</span>
-                <span id="bsNetWorth" class="font-mono text-blue-400">₹0.00</span>
+              <div class="text-xs font-semibold text-slate-400 uppercase mb-2">Capital & Accumulated Surplus</div>
+              <div class="space-y-1.5">
+                <div class="flex justify-between text-xs py-1.5 border-b border-slate-800">
+                  <span class="text-slate-300">Base Capital Account</span>
+                  <span id="bsBaseCapital" class="font-mono text-slate-200">₹0.00</span>
+                </div>
+                <div class="flex justify-between text-xs py-1.5 border-b border-slate-800">
+                  <span class="text-slate-300">Cumulative Net Surplus (P&L)</span>
+                  <span id="bsNetWorth" class="font-mono text-blue-400 font-bold">₹0.00</span>
+                </div>
               </div>
             </div>
             <div>
-              <div class="text-xs font-semibold text-slate-400 uppercase mb-2">Current & Long-Term Liabilities</div>
+              <div class="text-xs font-semibold text-slate-400 uppercase mb-2">Outside Liabilities (Cards & Loans)</div>
               <div id="bsLiabilitiesList" class="space-y-1.5"></div>
             </div>
           </div>
@@ -542,23 +600,23 @@
           </div>
           <div class="space-y-4">
             <div>
-              <div class="text-xs font-semibold text-slate-400 uppercase mb-2">Liquid, Bank & Investment Assets</div>
+              <div class="text-xs font-semibold text-slate-400 uppercase mb-2">Liquid, Bank & Fixed Assets</div>
               <div id="bsAssetsList" class="space-y-1.5"></div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- TAB 10: PROFIT & LOSS (WITH DATE FILTERS) -->
+      <!-- TAB 10: PROFIT & LOSS -->
       <section id="tab-pnl" class="hidden space-y-6">
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4 no-print">
           <div class="flex items-center gap-3">
             <div>
-              <label class="block text-[11px] font-medium text-slate-400 mb-0.5">P&L From Date</label>
+              <label class="block text-[11px] font-medium text-slate-400 mb-0.5">From Date</label>
               <input type="date" id="pnlFromDate" onchange="renderPnL()" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-mono text-slate-200 outline-none focus:border-green-500">
             </div>
             <div>
-              <label class="block text-[11px] font-medium text-slate-400 mb-0.5">P&L To Date</label>
+              <label class="block text-[11px] font-medium text-slate-400 mb-0.5">To Date</label>
               <input type="date" id="pnlToDate" onchange="renderPnL()" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-mono text-slate-200 outline-none focus:border-green-500">
             </div>
           </div>
@@ -588,27 +646,36 @@
         </div>
       </section>
 
-      <!-- TAB 11: DAY BOOK (WITH DATE & LEDGER FILTERS) -->
+      <!-- TAB 11: DAY BOOK -->
       <section id="tab-daybook" class="hidden space-y-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+        <div id="daybookFilters" class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4 no-print">
           <div class="flex flex-wrap items-center gap-3">
             <div>
               <label class="block text-[11px] font-medium text-slate-400 mb-0.5">Filter Ledger</label>
-              <select id="daybookLedgerFilter" onchange="renderDaybook()" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-blue-400 outline-none focus:border-blue-500">
+              <select id="daybookLedgerFilter" onchange="renderDaybook(1)" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-blue-400 outline-none focus:border-blue-500">
                 <option value="ALL">● All Accounts</option>
               </select>
             </div>
             <div>
               <label class="block text-[11px] font-medium text-slate-400 mb-0.5">From Date</label>
-              <input type="date" id="daybookFromDate" onchange="renderDaybook()" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-mono text-slate-200 outline-none focus:border-blue-500">
+              <input type="date" id="daybookFromDate" onchange="renderDaybook(1)" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-mono text-slate-200 outline-none focus:border-blue-500">
             </div>
             <div>
               <label class="block text-[11px] font-medium text-slate-400 mb-0.5">To Date</label>
-              <input type="date" id="daybookToDate" onchange="renderDaybook()" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-mono text-slate-200 outline-none focus:border-blue-500">
+              <input type="date" id="daybookToDate" onchange="renderDaybook(1)" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-mono text-slate-200 outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-[11px] font-medium text-slate-400 mb-0.5">Page Size</label>
+              <select id="daybookPageSize" onchange="renderDaybook(1)" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-mono text-slate-200 outline-none">
+                <option value="25">25 per page</option>
+                <option value="50">50 per page</option>
+                <option value="100">100 per page</option>
+                <option value="ALL">Show All</option>
+              </select>
             </div>
           </div>
           <div class="flex items-center gap-2 pt-3">
-            <button onclick="resetDaybookFilters()" class="bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 border border-slate-700">Clear Filters</button>
+            <button onclick="resetDaybookFilters()" class="bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 border border-slate-700">Clear</button>
             <span id="daybookCount" class="text-xs bg-slate-800 text-slate-300 font-mono px-2.5 py-1.5 rounded border border-slate-700">0 Vouchers</span>
           </div>
         </div>
@@ -625,11 +692,19 @@
                   <th class="p-3.5">Credit (Cr) Accounts</th>
                   <th class="p-3.5">Narration</th>
                   <th class="p-3.5 text-right">Amount (₹)</th>
-                  <th class="p-3.5 text-center">Actions</th>
+                  <th class="p-3.5 text-center no-print">Actions</th>
                 </tr>
               </thead>
               <tbody id="daybookList" class="divide-y divide-slate-800"></tbody>
             </table>
+          </div>
+          <div id="daybookPagination" class="p-3.5 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400 font-mono no-print">
+            <span id="paginationInfo">Showing 0 of 0</span>
+            <div class="space-x-1.5">
+              <button id="btnPrevPage" onclick="changeDaybookPage(-1)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 disabled:opacity-40">Previous</button>
+              <span id="currentPageNum" class="px-2 font-bold text-white">1</span>
+              <button id="btnNextPage" onclick="changeDaybookPage(1)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 disabled:opacity-40">Next</button>
+            </div>
           </div>
         </div>
       </section>
@@ -665,6 +740,66 @@
 
     </div>
   </main>
+
+  <!-- MODAL: GLOBAL SEARCH (Ctrl + K) -->
+  <div id="searchModal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-start justify-center z-50 p-4 pt-16">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-xl overflow-hidden shadow-2xl space-y-3">
+      <div class="p-3 border-b border-slate-800 flex items-center gap-3">
+        <i class="fa-solid fa-magnifying-glass text-slate-400 text-sm ml-2"></i>
+        <input type="text" id="globalSearchInput" oninput="executeGlobalSearch()" placeholder="Type voucher number, party name, narration, or amount..." class="w-full bg-transparent border-none text-white text-sm outline-none placeholder-slate-500">
+        <button onclick="closeSearchModal()" class="text-slate-400 hover:text-white px-2"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="searchResultsList" class="max-h-80 overflow-y-auto divide-y divide-slate-800 p-2 text-xs">
+        <div class="text-slate-500 text-center py-6">Type anything to search across all vouchers...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ONE-CLICK FRIEND ACCOUNT STATEMENT -->
+  <div id="friendStatementModal" class="fixed inset-0 bg-black bg-opacity-80 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white text-slate-900 rounded-xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+      <div class="p-6 border-b border-slate-200 flex justify-between items-start bg-slate-50">
+        <div>
+          <h3 id="stmtModalPartyName" class="text-lg font-bold text-slate-900">Statement of Account</h3>
+          <p class="text-xs text-slate-500 font-mono mt-0.5" id="stmtModalGenDate"></p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="printFriendlyStatement()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-print"></i> Print / PDF
+          </button>
+          <button onclick="closeFriendStatementModal()" class="text-slate-400 hover:text-slate-700 px-2 py-1"><i class="fa-solid fa-xmark text-base"></i></button>
+        </div>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-4 text-xs font-sans">
+        <div class="flex justify-between items-center bg-slate-100 p-3.5 rounded-lg border border-slate-200">
+          <div>
+            <span class="text-slate-500 text-[11px] block">Current Balance Status</span>
+            <span id="stmtModalNetStatus" class="font-bold text-sm text-slate-800">Calculating...</span>
+          </div>
+          <div class="text-right">
+            <span class="text-slate-500 text-[11px] block">Net Outstanding</span>
+            <span id="stmtModalNetBal" class="text-base font-bold font-mono text-blue-600">₹0.00</span>
+          </div>
+        </div>
+
+        <div class="border border-slate-200 rounded-lg overflow-hidden">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-100 text-slate-600 uppercase font-mono text-[10px] border-b border-slate-200">
+              <tr>
+                <th class="p-2.5">Date</th>
+                <th class="p-2.5">Particulars / Reason</th>
+                <th class="p-2.5 text-right">Debit (You Lent)</th>
+                <th class="p-2.5 text-right">Credit (Received)</th>
+                <th class="p-2.5 text-right">Net Due</th>
+              </tr>
+            </thead>
+            <tbody id="stmtModalTableBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL: SET BUDGET LIMIT -->
   <div id="budgetModal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
@@ -846,6 +981,15 @@
     let reportData = null;
     let currentStatementLedger = null;
     let currentSummaryGroup = null;
+    let daybookCurrentPage = 1;
+
+    function padZero(n) {
+      return String(n).padStart(2, '0');
+    }
+
+    function formatLocalDate(d) {
+      return `${d.getFullYear()}-${padZero(d.getMonth() + 1)}-${padZero(d.getDate())}`;
+    }
 
     function toggleCreditCardFields() {
       const grp = document.getElementById('lGroup');
@@ -946,7 +1090,7 @@
         populateStatementLedgerDropdown();
         applyStatementFilters();
       } else if (tab === 'daybook') {
-        renderDaybook();
+        renderDaybook(daybookCurrentPage);
       } else if (tab === 'pnl') {
         renderPnL();
       }
@@ -954,7 +1098,7 @@
 
     function exportCurrentViewCSV() {
       let csv = [];
-      let filename = `${activeTab}_export_${new Date().toISOString().split('T')[0]}.csv`;
+      let filename = `${activeTab}_export_${formatLocalDate(new Date())}.csv`;
 
       if (activeTab === 'ledgerstatement') {
         csv.push(['Date', 'Particulars', 'Voucher Type', 'Voucher No', 'Debit (Dr)', 'Credit (Cr)', 'Running Balance']);
@@ -995,55 +1139,88 @@
       link.remove();
     }
 
-    function renderCashFlow() {
-      if (!reportData || !reportData.cashFlow) return;
-      const cf = reportData.cashFlow;
+    // CASH FLOW PRESETS & RENDERER
+    function setCFDatePreset(preset) {
+      const now = new Date();
+      const fromEl = document.getElementById('cfFromDate');
+      const toEl = document.getElementById('cfToDate');
 
-      document.getElementById('cfNetChange').innerText = '₹' + cf.netCashFlow.toFixed(2);
-      document.getElementById('cfOperatingSum').innerText = '₹' + cf.operating.total.toFixed(2);
-      document.getElementById('cfInvestingSum').innerText = '₹' + cf.investing.total.toFixed(2);
-      document.getElementById('cfFinancingSum').innerText = '₹' + cf.financing.total.toFixed(2);
-
-      const tbody = document.getElementById('cashFlowTableBody');
-      const tfoot = document.getElementById('cashFlowTableFoot');
-
-      let rows = '';
-
-      function appendPillarRows(label, badgeClass, items) {
-        if (!items || items.length === 0) return;
-        items.forEach(it => {
-          const isPos = it.amount >= 0;
-          rows += '<tr class="hover:bg-slate-800 transition">' +
-            '<td class="p-3.5"><span class="px-2 py-0.5 rounded text-[11px] font-mono ' + badgeClass + '">' + label + '</span></td>' +
-            '<td class="p-3.5"><a href="javascript:void(0)" onclick="openLedgerStatement(\'' + it.ledger + '\')" class="font-medium text-slate-200 hover:text-blue-400">' + it.ledger + '</a>' +
-            (it.narration ? '<div class="text-xs text-slate-500 italic">' + it.narration + '</div>' : '') + '</td>' +
-            '<td class="p-3.5 text-xs text-slate-400">' + it.group + '</td>' +
-            '<td class="p-3.5 text-right font-mono font-semibold ' + (isPos ? 'text-green-400' : 'text-red-400') + '">' + (isPos ? '+' : '') + '₹' + it.amount.toFixed(2) + '</td>' +
-            '</tr>';
-        });
+      if (preset === 'this_month') {
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        fromEl.value = formatLocalDate(firstDay);
+        toEl.value = formatLocalDate(lastDay);
+      } else if (preset === 'this_fy') {
+        let fyStartYear = now.getFullYear();
+        if (now.getMonth() < 3) fyStartYear -= 1;
+        fromEl.value = `${fyStartYear}-04-01`;
+        toEl.value = `${fyStartYear + 1}-03-31`;
+      } else if (preset === 'all') {
+        fromEl.value = '';
+        toEl.value = '';
       }
 
-      appendPillarRows('Operating', 'bg-emerald-950 text-emerald-400 border border-emerald-800', cf.operating.items);
-      appendPillarRows('Investing', 'bg-purple-950 text-purple-400 border border-purple-800', cf.investing.items);
-      appendPillarRows('Financing', 'bg-blue-950 text-blue-400 border border-blue-800', cf.financing.items);
+      renderCashFlow();
+    }
 
-      tbody.innerHTML = rows || '<tr><td colspan="4" class="p-8 text-center text-slate-500">No cash or bank transactions recorded yet.</td></tr>';
+    async function renderCashFlow() {
+      const fromDate = document.getElementById('cfFromDate') ? document.getElementById('cfFromDate').value : '';
+      const toDate = document.getElementById('cfToDate') ? document.getElementById('cfToDate').value : '';
 
-      tfoot.innerHTML = '<tr class="border-b border-slate-800">' +
-        '<td colspan="3" class="p-3.5 text-slate-400">Opening Cash & Bank Balance</td>' +
-        '<td class="p-3.5 text-right font-mono text-slate-200">₹' + cf.openingCash.toFixed(2) + '</td>' +
-        '</tr>' +
-        '<tr>' +
-        '<td colspan="3" class="p-3.5 text-white font-bold">Closing Cash & Bank Balance (Reconciled)</td>' +
-        '<td class="p-3.5 text-right font-mono text-emerald-400 font-bold">₹' + cf.closingCash.toFixed(2) + '</td>' +
-        '</tr>';
+      try {
+        const url = `/api/reports?cfFromDate=${encodeURIComponent(fromDate)}&cfToDate=${encodeURIComponent(toDate)}`;
+        const res = await fetch(url).then(r => r.json());
+        if (!res || !res.cashFlow) return;
+
+        const cf = res.cashFlow;
+        document.getElementById('cfNetChange').innerText = '₹' + cf.netCashFlow.toFixed(2);
+        document.getElementById('cfOperatingSum').innerText = '₹' + cf.operating.total.toFixed(2);
+        document.getElementById('cfInvestingSum').innerText = '₹' + cf.investing.total.toFixed(2);
+        document.getElementById('cfFinancingSum').innerText = '₹' + cf.financing.total.toFixed(2);
+
+        const tbody = document.getElementById('cashFlowTableBody');
+        const tfoot = document.getElementById('cashFlowTableFoot');
+
+        let rows = '';
+
+        function appendPillarRows(label, badgeClass, items) {
+          if (!items || items.length === 0) return;
+          items.forEach(it => {
+            const isPos = it.amount >= 0;
+            rows += '<tr class="hover:bg-slate-800 transition">' +
+              '<td class="p-3.5"><span class="px-2 py-0.5 rounded text-[11px] font-mono ' + badgeClass + '">' + label + '</span></td>' +
+              '<td class="p-3.5"><a href="javascript:void(0)" onclick="openLedgerStatement(\'' + it.ledger + '\')" class="font-medium text-slate-200 hover:text-blue-400">' + it.ledger + '</a>' +
+              (it.narration ? '<div class="text-xs text-slate-500 italic">' + it.narration + '</div>' : '') + '</td>' +
+              '<td class="p-3.5 text-xs text-slate-400">' + it.group + '</td>' +
+              '<td class="p-3.5 text-right font-mono font-semibold ' + (isPos ? 'text-green-400' : 'text-red-400') + '">' + (isPos ? '+' : '') + '₹' + it.amount.toFixed(2) + '</td>' +
+              '</tr>';
+          });
+        }
+
+        appendPillarRows('Operating', 'bg-emerald-950 text-emerald-400 border border-emerald-800', cf.operating.items);
+        appendPillarRows('Investing', 'bg-purple-950 text-purple-400 border border-purple-800', cf.investing.items);
+        appendPillarRows('Financing', 'bg-blue-950 text-blue-400 border border-blue-800', cf.financing.items);
+
+        tbody.innerHTML = rows || '<tr><td colspan="4" class="p-8 text-center text-slate-500">No cash or bank movement recorded for this period.</td></tr>';
+
+        tfoot.innerHTML = '<tr class="border-b border-slate-800">' +
+          '<td colspan="3" class="p-3.5 text-slate-400">Opening Cash & Bank Balance b/f</td>' +
+          '<td class="p-3.5 text-right font-mono text-slate-200">₹' + cf.openingCash.toFixed(2) + '</td>' +
+          '</tr>' +
+          '<tr>' +
+          '<td colspan="3" class="p-3.5 text-white font-bold">Closing Cash & Bank Balance (Reconciled)</td>' +
+          '<td class="p-3.5 text-right font-mono text-emerald-400 font-bold">₹' + cf.closingCash.toFixed(2) + '</td>' +
+          '</tr>';
+      } catch (err) {
+        console.error('Failed to load filtered cash flow:', err);
+      }
     }
 
     function renderComparativePnL() {
       if (!reportData || !reportData.comparativePnL) return;
       const cp = reportData.comparativePnL;
 
-      document.getElementById('momPeriodBadge').innerText = `${cp.curLabel} vs ${cp.prevLabel}`;
+      document.getElementById('momPeriodBadge').innerText = `${cp.curLabel} vs${cp.prevLabel}`;
 
       const eList = document.getElementById('momExpensesList');
       eList.innerHTML = (cp.expenses || []).map(e => {
@@ -1228,19 +1405,19 @@
       }
     }
 
-    function openVoucherModal(id = null) {
+    function openVoucherModal(id = null, prefillData = null) {
       let voucher = null;
       if (id && reportData && reportData.vouchers) {
         voucher = reportData.vouchers.find(v => v.id === id);
       }
 
-      const today = new Date().toISOString().split('T')[0];
+      const today = formatLocalDate(new Date());
       document.getElementById('vId').value = voucher ? voucher.id : '';
       document.getElementById('voucherModalTitle').innerText = voucher ? 'Edit Split Voucher' : 'Record Split Voucher';
       document.getElementById('voucherNoPreview').innerText = voucher && voucher.voucher_no ? `Voucher No: ${voucher.voucher_no}` : 'Voucher No: Auto-Generated Sequential';
       document.getElementById('vDate').value = voucher && voucher.date ? voucher.date : today;
-      document.getElementById('vType').value = voucher ? voucher.voucher_type : 'Payment';
-      document.getElementById('vNarration').value = voucher ? voucher.narration : '';
+      document.getElementById('vType').value = voucher ? voucher.voucher_type : (prefillData ? prefillData.voucher_type : 'Payment');
+      document.getElementById('vNarration').value = voucher ? voucher.narration : (prefillData ? prefillData.narration : '');
 
       const container = document.getElementById('voucherEntriesContainer');
       container.innerHTML = '';
@@ -1250,6 +1427,8 @@
       } else if (voucher) {
         addVoucherEntryRow('Dr', voucher.dr_ledger, voucher.amount);
         addVoucherEntryRow('Cr', voucher.cr_ledger, voucher.amount);
+      } else if (prefillData && Array.isArray(prefillData.entries)) {
+        prefillData.entries.forEach(e => addVoucherEntryRow(e.type, e.ledger, e.amount));
       } else {
         const exp = masterData.ledgers.find(l => l.nature === 'Expense');
         const bank = masterData.ledgers.find(l => l.group.includes('Bank') || l.group === 'Credit Cards');
@@ -1268,6 +1447,186 @@
       modal.classList.remove('flex');
       document.getElementById('voucherForm').reset();
     }
+
+    // 1-CLICK SETTLEMENT FOR FRIENDS
+    function settleFriendBalance(debtorName, amount) {
+      const defaultBank = (masterData.ledgers || []).find(l => l.group.includes('Bank') || l.group.includes('Cash'));
+      const bankName = defaultBank ? defaultBank.name : 'Cash Wallet';
+
+      if (amount > 0) {
+        // Friend owes you: record a Receipt
+        openVoucherModal(null, {
+          voucher_type: 'Receipt',
+          narration: `Full settlement from ${debtorName}`,
+          entries: [
+            { type: 'Dr', ledger: bankName, amount: Math.abs(amount) },
+            { type: 'Cr', ledger: debtorName, amount: Math.abs(amount) }
+          ]
+        });
+      } else {
+        // You overpaid friend / owe friend: record a Payment
+        openVoucherModal(null, {
+          voucher_type: 'Payment',
+          narration: `Settlement payment to ${debtorName}`,
+          entries: [
+            { type: 'Dr', ledger: debtorName, amount: Math.abs(amount) },
+            { type: 'Cr', ledger: bankName, amount: Math.abs(amount) }
+          ]
+        });
+      }
+    }
+
+    // FRIEND STATEMENT MODAL (ONE-CLICK SHARE)
+    function openFriendStatement(partyName) {
+      const modal = document.getElementById('friendStatementModal');
+      document.getElementById('stmtModalPartyName').innerText = `Statement of Account: ${partyName}`;
+      document.getElementById('stmtModalGenDate').innerText = `Generated on ${formatLocalDate(new Date())}`;
+
+      const allVouchers = (reportData && reportData.vouchers) ? reportData.vouchers.slice() : [];
+      allVouchers.sort((a, b) => (a.date || '').localeCompare(b.date || '') || a.id - b.id);
+
+      const targetLedger = (masterData.ledgers || []).find(l => l.name === partyName);
+      let runningBal = targetLedger ? (parseFloat(targetLedger.openingBalance) || 0) : 0;
+
+      const tbody = document.getElementById('stmtModalTableBody');
+      let rowsHtml = '';
+
+      if (runningBal !== 0) {
+        rowsHtml += `<tr class="bg-slate-50 font-mono text-[11px] font-semibold text-slate-500">
+          <td class="p-2.5">Beginning</td>
+          <td class="p-2.5 italic">Opening Balance b/f</td>
+          <td class="p-2.5 text-right font-mono">${runningBal > 0 ? '₹' + runningBal.toFixed(2) : '-'}</td>
+          <td class="p-2.5 text-right font-mono">${runningBal < 0 ? '₹' + Math.abs(runningBal).toFixed(2) : '-'}</td>
+          <td class="p-2.5 text-right font-bold text-slate-800">₹${runningBal.toFixed(2)}</td>
+        </tr>`;
+      }
+
+      allVouchers.forEach(v => {
+        const entries = (Array.isArray(v.entries) && v.entries.length > 0)
+          ? v.entries
+          : [{ type: 'Dr', ledger: v.dr_ledger, amount: v.amount }, { type: 'Cr', ledger: v.cr_ledger, amount: v.amount }];
+
+        const myEntry = entries.find(e => e.ledger === partyName);
+        if (!myEntry) return;
+
+        const amt = parseFloat(myEntry.amount) || 0;
+        const isDr = (myEntry.type === 'Dr');
+
+        // Dr on debtor = You lent / spent on their behalf
+        // Cr on debtor = They reimbursed / paid you
+        if (isDr) runningBal += amt;
+        else runningBal -= amt;
+
+        rowsHtml += `<tr class="hover:bg-slate-50">
+          <td class="p-2.5 text-slate-500 font-mono">${v.date}</td>
+          <td class="p-2.5"><span class="font-medium text-slate-900">${v.narration || v.voucher_type}</span> <span class="text-[10px] text-slate-400 font-mono">(${v.voucher_no || '#' + String(v.id).slice(-4)})</span></td>
+          <td class="p-2.5 text-right font-mono font-semibold ${isDr ? 'text-amber-600' : 'text-slate-400'}">${isDr ? '₹' + amt.toFixed(2) : '-'}</td>
+          <td class="p-2.5 text-right font-mono font-semibold ${!isDr ? 'text-green-600' : 'text-slate-400'}">${!isDr ? '₹' + amt.toFixed(2) : '-'}</td>
+          <td class="p-2.5 text-right font-mono font-bold text-slate-800">₹${runningBal.toFixed(2)}</td>
+        </tr>`;
+      });
+
+      tbody.innerHTML = rowsHtml || '<tr><td colspan="5" class="p-6 text-center text-slate-400">No transactions recorded for this account.</td></tr>';
+
+      const statusEl = document.getElementById('stmtModalNetStatus');
+      const balEl = document.getElementById('stmtModalNetBal');
+
+      if (runningBal > 0.01) {
+        statusEl.innerText = `${partyName} owes you money`;
+        balEl.innerText = '₹' + runningBal.toFixed(2);
+        balEl.className = 'text-base font-bold font-mono text-amber-600';
+      } else if (runningBal < -0.01) {
+        statusEl.innerText = `You owe ${partyName} (Excess Advance)`;
+        balEl.innerText = '₹' + Math.abs(runningBal).toFixed(2);
+        balEl.className = 'text-base font-bold font-mono text-red-600';
+      } else {
+        statusEl.innerText = 'All accounts settled & cleared (₹0.00)';
+        balEl.innerText = '₹0.00';
+        balEl.className = 'text-base font-bold font-mono text-green-600';
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeFriendStatementModal() {
+      const modal = document.getElementById('friendStatementModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function printFriendlyStatement() {
+      window.print();
+    }
+
+    // GLOBAL SMART SEARCH (Ctrl + K)
+    function openSearchModal() {
+      const m = document.getElementById('searchModal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+      const input = document.getElementById('globalSearchInput');
+      input.value = '';
+      input.focus();
+      executeGlobalSearch();
+    }
+
+    function closeSearchModal() {
+      const m = document.getElementById('searchModal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
+
+    function executeGlobalSearch() {
+      const q = (document.getElementById('globalSearchInput').value || '').trim().toLowerCase();
+      const container = document.getElementById('searchResultsList');
+
+      if (!reportData || !reportData.vouchers) return;
+
+      if (!q) {
+        container.innerHTML = '<div class="text-slate-500 text-center py-6">Type anything to search across all vouchers...</div>';
+        return;
+      }
+
+      const matches = reportData.vouchers.filter(v => {
+        const vNo = (v.voucher_no || '').toLowerCase();
+        const narr = (v.narration || '').toLowerCase();
+        const amt = String(v.amount);
+        const dr = (v.dr_ledger || '').toLowerCase();
+        const cr = (v.cr_ledger || '').toLowerCase();
+        const date = (v.date || '').toLowerCase();
+
+        return vNo.includes(q) || narr.includes(q) || amt.includes(q) || dr.includes(q) || cr.includes(q) || date.includes(q);
+      }).slice(0, 15);
+
+      if (matches.length === 0) {
+        container.innerHTML = `<div class="text-slate-500 text-center py-6">No matching vouchers found for "${q}".</div>`;
+        return;
+      }
+
+      container.innerHTML = matches.map(v => {
+        return `<div onclick="closeSearchModal(); openVoucherModal(${v.id})" class="p-2.5 rounded-lg hover:bg-slate-800 cursor-pointer flex justify-between items-center transition">
+          <div>
+            <div class="font-semibold text-slate-200 flex items-center gap-2">
+              <span class="text-blue-400 font-mono">${v.voucher_no || '#' + String(v.id).slice(-4)}</span>
+              <span class="text-slate-400">${v.dr_ledger} ←${v.cr_ledger}</span>
+            </div>
+            <div class="text-[11px] text-slate-500 mt-0.5">${v.date} •${v.narration || 'No narration'}</div>
+          </div>
+          <span class="font-mono font-bold text-white text-sm">₹${Number(v.amount).toFixed(2)}</span>
+        </div>`;
+      }).join('');
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        openSearchModal();
+      }
+      if (e.key === 'Escape') {
+        closeSearchModal();
+        closeFriendStatementModal();
+      }
+    });
 
     function populateGroupSummaryDropdown() {
       const sel = document.getElementById('groupSummarySelect');
@@ -1408,15 +1767,15 @@
       const toEl = document.getElementById('filterToDate');
 
       if (preset === 'this_month') {
-        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
-        fromEl.value = firstDay;
-        toEl.value = lastDay;
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        fromEl.value = formatLocalDate(firstDay);
+        toEl.value = formatLocalDate(lastDay);
       } else if (preset === 'this_fy') {
         let fyStartYear = now.getFullYear();
         if (now.getMonth() < 3) fyStartYear -= 1;
-        fromEl.value = fyStartYear + '-04-01';
-        toEl.value = (fyStartYear + 1) + '-03-31';
+        fromEl.value = `${fyStartYear}-04-01`;
+        toEl.value = `${fyStartYear + 1}-03-31`;
       } else if (preset === 'all') {
         fromEl.value = '';
         toEl.value = '';
@@ -1437,15 +1796,25 @@
       if (currentVal) sel.value = currentVal;
     }
 
-    // INTERACTIVE LEDGER STATEMENT: CLICKING ROW JUMPS TO DAYBOOK
     function jumpToDaybookVoucher(voucherId) {
       switchTab('daybook');
       setTimeout(() => {
-        const row = document.getElementById('db_vch_' + voucherId);
-        if (row) {
-          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          row.classList.add('highlight-flash');
-          setTimeout(() => row.classList.remove('highlight-flash'), 2600);
+        const targetRow = document.getElementById('db_vch_' + voucherId);
+        if (targetRow) {
+          targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          targetRow.classList.add('highlight-flash');
+          setTimeout(() => targetRow.classList.remove('highlight-flash'), 2600);
+        } else {
+          document.getElementById('daybookPageSize').value = 'ALL';
+          renderDaybook(1);
+          setTimeout(() => {
+            const row = document.getElementById('db_vch_' + voucherId);
+            if (row) {
+              row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              row.classList.add('highlight-flash');
+              setTimeout(() => row.classList.remove('highlight-flash'), 2600);
+            }
+          }, 150);
         }
       }, 100);
     }
@@ -1669,7 +2038,8 @@
           renderBudgets();
           renderTrialBalance();
           renderDues();
-          renderDaybook();
+          renderFriendsDashboard();
+          renderDaybook(daybookCurrentPage);
           renderBalanceSheet();
           renderPnL();
           if (activeTab === 'ledgerstatement') applyStatementFilters();
@@ -1688,11 +2058,27 @@
       const cb = document.getElementById('metricCashBank');
       const dt = document.getElementById('metricDebt');
       const sp = document.getElementById('metricSurplus');
+      const rw = document.getElementById('metricRunway');
+      const rwNote = document.getElementById('metricRunwayNote');
 
       if (nw) nw.innerText = '₹' + (m.netWorth || 0).toFixed(2);
       if (cb) cb.innerText = '₹' + (m.liquidCashBank || 0).toFixed(2);
       if (dt) dt.innerText = '₹' + (m.totalUnsecuredDebt || 0).toFixed(2);
       if (sp) sp.innerText = '₹' + (m.netSurplus || 0).toFixed(2);
+
+      if (rw) {
+        rw.innerText = `${m.runwayMonths} mo`;
+        if (m.runwayMonths < 1) {
+          rw.className = 'text-2xl font-bold mt-2 text-red-500';
+          rwNote.innerHTML = '<span class="text-red-400 font-semibold">Critical:</span> Less than 1 month burn';
+        } else if (m.runwayMonths < 3) {
+          rw.className = 'text-2xl font-bold mt-2 text-yellow-400';
+          rwNote.innerText = `Burn: ₹${m.avgMonthlyBurn.toFixed(0)}/mo (Building buffer)`;
+        } else {
+          rw.className = 'text-2xl font-bold mt-2 text-emerald-400';
+          rwNote.innerText = `Burn: ₹${m.avgMonthlyBurn.toFixed(0)}/mo (Strong reserve)`;
+        }
+      }
 
       const badge = document.getElementById('solvencyBadge');
       const note = document.getElementById('solvencyNote');
@@ -1736,6 +2122,44 @@
             '<span class="font-mono font-bold text-slate-100">₹' + Number(v.amount).toFixed(2) + '</span></div>';
         }).join('') || '<div class="text-xs text-slate-500 py-4 text-center">No transactions recorded yet.</div>';
       }
+    }
+
+    // RENDER FRIENDS DASHBOARD TRACKER
+    function renderFriendsDashboard() {
+      const container = document.getElementById('quickFriendsList');
+      if (!container || !reportData || !reportData.friendsList) return;
+
+      if (reportData.friendsList.length === 0) {
+        container.innerHTML = '<div class="text-xs text-slate-500 py-4 text-center">No friends or debtor accounts under Sundry Debtors.</div>';
+        return;
+      }
+
+      container.innerHTML = reportData.friendsList.map(f => {
+        const bal = f.balance || 0;
+        let badge = '';
+        if (bal > 0.01) {
+          badge = `<span class="text-amber-400 font-mono font-bold">Owes ₹${bal.toFixed(2)}</span>`;
+        } else if (bal < -0.01) {
+          badge = `<span class="text-red-400 font-mono font-semibold">Advance ₹${Math.abs(bal).toFixed(2)}</span>`;
+        } else {
+          badge = '<span class="text-emerald-400 font-mono text-[11px] bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-800">Settled (₹0)</span>';
+        }
+
+        return `<div class="py-2.5 flex justify-between items-center text-xs">
+          <div>
+            <a href="javascript:void(0)" onclick="openLedgerStatement('${f.name}')" class="font-medium text-slate-200 hover:text-blue-400">${f.name}</a>
+            <div class="mt-0.5">${badge}</div>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button onclick="openFriendStatement('${f.name}')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded text-[11px] font-medium border border-slate-700 transition" title="Generate Shareable Statement">
+              <i class="fa-solid fa-file-invoice mr-1 text-blue-400"></i>Share
+            </button>
+            <button onclick="settleFriendBalance('${f.name}',${bal})" class="bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded text-[11px] font-semibold transition" title="1-Click Settle">
+              Settle
+            </button>
+          </div>
+        </div>`;
+      }).join('');
     }
 
     function renderDues() {
@@ -1785,13 +2209,12 @@
               '<td class="p-3.5 text-xs font-mono text-slate-400">' + r.voucher_no + '</td>' +
               '<td class="p-3.5 font-medium text-slate-200"><a href="javascript:void(0)" onclick="openLedgerStatement(\'' + r.debtor + '\')" class="hover:text-blue-400">' + r.debtor + '</a></td>' +
               '<td class="p-3.5 text-xs text-slate-400 truncate max-w-xs">' + (r.narration || '-') + '</td>' +
-              '<td class="p-3.5 text-right font-mono font-bold text-white">₹' + Number(r.amount).toFixed(2) + '</td></tr>';
+              '<td class="p-3.5 text-right font-mono font-bold text-green-400">₹' + Number(r.amount).toFixed(2) + '</td></tr>';
           }).join('');
         }
       }
     }
 
-    // DAY BOOK: POPULATE LEDGER FILTER
     function populateDaybookLedgerFilter() {
       const sel = document.getElementById('daybookLedgerFilter');
       if (!sel || !masterData.ledgers) return;
@@ -1807,11 +2230,15 @@
       document.getElementById('daybookLedgerFilter').value = 'ALL';
       document.getElementById('daybookFromDate').value = '';
       document.getElementById('daybookToDate').value = '';
-      renderDaybook();
+      document.getElementById('daybookPageSize').value = '25';
+      renderDaybook(1);
     }
 
-    // DAY BOOK: FILTERED & SORTED NEWEST TO OLDEST
-    function renderDaybook() {
+    function changeDaybookPage(delta) {
+      renderDaybook(daybookCurrentPage + delta);
+    }
+
+    function renderDaybook(page = 1) {
       if (!reportData || !reportData.vouchers) return;
       const list = document.getElementById('daybookList');
       const count = document.getElementById('daybookCount');
@@ -1820,6 +2247,7 @@
       const ledgerFilter = document.getElementById('daybookLedgerFilter') ? document.getElementById('daybookLedgerFilter').value : 'ALL';
       const fromDate = document.getElementById('daybookFromDate') ? document.getElementById('daybookFromDate').value : '';
       const toDate = document.getElementById('daybookToDate') ? document.getElementById('daybookToDate').value : '';
+      const pageSizeVal = document.getElementById('daybookPageSize') ? document.getElementById('daybookPageSize').value : '25';
 
       let vouchers = reportData.vouchers.slice();
 
@@ -1842,14 +2270,37 @@
         vouchers = vouchers.filter(v => (v.date || '') <= toDate);
       }
 
-      if (count) count.innerText = vouchers.length + ' Vouchers';
+      const totalItems = vouchers.length;
+      if (count) count.innerText = totalItems + ' Vouchers';
 
-      if (vouchers.length === 0) {
+      // Pagination
+      const pageSize = pageSizeVal === 'ALL' ? totalItems : parseInt(pageSizeVal);
+      const totalPages = Math.max(1, Math.ceil(totalItems / (pageSize || 1)));
+      daybookCurrentPage = Math.min(Math.max(1, page), totalPages);
+
+      const startIndex = pageSizeVal === 'ALL' ? 0 : (daybookCurrentPage - 1) * pageSize;
+      const pageVouchers = pageSizeVal === 'ALL' ? vouchers : vouchers.slice(startIndex, startIndex + pageSize);
+
+      const paginationInfo = document.getElementById('paginationInfo');
+      const currentPageNum = document.getElementById('currentPageNum');
+      const btnPrev = document.getElementById('btnPrevPage');
+      const btnNext = document.getElementById('btnNextPage');
+
+      if (paginationInfo) {
+        paginationInfo.innerText = totalItems > 0 
+          ? `Showing ${startIndex + 1}–${Math.min(startIndex + pageVouchers.length, totalItems)} of${totalItems}`
+          : 'Showing 0 of 0';
+      }
+      if (currentPageNum) currentPageNum.innerText = `${daybookCurrentPage} /${totalPages}`;
+      if (btnPrev) btnPrev.disabled = (daybookCurrentPage <= 1);
+      if (btnNext) btnNext.disabled = (daybookCurrentPage >= totalPages);
+
+      if (pageVouchers.length === 0) {
         list.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-500">No vouchers match the selected filter.</td></tr>';
         return;
       }
 
-      list.innerHTML = vouchers.map(v => {
+      list.innerHTML = pageVouchers.map(v => {
         const vNo = v.voucher_no || `#${String(v.id).slice(-6)}`;
         return '<tr id="db_vch_' + v.id + '" class="hover:bg-slate-800 transition">' +
           '<td class="p-3.5 text-xs font-mono text-slate-400">' + v.date + '</td>' +
@@ -1859,7 +2310,7 @@
           '<td class="p-3.5 text-sm font-medium text-red-400">' + (v.cr_ledger || '-') + '</td>' +
           '<td class="p-3.5 text-xs text-slate-400 max-w-xs truncate">' + (v.narration || '-') + '</td>' +
           '<td class="p-3.5 text-right font-mono font-bold text-white">₹' + Number(v.amount).toFixed(2) + '</td>' +
-          '<td class="p-3.5 text-center space-x-2">' +
+          '<td class="p-3.5 text-center space-x-2 no-print">' +
           '<button onclick="openVoucherModal(' + v.id + ')" class="text-blue-400 hover:text-blue-300 text-xs"><i class="fa-solid fa-pen"></i></button>' +
           '<button onclick="deleteVoucher(' + v.id + ')" class="text-red-400 hover:text-red-300 text-xs"><i class="fa-solid fa-trash"></i></button>' +
           '</td></tr>';
@@ -1873,10 +2324,17 @@
       const ta = document.getElementById('bsTotalAssets');
       const tl = document.getElementById('bsTotalLiabilities');
       const nw = document.getElementById('bsNetWorth');
+      const bc = document.getElementById('bsBaseCapital');
 
-      if (ta) ta.innerText = '₹' + ((reportData.metrics && reportData.metrics.totalAssets) || 0).toFixed(2);
-      if (tl) tl.innerText = '₹' + (((reportData.metrics && reportData.metrics.totalLiabilities) || 0) + ((reportData.metrics && reportData.metrics.netWorth) || 0)).toFixed(2);
-      if (nw) nw.innerText = '₹' + ((reportData.metrics && reportData.metrics.netWorth) || 0).toFixed(2);
+      const totalAssets = (reportData.metrics && reportData.metrics.totalAssets) || 0;
+      const totalLiab = (reportData.metrics && reportData.metrics.totalLiabilities) || 0;
+      const baseCapital = bs.capital || 0;
+      const netSurplus = bs.netSurplus || 0;
+
+      if (ta) ta.innerText = '₹' + totalAssets.toFixed(2);
+      if (tl) tl.innerText = '₹' + (totalLiab + baseCapital + netSurplus).toFixed(2);
+      if (bc) bc.innerText = '₹' + baseCapital.toFixed(2);
+      if (nw) nw.innerText = (netSurplus >= 0 ? '+' : '') + '₹' + netSurplus.toFixed(2);
 
       const aList = document.getElementById('bsAssetsList');
       if (aList) {
@@ -1895,26 +2353,25 @@
             '<a href="javascript:void(0)" onclick="openLedgerStatement(\'' + l.name + '\')" class="text-slate-200 font-medium hover:text-blue-400">' + l.name + '</a>' +
             '<span class="text-slate-500 block text-xs"><a href="javascript:void(0)" onclick="drillIntoGroup(\'' + l.group + '\'); switchTab(\'groupsummary\');" class="hover:underline text-purple-400">' + l.group + '</a></span></div>' +
             '<span class="font-mono text-red-400 font-semibold">₹' + (l.balance || 0).toFixed(2) + '</span></div>';
-        }).join('') || '<div class="text-xs text-slate-500">No liabilities recorded.</div>';
+        }).join('') || '<div class="text-xs text-slate-500">No outside liabilities recorded.</div>';
       }
     }
 
-    // P&L PRESETS & FILTER ENGINE
     function setPnLDatePreset(preset) {
       const now = new Date();
       const fromEl = document.getElementById('pnlFromDate');
       const toEl = document.getElementById('pnlToDate');
 
       if (preset === 'this_month') {
-        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
-        fromEl.value = firstDay;
-        toEl.value = lastDay;
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        fromEl.value = formatLocalDate(firstDay);
+        toEl.value = formatLocalDate(lastDay);
       } else if (preset === 'this_fy') {
         let fyStartYear = now.getFullYear();
         if (now.getMonth() < 3) fyStartYear -= 1;
-        fromEl.value = fyStartYear + '-04-01';
-        toEl.value = (fyStartYear + 1) + '-03-31';
+        fromEl.value = `${fyStartYear}-04-01`;
+        toEl.value = `${fyStartYear + 1}-03-31`;
       } else if (preset === 'all') {
         fromEl.value = '';
         toEl.value = '';
