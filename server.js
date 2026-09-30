@@ -7,6 +7,14 @@ const DB_FILE = path.join(__dirname, 'tally_books.json');
 const TEMPLATE_FILE = path.join(__dirname, 'default_books.json');
 const PUBLIC_DIR = path.join(__dirname, 'public');
 
+function padZero(n) {
+  return String(n).padStart(2, '0');
+}
+
+function formatLocalDate(d) {
+  return `${d.getFullYear()}-${padZero(d.getMonth() + 1)}-${padZero(d.getDate())}`;
+}
+
 function readBooks() {
   try {
     if (!fs.existsSync(DB_FILE)) {
@@ -161,14 +169,29 @@ function computeTrialBalance(books, ledgerBalances) {
   };
 }
 
-function computeCashFlow(books, ledgerBalances) {
+// DATE-FILTERED CASH FLOW STATEMENT (Direct Method)
+function computeCashFlow(books, fromDate = '', toDate = '') {
   const cashBankLedgers = (books.ledgers || [])
     .filter(l => l.group.includes('Bank') || l.group.includes('Cash'))
     .map(l => l.name);
 
+  // Compute opening cash balance before fromDate
   let openingCash = 0;
   (books.ledgers || []).filter(l => cashBankLedgers.includes(l.name)).forEach(l => {
     openingCash += parseFloat(l.openingBalance) || 0;
+  });
+
+  (books.vouchers || []).forEach(v => {
+    const vDate = v.date || '';
+    if (fromDate && vDate < fromDate) {
+      const entries = getNormalizedEntries(v);
+      entries.forEach(e => {
+        if (cashBankLedgers.includes(e.ledger)) {
+          if (e.type === 'Dr') openingCash += e.amount;
+          else openingCash -= e.amount;
+        }
+      });
+    }
   });
 
   const operatingItems = [];
@@ -180,6 +203,10 @@ function computeCashFlow(books, ledgerBalances) {
   let financingTotal = 0;
 
   (books.vouchers || []).forEach(v => {
+    const vDate = v.date || '';
+    if (fromDate && vDate < fromDate) return;
+    if (toDate && vDate > toDate) return;
+
     const entries = getNormalizedEntries(v);
     const hasCashBank = entries.some(e => cashBankLedgers.includes(e.ledger));
     if (!hasCashBank) return;
@@ -245,13 +272,12 @@ function computeComparativePnL(books) {
   const curYear = now.getFullYear();
   const curMonth = now.getMonth();
 
-  const pad = n => String(n).padStart(2, '0');
-  const curPrefix = `${curYear}-${pad(curMonth + 1)}`;
+  const curPrefix = `${curYear}-${padZero(curMonth + 1)}`;
 
   let prevYear = curYear;
   let prevMonth = curMonth - 1;
   if (prevMonth < 0) { prevMonth = 11; prevYear -= 1; }
-  const prevPrefix = `${prevYear}-${pad(prevMonth + 1)}`;
+  const prevPrefix = `${prevYear}-${padZero(prevMonth + 1)}`;
 
   const expMap = {};
   const incMap = {};
@@ -301,8 +327,7 @@ function computeComparativePnL(books) {
 
 function computeBudgets(books) {
   const now = new Date();
-  const pad = n => String(n).padStart(2, '0');
-  const curPrefix = `${now.getFullYear()}-${pad(now.getMonth() + 1)}`;
+  const curPrefix = `${now.getFullYear()}-${padZero(now.getMonth() + 1)}`;
   const budgets = books.budgets || {};
 
   const actuals = {};
@@ -339,17 +364,14 @@ function computeBudgets(books) {
   return list;
 }
 
-// CREDIT CARDS & ACCURATE RECEIVABLES ENGINE
 function computeDues(books, ledgerBalances) {
   const cards = [];
   const receivables = [];
 
   try {
     const now = new Date();
-    const pad = n => String(n).padStart(2, '0');
-    const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    const todayStr = formatLocalDate(now);
 
-    // 1. Credit Cards Engine
     (books.ledgers || []).filter(l => l.group === 'Credit Cards').forEach(card => {
       const bal = ledgerBalances[card.name] ? ledgerBalances[card.name].closingBalance : 0;
       const bDay = parseInt(card.billingDay) || 15;
@@ -373,7 +395,7 @@ function computeDues(books, ledgerBalances) {
       const maxDaysInStmtMonth = new Date(stmtYear, stmtMonth + 1, 0).getDate();
       const actualStmtDay = Math.min(bDay, maxDaysInStmtMonth);
       const stmtDate = new Date(stmtYear, stmtMonth, actualStmtDay);
-      const stmtStr = `${stmtYear}-${pad(stmtMonth + 1)}-${pad(actualStmtDay)}`;
+      const stmtStr = formatLocalDate(stmtDate);
 
       let prevStmtYear = stmtYear;
       let prevStmtMonth = stmtMonth - 1;
@@ -383,7 +405,8 @@ function computeDues(books, ledgerBalances) {
       }
       const maxDaysInPrevMonth = new Date(prevStmtYear, prevStmtMonth + 1, 0).getDate();
       const actualPrevStmtDay = Math.min(bDay, maxDaysInPrevMonth);
-      const prevStmtStr = `${prevStmtYear}-${pad(prevStmtMonth + 1)}-${pad(actualPrevStmtDay)}`;
+      const prevStmtDate = new Date(prevStmtYear, prevStmtMonth, actualPrevStmtDay);
+      const prevStmtStr = formatLocalDate(prevStmtDate);
 
       let nextStmtYear = stmtYear;
       let nextStmtMonth = stmtMonth + 1;
@@ -393,10 +416,11 @@ function computeDues(books, ledgerBalances) {
       }
       const maxDaysInNextMonth = new Date(nextStmtYear, nextStmtMonth + 1, 0).getDate();
       const actualNextStmtDay = Math.min(bDay, maxDaysInNextMonth);
-      const nextStmtStr = `${nextStmtYear}-${pad(nextStmtMonth + 1)}-${pad(actualNextStmtDay)}`;
+      const nextStmtDate = new Date(nextStmtYear, nextStmtMonth, actualNextStmtDay);
+      const nextStmtStr = formatLocalDate(nextStmtDate);
 
       const dueDate = new Date(stmtDate.getTime() + (grace * 86400000));
-      const dueStr = `${dueDate.getFullYear()}-${pad(dueDate.getMonth() + 1)}-${pad(dueDate.getDate())}`;
+      const dueStr = formatLocalDate(dueDate);
 
       let billedDebits = 0;
       let repaymentsAfterStmt = 0;
@@ -424,7 +448,7 @@ function computeDues(books, ledgerBalances) {
       });
 
       const billedAmount = Math.max(0, billedDebits - repaymentsAfterStmt);
-      const daysLeft = Math.ceil((dueDate - new Date(todayStr)) / 86400000);
+      const daysLeft = Math.ceil((dueDate.getTime() - new Date(todayStr + 'T00:00:00').getTime()) / 86400000);
 
       let statusTag = '';
       let statusLevel = '';
@@ -473,14 +497,11 @@ function computeDues(books, ledgerBalances) {
       });
     });
 
-    // 2. Real Net Receivables (Excludes fully paid or overpaid debtors)
     (books.ledgers || [])
       .filter(l => l.group && (l.group.includes('Debtor') || l.group.includes('Receivable')))
       .forEach(debtor => {
         const netBal = ledgerBalances[debtor.name] ? ledgerBalances[debtor.name].closingBalance : 0;
-        // Only show if debtor actually owes money (net closing balance > 0)
         if (netBal > 0.01) {
-          // Find the most recent unpaid debit voucher for reference
           const debtorVouchers = (books.vouchers || [])
             .filter(v => getNormalizedEntries(v).some(e => e.ledger === debtor.name && e.type === 'Dr'))
             .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
@@ -489,10 +510,10 @@ function computeDues(books, ledgerBalances) {
 
           receivables.push({
             id: latestVoucher ? latestVoucher.id : debtor.id,
-            voucher_no: latestVoucher ? (latestVoucher.voucher_no || `#${String(latestVoucher.id).slice(-6)}`) : 'LEDGER-BAL',
+            voucher_no: latestVoucher ? (latestVoucher.voucher_no || `#${String(latestVoucher.id).slice(-6)}`) : 'BAL-BF',
             debtor: debtor.name,
             invoiceDate: latestVoucher ? latestVoucher.date : todayStr,
-            narration: latestVoucher ? (latestVoucher.narration || 'Outstanding Balance') : 'Net Outstanding Balance',
+            narration: latestVoucher ? (latestVoucher.narration || 'Unsettled Debit Balance') : 'Unsettled Debit Balance',
             amount: netBal
           });
         }
@@ -510,7 +531,7 @@ const server = http.createServer((req, res) => {
 
   if (req.method === 'GET' && pathname === '/api/backup') {
     const data = fs.readFileSync(DB_FILE, 'utf8');
-    const dateStr = new Date().toISOString().split('T')[0];
+    const dateStr = formatLocalDate(new Date());
     res.writeHead(200, {
       'Content-Type': 'application/json',
       'Content-Disposition': `attachment; filename="tally_backup_${dateStr}.json"`
@@ -712,7 +733,7 @@ const server = http.createServer((req, res) => {
         const payload = JSON.parse(body);
         const books = readBooks();
 
-        const vDate = payload.date || new Date().toISOString().split('T')[0];
+        const vDate = payload.date || formatLocalDate(new Date());
         const vType = payload.voucher_type || 'Payment';
         let entries = [];
 
@@ -802,6 +823,9 @@ const server = http.createServer((req, res) => {
     try {
       const books = readBooks();
 
+      const cfFromDate = parsed.searchParams.get('cfFromDate') || '';
+      const cfToDate = parsed.searchParams.get('cfToDate') || '';
+
       let modified = false;
       books.vouchers.forEach(v => {
         if (!v.voucher_no) {
@@ -814,7 +838,7 @@ const server = http.createServer((req, res) => {
       const balances = calculateBalances(books);
       const dues = computeDues(books, balances);
       const trialBalance = computeTrialBalance(books, balances);
-      const cashFlow = computeCashFlow(books, balances);
+      const cashFlow = computeCashFlow(books, cfFromDate, cfToDate);
       const comparativePnL = computeComparativePnL(books);
       const budgets = computeBudgets(books);
 
@@ -825,6 +849,7 @@ const server = http.createServer((req, res) => {
       let totalExpenses = 0;
       let liquidCashBank = 0;
       let totalUnsecuredDebt = 0;
+      let monthlyBurnRate = 0;
 
       const assetList = [];
       const liabList = [];
@@ -851,10 +876,33 @@ const server = http.createServer((req, res) => {
         } else if (l.nature === 'Expense') {
           totalExpenses += bal;
           expList.push({ name: l.name, group: l.group, balance: bal });
+          // Essential living burn items for Emergency Runway Meter
+          if (l.group.includes('Living') || l.group.includes('Household') || l.group.includes('Utilities') || l.group.includes('Education')) {
+            monthlyBurnRate += bal;
+          }
         }
       });
 
+      // Calculate monthly emergency runway
+      const distinctMonths = Math.max(1, new Set((books.vouchers || []).map(v => (v.date || '').slice(0, 7))).size);
+      const avgMonthlyBurn = Math.max(1, (monthlyBurnRate > 0 ? monthlyBurnRate / distinctMonths : totalExpenses / distinctMonths));
+      const runwayMonths = parseFloat((liquidCashBank / avgMonthlyBurn).toFixed(1));
+
+      // Build Friends / Shared Balances list
+      const friendsList = (books.ledgers || [])
+        .filter(l => l.group && (l.group.includes('Debtor') || l.group.includes('Receivable')))
+        .map(f => {
+          const bal = balances[f.name] ? balances[f.name].closingBalance : 0;
+          return {
+            id: f.id,
+            name: f.name,
+            group: f.group,
+            balance: bal
+          };
+        });
+
       const trueNetWorth = totalAssets - totalThirdPartyDebt;
+      const netSurplus = totalIncome - totalExpenses;
 
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({
@@ -866,14 +914,22 @@ const server = http.createServer((req, res) => {
           totalAssets,
           totalIncome,
           totalExpenses,
-          netSurplus: totalIncome - totalExpenses,
+          netSurplus,
+          runwayMonths: isFinite(runwayMonths) ? runwayMonths : 0,
+          avgMonthlyBurn,
           isDebtTrap: totalUnsecuredDebt > liquidCashBank
         },
         trialBalance,
         cashFlow,
         comparativePnL,
         budgets,
-        balanceSheet: { assets: assetList, liabilities: liabList },
+        friendsList,
+        balanceSheet: { 
+          assets: assetList, 
+          liabilities: liabList,
+          capital: totalCapitalEquity,
+          netSurplus
+        },
         profitAndLoss: { incomes: incList, expenses: expList },
         vouchers: (books.vouchers || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.id - a.id),
         dues
