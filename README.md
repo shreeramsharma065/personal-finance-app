@@ -26,7 +26,7 @@ A lightweight, local-first double-entry personal accounting system with a modern
 pkg update && pkg install nodejs-lts git -y
 
 # 2. Clone the repository
-git clone [https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME.git](https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME.git) finance-app
+git clone [https://github.com/shreeramsharma065/personal-finance-app.git] finance-app
 cd finance-app
 
 # 3. Start the application
