@@ -104,4 +104,29 @@ node server.js
 Open your browser and navigate to:
 http://localhost:3000
 
+🛠️ First-Time Configuration
+When launched for the first time without an existing database, the server automatically initializes tally_books.json from default_books.json.
 
+Accounts Tab:
+
+Create your personal bank accounts under Bank Accounts.
+
+Add credit cards under Credit Cards (specify statement day and grace period).
+
+Add personal loans under Loans & Borrowings.
+
+Record Voucher:
+
+Record your starting balances or salary income using Receipt (F6) or Journal (F7).
+
+Trial Balance Verification:
+
+Confirm that Closing Dr Total matches Closing Cr Total with the green Books In Balance (Δ ₹0.00) badge.
+
+💾 Backup & Data Safety
+Click the Backup DB button in the top navigation bar at any time to download a dated snapshot (finance_backup_YYYY-MM-DD.json).
+
+When switching devices, transfer the backup file and use the Restore button to load your data.
+
+📄 License
+This project is open-source and available under the MIT License.
