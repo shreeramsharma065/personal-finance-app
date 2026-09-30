@@ -9,7 +9,6 @@ const PUBLIC_DIR = path.join(__dirname, 'public');
 
 function readBooks() {
   try {
-    // Auto-initialize from template if database does not exist
     if (!fs.existsSync(DB_FILE)) {
       if (fs.existsSync(TEMPLATE_FILE)) {
         fs.copyFileSync(TEMPLATE_FILE, DB_FILE);
@@ -436,7 +435,7 @@ const server = http.createServer((req, res) => {
     const dateStr = new Date().toISOString().split('T')[0];
     res.writeHead(200, {
       'Content-Type': 'application/json',
-      'Content-Disposition': `attachment; filename="finance_backup_${dateStr}.json"`
+      'Content-Disposition': `attachment; filename="tally_backup_${dateStr}.json"`
     });
     return res.end(data);
   }
@@ -767,7 +766,6 @@ const server = http.createServer((req, res) => {
           assetList.push({ name: l.name, group: l.group, balance: bal });
           if (l.group.includes('Bank') || l.group.includes('Cash')) liquidCashBank += bal;
         } else if (l.nature === 'Liability') {
-          // EXCLUDE Capital Account from 3rd-party debt calculations
           if (l.group === 'Capital Account' || (l.group && l.group.includes('Capital'))) {
             totalCapitalEquity += bal;
           } else {
@@ -784,7 +782,6 @@ const server = http.createServer((req, res) => {
         }
       });
 
-      // True Net Worth = Total Assets - External Debt
       const trueNetWorth = totalAssets - totalThirdPartyDebt;
 
       res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -816,7 +813,6 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // STATIC FILE SERVING
   let filePath = path.join(PUBLIC_DIR, pathname === '/' ? 'index.html' : pathname);
   const ext = path.extname(filePath);
   const contentType = {
