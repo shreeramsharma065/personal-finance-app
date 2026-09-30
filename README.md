@@ -21,6 +21,13 @@ A lightweight, local-first double-entry personal accounting system with a modern
 
 ### Option 1: Running on Android (via Termux)
 
-1. **Install Node.js & Git** (if not already installed):
-   ```bash
-   pkg update && pkg install nodejs-lts git -y
+```bash
+# 1. Update and install Node.js + Git
+pkg update && pkg install nodejs-lts git -y
+
+# 2. Clone the repository
+git clone [https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME.git](https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME.git) finance-app
+cd finance-app
+
+# 3. Start the application
+node server.js
