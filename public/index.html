@@ -1,572 +1,2033 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full bg-slate-950">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Personal Finance Ledger</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TallyPersonal • Professional Ledger & Net Worth Engine</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    :root {
-      --bg: #090e17;
-      --card-bg: #121a29;
-      --border: #1e293b;
-      --primary: #3b82f6;
-      --primary-hover: #2563eb;
-      --success: #10b981;
-      --danger: #ef4444;
-      --warning: #f59e0b;
-      --text-main: #f8fafc;
-      --text-sub: #94a3b8;
-      --text-dim: #64748b;
+    .bg-slate-950 { background-color: #020617; }
+    .bg-slate-900 { background-color: #0f172a; }
+    .bg-slate-800 { background-color: #1e293b; }
+    .border-slate-800 { border-color: #1e293b; }
+    .border-slate-700 { border-color: #334155; }
+    .text-slate-100 { color: #f1f5f9; }
+    .text-slate-200 { color: #e2e8f0; }
+    .text-slate-300 { color: #cbd5e1; }
+    .text-slate-400 { color: #94a3b8; }
+    .text-slate-500 { color: #64748b; }
+    @media print {
+      aside, header, .no-print { display: none !important; }
+      main { overflow: visible !important; }
+      body { background: white !important; color: black !important; }
+      table { border-collapse: collapse; width: 100%; }
+      th, td { border: 1px solid #ccc !important; padding: 6px !important; color: black !important; }
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg); color: var(--text-main); padding-bottom: 70px; }
-    
-    header { background: #0c1322; border-bottom: 1px solid var(--border); padding: 14px 18px; position: sticky; top: 0; z-index: 50; display: flex; justify-content: space-between; align-items: center; }
-    .brand-title { font-size: 1.15rem; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
-    .header-actions button { background: #1e293b; color: #e2e8f0; border: 1px solid #334155; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
-
-    /* Nav Tabs */
-    .tabs-bar { display: flex; background: #0d1524; border-bottom: 1px solid var(--border); overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
-    .tabs-bar::-webkit-scrollbar { display: none; }
-    .tab-btn { flex: 1; padding: 12px 14px; text-align: center; font-size: 0.85rem; font-weight: 600; color: var(--text-sub); border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; }
-    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); background: rgba(59, 130, 246, 0.05); }
-
-    .content-container { padding: 16px; max-width: 900px; margin: 0 auto; }
-    .tab-pane { display: none; }
-    .tab-pane.active { display: block; }
-
-    /* Top KPI Cards */
-    .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 18px; }
-    .kpi-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; position: relative; }
-    .kpi-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-    .kpi-title { font-size: 0.78rem; font-weight: 600; color: var(--text-sub); }
-    .kpi-icon { font-size: 0.9rem; }
-    .kpi-value { font-size: 1.35rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
-    .kpi-sub { font-size: 0.7rem; color: var(--text-dim); }
-
-    /* Ledger & Statement Split Columns */
-    .split-grid { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 16px; }
-    @media(min-width: 768px) { .split-grid { grid-template-columns: 1fr 1fr; } }
-    
-    .panel { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-    .panel-header { padding: 12px 16px; background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.5px; }
-    .panel-list { padding: 8px 0; }
-    .panel-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.03); }
-    .panel-row:last-child { border-bottom: none; }
-    .row-meta .row-name { font-size: 0.9rem; font-weight: 600; color: #e2e8f0; }
-    .row-meta .row-sub { font-size: 0.72rem; color: var(--text-dim); }
-    .row-val { font-size: 0.95rem; font-weight: 700; color: #f1f5f9; }
-
-    /* Tables */
-    .table-wrapper { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
-    th { background: #0c1424; padding: 10px 12px; color: var(--text-sub); border-bottom: 1px solid var(--border); }
-    td { padding: 10px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.04); color: #e2e8f0; }
-    tr:last-child td { border-bottom: none; }
-
-    /* Forms & Modals */
-    .form-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
-    .form-group { margin-bottom: 12px; }
-    .form-group label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-sub); margin-bottom: 4px; }
-    .form-control { width: 100%; background: #090e17; border: 1px solid var(--border); color: #fff; padding: 8px 12px; border-radius: 6px; font-size: 0.88rem; outline: none; }
-    .form-control:focus { border-color: var(--primary); }
-
-    .btn { background: var(--primary); color: #fff; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.85rem; }
-    .btn:hover { background: var(--primary-hover); }
-    .btn-danger { background: var(--danger); }
-    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-sub); }
-
-    /* Split Voucher Entry Grid */
-    .entry-row { display: grid; grid-template-columns: 70px 1fr 100px 30px; gap: 8px; align-items: center; margin-bottom: 8px; }
-    .remove-btn { color: var(--danger); background: none; border: none; font-size: 1.2rem; cursor: pointer; line-height: 1; }
-
-    /* Utilities */
-    .text-green { color: var(--success) !important; }
-    .text-red { color: var(--danger) !important; }
-    .text-yellow { color: var(--warning) !important; }
-    .badge { padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; }
-    .badge-balanced { background: rgba(16, 185, 129, 0.15); color: var(--success); }
-    .badge-diff { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
   </style>
 </head>
-<body>
+<body class="h-full flex overflow-hidden text-slate-100 font-sans">
 
-  <header>
-    <div class="brand-title">Financial Ledger</div>
-    <div class="header-actions">
-      <button onclick="downloadBackup()">Backup DB</button>
-      <button onclick="document.getElementById('restoreInput').click()">Restore</button>
-      <input type="file" id="restoreInput" style="display:none" onchange="restoreBackup(event)">
-    </div>
-  </header>
-
-  <nav class="tabs-bar">
-    <button class="tab-btn active" onclick="openTab('tab-dashboard')">Dashboard</button>
-    <button class="tab-btn" onclick="openTab('tab-vouchers')">Day Book</button>
-    <button class="tab-btn" onclick="openTab('tab-record')">Record Voucher</button>
-    <button class="tab-btn" onclick="openTab('tab-trial')">Trial Balance</button>
-    <button class="tab-btn" onclick="openTab('tab-masters')">Accounts</button>
-  </nav>
-
-  <div class="content-container">
-
-    <!-- 1. DASHBOARD TAB -->
-    <div id="tab-dashboard" class="tab-pane active">
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <div class="kpi-header">
-            <span class="kpi-title">Net Worth (Capital)</span>
-            <span class="kpi-icon">🏛️</span>
-          </div>
-          <div class="kpi-value" id="kpi-networth">₹0.00</div>
-          <div class="kpi-sub">Total Assets - Total Liabilities</div>
-        </div>
-
-        <div class="kpi-card">
-          <div class="kpi-header">
-            <span class="kpi-title">Liquid Cash & Bank</span>
-            <span class="kpi-icon">💵</span>
-          </div>
-          <div class="kpi-value text-green" id="kpi-cashbank">₹0.00</div>
-          <div class="kpi-sub">Readily available funds</div>
-        </div>
-
-        <div class="kpi-card">
-          <div class="kpi-header">
-            <span class="kpi-title">Total Outstanding Debt</span>
-            <span class="kpi-icon">💳</span>
-          </div>
-          <div class="kpi-value text-red" id="kpi-debt">₹0.00</div>
-          <div class="kpi-sub">Cards & Loans</div>
-        </div>
-
-        <div class="kpi-card">
-          <div class="kpi-header">
-            <span class="kpi-title">Net Surplus (P&L)</span>
-            <span class="kpi-icon">📈</span>
-          </div>
-          <div class="kpi-value" id="kpi-surplus">₹0.00</div>
-          <div class="kpi-sub">Income - Expenses</div>
-        </div>
+  <!-- SIDEBAR -->
+  <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col flex-shrink-0 z-20">
+    <div class="h-16 flex items-center px-6 border-b border-slate-800 gap-3">
+      <div class="w-8 h-8 rounded-lg bg-blue-900 text-blue-400 flex items-center justify-center font-bold">
+        <i class="fa-solid fa-receipt"></i>
       </div>
-
-      <!-- Split Statement Panels -->
-      <div class="split-grid">
-        <div class="panel">
-          <div class="panel-header">
-            <span>LIABILITIES & CAPITAL</span>
-            <span id="tot-liabilities-hdr">₹0.00</span>
-          </div>
-          <div class="panel-list" id="liabilities-list"></div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-header">
-            <span>ASSETS & PROPERTIES</span>
-            <span id="tot-assets-hdr">₹0.00</span>
-          </div>
-          <div class="panel-list" id="assets-list"></div>
-        </div>
+      <div>
+        <div class="text-sm font-bold tracking-wider uppercase text-white">Tally<span class="text-blue-400">Personal</span></div>
+        <div class="text-xs text-slate-500 font-mono tracking-tighter">Enterprise Double-Entry</div>
       </div>
     </div>
 
-    <!-- 2. DAY BOOK TAB -->
-    <div id="tab-vouchers" class="tab-pane">
-      <div class="panel">
-        <div class="panel-header">
-          <span>DAY BOOK TRANSACTIONS</span>
+    <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
+      <div class="text-xs font-bold uppercase tracking-wider text-slate-500 px-3 pb-1">Reports & Analysis</div>
+      <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition bg-blue-600 text-white text-left">
+        <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+        <span>Financial Summary</span>
+      </button>
+      <button onclick="switchTab('cashflow')" id="nav-cashflow" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left">
+        <i class="fa-solid fa-money-bill-transfer w-5 text-center text-emerald-400"></i>
+        <span>Cash Flow Statement</span>
+      </button>
+      <button onclick="switchTab('comparativepnl')" id="nav-comparativepnl" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left">
+        <i class="fa-solid fa-chart-line w-5 text-center text-teal-400"></i>
+        <span>MoM Variance P&L</span>
+      </button>
+      <button onclick="switchTab('budgets')" id="nav-budgets" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left">
+        <i class="fa-solid fa-bullseye w-5 text-center text-indigo-400"></i>
+        <span>Budgets vs Actuals</span>
+      </button>
+      <button onclick="switchTab('trialbalance')" id="nav-trialbalance" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left">
+        <i class="fa-solid fa-balance-scale w-5 text-center text-amber-400"></i>
+        <span>Trial Balance (Audit)</span>
+      </button>
+      <button onclick="switchTab('groupsummary')" id="nav-groupsummary" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left">
+        <i class="fa-solid fa-sitemap w-5 text-center text-purple-400"></i>
+        <span>Group Summary</span>
+      </button>
+      <button onclick="switchTab('ledgerstatement')" id="nav-ledgerstatement" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left">
+        <i class="fa-solid fa-file-invoice-dollar w-5 text-center text-cyan-400"></i>
+        <span>Ledger Statement</span>
+      </button>
+      <button onclick="switchTab('dues')" id="nav-dues" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left">
+        <i class="fa-solid fa-clock-rotate-left w-5 text-center text-yellow-400"></i>
+        <span>Dues & Outstandings</span>
+      </button>
+      <button onclick="switchTab('balancesheet')" id="nav-balancesheet" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left">
+        <i class="fa-solid fa-scale-balanced w-5 text-center text-blue-400"></i>
+        <span>Balance Sheet</span>
+      </button>
+      <button onclick="switchTab('pnl')" id="nav-pnl" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left">
+        <i class="fa-solid fa-calculator w-5 text-center text-green-400"></i>
+        <span>Profit & Loss</span>
+      </button>
+
+      <div class="text-xs font-bold uppercase tracking-wider text-slate-500 px-3 pt-4 pb-1">Transactions</div>
+      <button onclick="switchTab('daybook')" id="nav-daybook" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left">
+        <i class="fa-solid fa-book-journal-whills w-5 text-center text-indigo-400"></i>
+        <span>Day Book (Vouchers)</span>
+      </button>
+
+      <div class="text-xs font-bold uppercase tracking-wider text-slate-500 px-3 pt-4 pb-1">Gateway of Masters</div>
+      <button onclick="switchTab('masters')" id="nav-masters" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left">
+        <i class="fa-solid fa-folder-tree w-5 text-center text-purple-400"></i>
+        <span>Chart of Accounts</span>
+      </button>
+    </nav>
+
+    <div id="solvencyCard" class="m-4 p-3.5 rounded-xl border border-slate-800 bg-slate-950 text-xs space-y-1">
+      <div class="flex items-center justify-between font-bold">
+        <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-halved"></i> Solvency Check</span>
+        <span id="solvencyBadge" class="px-1.5 py-0.5 rounded text-xs uppercase font-mono">Good</span>
+      </div>
+      <div id="solvencyNote" class="text-slate-400 text-xs leading-tight">Analyzing assets & liabilities...</div>
+    </div>
+  </aside>
+
+  <!-- MAIN WORKSPACE -->
+  <main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-950">
+    <header class="h-16 border-b border-slate-800 flex items-center justify-between px-8 bg-slate-900 no-print">
+      <h2 id="view-title" class="text-lg font-semibold tracking-tight text-white">Financial Position & Net Worth</h2>
+
+      <div class="flex items-center gap-2.5">
+        <!-- EXPORT ENGINE CONTROLS -->
+        <button onclick="exportCurrentViewCSV()" title="Export current view as CSV" class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg text-xs font-medium text-slate-200 border border-slate-700 transition">
+          <i class="fa-solid fa-file-csv text-green-400"></i>
+          <span>Export CSV</span>
+        </button>
+
+        <button onclick="window.print()" title="Print or save as PDF" class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg text-xs font-medium text-slate-200 border border-slate-700 transition">
+          <i class="fa-solid fa-print text-indigo-400"></i>
+          <span>Print / PDF</span>
+        </button>
+
+        <button onclick="window.location.href='/api/backup'" title="Download Backup file" class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg text-xs font-medium text-slate-200 border border-slate-700 transition">
+          <i class="fa-solid fa-download text-blue-400"></i>
+          <span>Backup</span>
+        </button>
+
+        <label title="Upload Backup file" class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg text-xs font-medium text-slate-200 border border-slate-700 cursor-pointer transition">
+          <i class="fa-solid fa-upload text-yellow-400"></i>
+          <span>Restore</span>
+          <input type="file" id="restoreFileInput" accept=".json" class="hidden" onchange="uploadBackup(event)">
+        </label>
+
+        <button onclick="openVoucherModal()" class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg text-sm font-medium text-white transition shadow-sm ml-2">
+          <i class="fa-solid fa-plus text-xs"></i>
+          <span>Record Voucher</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="flex-1 overflow-y-auto p-8 space-y-6">
+
+      <!-- TOP METRICS -->
+      <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 no-print">
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+          <div class="text-xs text-slate-400 font-medium flex justify-between">
+            <span>Net Worth (Capital)</span>
+            <i class="fa-solid fa-vault text-blue-400"></i>
+          </div>
+          <div id="metricNetWorth" class="text-2xl font-bold mt-2 text-blue-400">₹0.00</div>
+          <div class="text-xs text-slate-500 mt-1">Total Assets − Total Liabilities</div>
         </div>
-        <div class="table-wrapper">
-          <table>
-            <thead>
+
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+          <div class="text-xs text-slate-400 font-medium flex justify-between">
+            <span>Liquid Cash & Bank</span>
+            <i class="fa-solid fa-building-columns text-green-400"></i>
+          </div>
+          <div id="metricCashBank" class="text-2xl font-bold mt-2 text-green-400">₹0.00</div>
+          <div class="text-xs text-slate-500 mt-1">Readily available funds</div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+          <div class="text-xs text-slate-400 font-medium flex justify-between">
+            <span>Total Outstanding Debt</span>
+            <i class="fa-solid fa-credit-card text-red-400"></i>
+          </div>
+          <div id="metricDebt" class="text-2xl font-bold mt-2 text-red-400">₹0.00</div>
+          <div class="text-xs text-slate-500 mt-1">Cards & Loans</div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+          <div class="text-xs text-slate-400 font-medium flex justify-between">
+            <span>Net Surplus (P&L)</span>
+            <i class="fa-solid fa-arrow-trend-up text-purple-400"></i>
+          </div>
+          <div id="metricSurplus" class="text-2xl font-bold mt-2 text-purple-400">₹0.00</div>
+          <div class="text-xs text-slate-500 mt-1">Income − Expenses</div>
+        </div>
+      </section>
+
+      <!-- TAB 1: SUMMARY -->
+      <section id="tab-dashboard" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
+          <h3 class="font-semibold text-sm text-slate-200 border-b border-slate-800 pb-3 flex items-center justify-between">
+            <span>Liquid & Debt Positions</span>
+            <span class="text-xs text-slate-500 font-normal">Real-Time Balances</span>
+          </h3>
+          <div id="quickBalancesList" class="divide-y divide-slate-800 mt-2"></div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
+          <h3 class="font-semibold text-sm text-slate-200 border-b border-slate-800 pb-3 flex items-center justify-between">
+            <span>Recent Vouchers (Day Book)</span>
+            <button onclick="switchTab('daybook')" class="text-xs text-blue-400 hover:underline">View All</button>
+          </h3>
+          <div id="quickVouchersList" class="divide-y divide-slate-800 mt-2"></div>
+        </div>
+      </section>
+
+      <!-- TAB 2: CASH FLOW STATEMENT (OPTION 2) -->
+      <section id="tab-cashflow" class="hidden space-y-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-money-bill-transfer text-emerald-400"></i>
+                Cash Flow Statement (Direct Method)
+              </h3>
+              <p class="text-xs text-slate-400">Tracks real cash inflows and outflows across Operations, Investments, and Financing.</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="bg-slate-950 px-3 py-2 rounded-lg border border-slate-800 text-right">
+                <span class="text-[10px] text-slate-500 block uppercase font-mono">Net Cash Change</span>
+                <span id="cfNetChange" class="text-sm font-mono font-bold text-emerald-400">₹0.00</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+              <div class="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-1">Operating Activities</div>
+              <div id="cfOperatingSum" class="text-lg font-mono font-bold text-white">₹0.00</div>
+              <div class="text-[11px] text-slate-500">Income received minus living/household expenses paid</div>
+            </div>
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+              <div class="text-xs font-bold uppercase tracking-wider text-purple-400 mb-1">Investing Activities</div>
+              <div id="cfInvestingSum" class="text-lg font-mono font-bold text-white">₹0.00</div>
+              <div class="text-[11px] text-slate-500">MF SIPs, Stocks, FDs, properties bought/sold</div>
+            </div>
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+              <div class="text-xs font-bold uppercase tracking-wider text-blue-400 mb-1">Financing Activities</div>
+              <div id="cfFinancingSum" class="text-lg font-mono font-bold text-white">₹0.00</div>
+              <div class="text-[11px] text-slate-500">Loan borrowings, repayments, and card debt clears</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+          <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+            <span class="font-semibold text-sm text-white">Cash & Bank Movement Ledger</span>
+            <span class="text-xs font-mono text-slate-500">Reconciled with Balance Sheet</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-800 text-slate-400 text-xs uppercase font-mono">
+                <tr>
+                  <th class="p-3.5">Activity Pillar</th>
+                  <th class="p-3.5">Account / Source Ledger</th>
+                  <th class="p-3.5">Group</th>
+                  <th class="p-3.5 text-right">Inflow / Outflow (₹)</th>
+                </tr>
+              </thead>
+              <tbody id="cashFlowTableBody" class="divide-y divide-slate-800"></tbody>
+              <tfoot id="cashFlowTableFoot" class="bg-slate-950 font-mono font-bold text-sm border-t border-slate-800"></tfoot>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: MoM COMPARATIVE P&L (OPTION 2) -->
+      <section id="tab-comparativepnl" class="hidden space-y-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-chart-line text-teal-400"></i>
+                Month-over-Month Comparative Variance (P&L)
+              </h3>
+              <p class="text-xs text-slate-400">Compares spending and income against previous calendar month with percentage shifts.</p>
+            </div>
+            <div id="momPeriodBadge" class="text-xs font-mono bg-slate-800 text-teal-300 px-3 py-1.5 rounded-lg border border-slate-700"></div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Expenses Column -->
+          <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+            <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-800/40">
+              <span class="font-bold text-sm text-red-400 uppercase tracking-wider">Expenses Variance</span>
+              <span class="text-xs font-mono text-slate-400">Cost Shift (%)</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-slate-800 text-slate-400 text-xs font-mono">
+                  <tr>
+                    <th class="p-3">Expense Head</th>
+                    <th class="p-3 text-right">Current</th>
+                    <th class="p-3 text-right">Previous</th>
+                    <th class="p-3 text-right">Shift (%)</th>
+                  </tr>
+                </thead>
+                <tbody id="momExpensesList" class="divide-y divide-slate-800"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Incomes Column -->
+          <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+            <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-800/40">
+              <span class="font-bold text-sm text-green-400 uppercase tracking-wider">Income Variance</span>
+              <span class="text-xs font-mono text-slate-400">Earnings Shift (%)</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-slate-800 text-slate-400 text-xs font-mono">
+                  <tr>
+                    <th class="p-3">Income Stream</th>
+                    <th class="p-3 text-right">Current</th>
+                    <th class="p-3 text-right">Previous</th>
+                    <th class="p-3 text-right">Shift (%)</th>
+                  </tr>
+                </thead>
+                <tbody id="momIncomesList" class="divide-y divide-slate-800"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: MONTHLY BUDGETS VS ACTUALS (OPTION 3) -->
+      <section id="tab-budgets" class="hidden space-y-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-bullseye text-indigo-400"></i>
+              Monthly Budget Ceilings vs Actual Spending
+            </h3>
+            <p class="text-xs text-slate-400">Set spending limits on expense accounts to prevent lifestyle creep and overspending.</p>
+          </div>
+          <button onclick="openBudgetModal()" class="bg-indigo-600 hover:bg-indigo-500 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white transition flex items-center gap-1.5">
+            <i class="fa-solid fa-pen-to-square"></i> Set Budget Limits
+          </button>
+        </div>
+
+        <div id="budgetsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </section>
+
+      <!-- TAB 5: TRIAL BALANCE -->
+      <section id="tab-trialbalance" class="hidden space-y-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-balance-scale text-amber-400"></i>
+                Trial Balance • Double-Entry Verification
+              </h3>
+              <p class="text-xs text-slate-400">Audits equality of total Debit and Credit balances across all ledgers.</p>
+            </div>
+            <div id="tbAuditBadge" class="px-3 py-1.5 rounded-lg border font-mono text-xs font-bold uppercase flex items-center gap-2">
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-800 text-slate-400 text-xs uppercase font-mono">
+                <tr>
+                  <th class="p-3.5">Ledger Particulars</th>
+                  <th class="p-3.5">Group Classification</th>
+                  <th class="p-3.5 text-right text-slate-400">Gross Debit (₹)</th>
+                  <th class="p-3.5 text-right text-slate-400">Gross Credit (₹)</th>
+                  <th class="p-3.5 text-right text-green-400 font-bold">Closing Debit (Dr)</th>
+                  <th class="p-3.5 text-right text-red-400 font-bold">Closing Credit (Cr)</th>
+                </tr>
+              </thead>
+              <tbody id="trialBalanceTableBody" class="divide-y divide-slate-800"></tbody>
+              <tfoot id="trialBalanceTableFoot" class="bg-slate-950 font-mono font-bold text-sm border-t-2 border-slate-700"></tfoot>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 6: GROUP SUMMARY -->
+      <section id="tab-groupsummary" class="hidden space-y-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex-1 min-w-[280px]">
+              <label class="block text-xs font-medium text-slate-400 mb-1">Select Account Group to Inspect</label>
+              <select id="groupSummarySelect" onchange="renderGroupSummary(this.value)" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm font-semibold text-purple-400 outline-none focus:border-purple-500">
+              </select>
+            </div>
+            <div class="bg-slate-950 px-4 py-2.5 rounded-lg border border-slate-800 text-right min-w-[200px]">
+              <span class="text-xs text-slate-500 block">Total Group Balance</span>
+              <span id="groupTotalBalanceDisplay" class="text-base font-mono font-bold text-sky-400">₹0.00</span>
+            </div>
+          </div>
+          <div id="groupBreadcrumb" class="text-xs text-slate-400 flex items-center gap-2 pt-2 border-t border-slate-800"></div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+          <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+            <span class="font-semibold text-sm text-white" id="groupSummaryTableHeader">Sub-Groups & Ledger Breakdown</span>
+            <span class="text-xs text-slate-500 font-mono">Roll-Up Engine</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-800 text-slate-400 text-xs uppercase font-mono">
+                <tr>
+                  <th class="p-3.5">Account / Sub-Group Particulars</th>
+                  <th class="p-3.5">Type</th>
+                  <th class="p-3.5 text-right text-green-400">Total Debit (Dr)</th>
+                  <th class="p-3.5 text-right text-red-400">Total Credit (Cr)</th>
+                  <th class="p-3.5 text-right">Closing Balance</th>
+                </tr>
+              </thead>
+              <tbody id="groupSummaryTableBody" class="divide-y divide-slate-800"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 7: LEDGER STATEMENT -->
+      <section id="tab-ledgerstatement" class="hidden space-y-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex-1 min-w-[240px]">
+              <label class="block text-xs font-medium text-slate-400 mb-1">Select Ledger Account</label>
+              <select id="statementLedgerSelect" onchange="applyStatementFilters()" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm font-semibold text-blue-400 outline-none focus:border-blue-500">
+              </select>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">From Date</label>
+                <input type="date" id="filterFromDate" onchange="applyStatementFilters()" class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-mono text-slate-200 outline-none focus:border-blue-500">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">To Date</label>
+                <input type="date" id="filterToDate" onchange="applyStatementFilters()" class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-mono text-slate-200 outline-none focus:border-blue-500">
+              </div>
+              <div class="pt-5 flex gap-1.5">
+                <button onclick="setDateRangePreset('this_month')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700">This Month</button>
+                <button onclick="setDateRangePreset('this_fy')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700">Financial Year</button>
+                <button onclick="setDateRangePreset('all')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700">All Time</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3 border-t border-slate-800">
+            <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
+              <span class="text-xs text-slate-500 block">Opening Balance</span>
+              <span id="stmtOpBal" class="text-sm font-mono font-bold text-slate-200">₹0.00</span>
+            </div>
+            <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
+              <span class="text-xs text-slate-500 block">Total Debits</span>
+              <span id="stmtDrTotal" class="text-sm font-mono font-bold text-green-400">₹0.00</span>
+            </div>
+            <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
+              <span class="text-xs text-slate-500 block">Total Credits</span>
+              <span id="stmtCrTotal" class="text-sm font-mono font-bold text-red-400">₹0.00</span>
+            </div>
+            <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
+              <span class="text-xs text-slate-500 block">Closing Balance</span>
+              <span id="stmtClBal" class="text-sm font-mono font-bold text-blue-400">₹0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm" id="ledgerStatementTable">
+              <thead class="bg-slate-800 text-slate-400 text-xs uppercase font-mono">
+                <tr>
+                  <th class="p-3.5">Date</th>
+                  <th class="p-3.5">Particulars (Opposite A/c)</th>
+                  <th class="p-3.5">Voucher Type</th>
+                  <th class="p-3.5">Voucher No</th>
+                  <th class="p-3.5 text-right text-green-400">Debit (Dr)</th>
+                  <th class="p-3.5 text-right text-red-400">Credit (Cr)</th>
+                  <th class="p-3.5 text-right">Running Balance</th>
+                </tr>
+              </thead>
+              <tbody id="statementTableBody" class="divide-y divide-slate-800"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 8: DUES & OUTSTANDINGS -->
+      <section id="tab-dues" class="hidden space-y-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+          <h3 class="font-bold text-white text-base mb-1">Credit Cards • Billed & Unbilled Cycle</h3>
+          <p class="text-xs text-slate-400 mb-4">Tracks statement generation dates, grace periods, and upcoming dues.</p>
+          <div id="creditCardsDeck" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+          <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+            <div>
+              <span class="font-bold text-sm text-white">Accounts Receivable • Bill-by-Bill Aging</span>
+              <p class="text-xs text-slate-400">Tracks due dates and aging on expected payments from Sundry Debtors.</p>
+            </div>
+            <span id="receivablesCount" class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded">0 bills</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-800 text-slate-400 text-xs uppercase">
+                <tr>
+                  <th class="p-3.5">Date</th>
+                  <th class="p-3.5">Voucher No</th>
+                  <th class="p-3.5">Debtor Account</th>
+                  <th class="p-3.5">Due Date</th>
+                  <th class="p-3.5">Status</th>
+                  <th class="p-3.5">Narration</th>
+                  <th class="p-3.5 text-right">Amount (₹)</th>
+                </tr>
+              </thead>
+              <tbody id="receivablesList" class="divide-y divide-slate-800"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 9: BALANCE SHEET -->
+      <section id="tab-balancesheet" class="hidden grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+          <div class="border-b border-slate-800 pb-3 mb-4 flex justify-between items-center">
+            <h3 class="font-bold text-red-400 uppercase text-xs tracking-wider">Liabilities & Capital</h3>
+            <span id="bsTotalLiabilities" class="font-mono font-bold text-sm text-red-400">₹0.00</span>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <div class="text-xs font-semibold text-slate-400 uppercase mb-2">Capital / Net Worth</div>
+              <div class="flex justify-between text-sm py-1.5 border-b border-slate-800">
+                <span class="text-slate-300">Net Surplus / Capital</span>
+                <span id="bsNetWorth" class="font-mono text-blue-400">₹0.00</span>
+              </div>
+            </div>
+            <div>
+              <div class="text-xs font-semibold text-slate-400 uppercase mb-2">Current & Long-Term Liabilities</div>
+              <div id="bsLiabilitiesList" class="space-y-1.5"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+          <div class="border-b border-slate-800 pb-3 mb-4 flex justify-between items-center">
+            <h3 class="font-bold text-green-400 uppercase text-xs tracking-wider">Assets & Properties</h3>
+            <span id="bsTotalAssets" class="font-mono font-bold text-sm text-green-400">₹0.00</span>
+          </div>
+          <div class="space-y-4">
+            <div>
+              <div class="text-xs font-semibold text-slate-400 uppercase mb-2">Liquid, Bank & Investment Assets</div>
+              <div id="bsAssetsList" class="space-y-1.5"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 10: PROFIT & LOSS -->
+      <section id="tab-pnl" class="hidden grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+          <div class="border-b border-slate-800 pb-3 mb-4 flex justify-between items-center">
+            <h3 class="font-bold text-red-400 uppercase text-xs tracking-wider">Expenses (Debit)</h3>
+            <span id="pnlTotalExpenses" class="font-mono font-bold text-sm text-red-400">₹0.00</span>
+          </div>
+          <div id="pnlExpensesList" class="space-y-2"></div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+          <div class="border-b border-slate-800 pb-3 mb-4 flex justify-between items-center">
+            <h3 class="font-bold text-green-400 uppercase text-xs tracking-wider">Incomes (Credit)</h3>
+            <span id="pnlTotalIncomes" class="font-mono font-bold text-sm text-green-400">₹0.00</span>
+          </div>
+          <div id="pnlIncomesList" class="space-y-2"></div>
+        </div>
+      </section>
+
+      <!-- TAB 11: DAY BOOK -->
+      <section id="tab-daybook" class="hidden bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+        <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+          <span class="font-semibold text-sm">Day Book • Audit Trail</span>
+          <span id="daybookCount" class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded">0 Vouchers</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-800 text-slate-400 text-xs uppercase">
               <tr>
-                <th>Voucher #</th>
-                <th>Date</th>
-                <th>Type</th>
-                <th>Particulars</th>
-                <th>Amount</th>
-                <th>Action</th>
+                <th class="p-3.5">Date</th>
+                <th class="p-3.5">Voucher No</th>
+                <th class="p-3.5">Type</th>
+                <th class="p-3.5">Debit (Dr) Accounts</th>
+                <th class="p-3.5">Credit (Cr) Accounts</th>
+                <th class="p-3.5">Narration</th>
+                <th class="p-3.5 text-right">Amount (₹)</th>
+                <th class="p-3.5 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody id="vouchers-tbody"></tbody>
+            <tbody id="daybookList" class="divide-y divide-slate-800"></tbody>
           </table>
         </div>
-      </div>
+      </section>
+
+      <!-- TAB 12: CHART OF ACCOUNTS -->
+      <section id="tab-masters" class="hidden space-y-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h3 class="font-semibold text-white">Groups & Sub-Groups Hierarchy</h3>
+              <p class="text-xs text-slate-400">Primary Groups define nature (Asset/Liability/Income/Expense); Sub-Groups inherit.</p>
+            </div>
+            <button onclick="openGroupModal()" class="bg-purple-600 hover:bg-purple-500 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition">
+              <i class="fa-solid fa-folder-plus mr-1"></i> New Group
+            </button>
+          </div>
+          <div id="groupsHierarchyTable" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h3 class="font-semibold text-white">Ledger Accounts Master</h3>
+              <p class="text-xs text-slate-400">Individual ledger accounts categorized under Primary or Sub-Groups.</p>
+            </div>
+            <button onclick="openLedgerModal()" class="bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition">
+              <i class="fa-solid fa-plus mr-1"></i> New Ledger
+            </button>
+          </div>
+          <div id="mastersTable" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
+        </div>
+      </section>
+
     </div>
+  </main>
 
-    <!-- 3. RECORD VOUCHER TAB -->
-    <div id="tab-record" class="tab-pane">
-      <div class="form-box">
-        <h3 style="margin-bottom: 12px; font-size: 1rem;">Record Double-Entry Voucher</h3>
-        <div class="split-grid" style="margin-bottom: 10px;">
-          <div class="form-group">
-            <label>Voucher Type</label>
-            <select class="form-control" id="vch-type">
-              <option value="Payment">Payment (F5)</option>
-              <option value="Receipt">Receipt (F6)</option>
-              <option value="Contra">Contra (F4)</option>
-              <option value="Journal">Journal (F7)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Transaction Date</label>
-            <input type="date" class="form-control" id="vch-date">
-          </div>
-        </div>
-
-        <div style="margin-bottom: 8px;">
-          <label style="font-size: 0.78rem; font-weight: 600; color: var(--text-sub);">Entries (Double-Entry Legs)</label>
-          <div id="entries-container" style="margin-top: 6px;"></div>
-          <button type="button" class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="addEntryRow()">+ Add Leg</button>
-        </div>
-
-        <div class="form-group" style="margin-top: 10px;">
-          <label>Narration / Remarks</label>
-          <input type="text" class="form-control" id="vch-narration" placeholder="Details about this transaction">
-        </div>
-
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px;">
-          <div id="vch-balance-diff" style="font-size: 0.8rem; font-weight: 600;">Dr: ₹0.00 | Cr: ₹0.00</div>
-          <button class="btn" onclick="submitVoucher()">Save Voucher</button>
-        </div>
+  <!-- MODAL: SET BUDGET LIMIT (OPTION 3) -->
+  <div id="budgetModal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
+      <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
+        <h3 class="font-semibold text-sm text-white">Set Monthly Budget Ceiling</h3>
+        <button onclick="closeBudgetModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
+      <form id="budgetForm" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Select Expense Account</label>
+          <select id="bLedger" required class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-indigo-500 text-slate-200"></select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Monthly Ceiling Limit (₹)</label>
+          <input type="number" step="0.01" id="bAmount" required placeholder="e.g. 15000" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-indigo-500 text-slate-200">
+          <span class="text-[11px] text-slate-500 mt-1 block">Set to 0 to remove budget limit.</span>
+        </div>
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeBudgetModal()" class="px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:bg-slate-800">Cancel</button>
+          <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-xs font-semibold text-white">Save Budget</button>
+        </div>
+      </form>
     </div>
-
-    <!-- 4. TRIAL BALANCE TAB -->
-    <div id="tab-trial" class="tab-pane">
-      <div class="panel">
-        <div class="panel-header">
-          <span>TRIAL BALANCE STATEMENT</span>
-          <span id="trial-balance-badge" class="badge">Checking...</span>
-        </div>
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Particulars</th>
-                <th>Group</th>
-                <th>Nature</th>
-                <th style="text-align: right;">Closing Dr (₹)</th>
-                <th style="text-align: right;">Closing Cr (₹)</th>
-              </tr>
-            </thead>
-            <tbody id="trial-tbody"></tbody>
-            <tfoot>
-              <tr style="font-weight: 700; background: #0c1424;">
-                <td colspan="3">Grand Total</td>
-                <td style="text-align: right;" id="tb-tot-dr">₹0.00</td>
-                <td style="text-align: right;" id="tb-tot-cr">₹0.00</td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- 5. MASTERS TAB (ACCOUNTS & GROUPS) -->
-    <div id="tab-masters" class="tab-pane">
-      <div class="form-box">
-        <h3 style="margin-bottom: 12px; font-size: 1rem;">Create Account Ledger</h3>
-        <div class="split-grid">
-          <div class="form-group">
-            <label>Ledger Name</label>
-            <input type="text" class="form-control" id="led-name" placeholder="e.g. HDFC Salary Bank">
-          </div>
-          <div class="form-group">
-            <label>Group Under</label>
-            <select class="form-control" id="led-group"></select>
-          </div>
-          <div class="form-group">
-            <label>Opening Balance (₹)</label>
-            <input type="number" step="0.01" class="form-control" id="led-opbal" value="0.00">
-          </div>
-        </div>
-        <button class="btn" onclick="submitLedger()">Add Ledger</button>
-      </div>
-
-      <div class="panel">
-        <div class="panel-header"><span>CHART OF ACCOUNTS</span></div>
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>Ledger Name</th>
-                <th>Group</th>
-                <th>Nature</th>
-                <th>Opening Bal</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="ledgers-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
   </div>
 
+  <!-- MODAL: MULTI-LEG / COMPOUND VOUCHER -->
+  <div id="voucherModal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-2xl overflow-hidden shadow-2xl">
+      <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
+        <div>
+          <h3 id="voucherModalTitle" class="font-semibold text-sm text-white">Record Accounting Voucher</h3>
+          <span id="voucherNoPreview" class="text-xs font-mono text-slate-400">Voucher No: Auto-Generated</span>
+        </div>
+        <button onclick="closeVoucherModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="voucherForm" class="p-6 space-y-4">
+        <input type="hidden" id="vId">
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Voucher Type</label>
+            <select id="vType" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-blue-500 text-slate-200">
+              <option value="Payment">Payment</option>
+              <option value="Receipt">Receipt</option>
+              <option value="Contra">Contra</option>
+              <option value="Journal">Journal</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Transaction Date</label>
+            <input type="date" id="vDate" required class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-blue-500 text-slate-200">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Promised Due Date</label>
+            <input type="date" id="vDueDate" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-blue-500 text-slate-200">
+          </div>
+        </div>
+
+        <div class="border border-slate-800 rounded-lg p-3 bg-slate-950/60 space-y-3">
+          <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+            <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Voucher Split Entries (Dr / Cr Legs)</span>
+            <button type="button" onclick="addVoucherEntryRow()" class="text-xs bg-slate-800 hover:bg-slate-700 text-sky-400 px-2.5 py-1 rounded border border-slate-700 transition">
+              <i class="fa-solid fa-plus text-[10px] mr-1"></i> Add Entry Line
+            </button>
+          </div>
+
+          <div id="voucherEntriesContainer" class="space-y-2 max-h-56 overflow-y-auto pr-1"></div>
+
+          <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800 text-xs font-mono">
+            <div class="bg-slate-900 p-2 rounded border border-slate-800">
+              <span class="text-slate-500 block text-[10px]">Total Debit (Dr)</span>
+              <span id="vMeterDr" class="font-bold text-green-400 text-sm">₹0.00</span>
+            </div>
+            <div class="bg-slate-900 p-2 rounded border border-slate-800">
+              <span class="text-slate-500 block text-[10px]">Total Credit (Cr)</span>
+              <span id="vMeterCr" class="font-bold text-red-400 text-sm">₹0.00</span>
+            </div>
+            <div id="vMeterDiffBox" class="p-2 rounded border bg-slate-900 border-slate-800">
+              <span class="text-slate-500 block text-[10px]">Difference</span>
+              <span id="vMeterDiff" class="font-bold text-white text-sm">₹0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Narration</label>
+          <input type="text" id="vNarration" placeholder="Details or remarks" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-blue-500 text-slate-200">
+        </div>
+
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeVoucherModal()" class="px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:bg-slate-800">Cancel</button>
+          <button type="submit" id="vSubmitBtn" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg text-xs font-semibold text-white">Save Voucher</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CREATE / EDIT GROUP -->
+  <div id="groupModal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
+      <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
+        <h3 id="groupModalTitle" class="font-semibold text-sm text-white">Create Account Group</h3>
+        <button onclick="closeGroupModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="groupForm" class="p-6 space-y-4">
+        <input type="hidden" id="gId">
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Group Name</label>
+          <input type="text" id="gName" placeholder="e.g. Private Bank Accounts, Delhi Debtors" required class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-purple-500 text-slate-200">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Under Parent Group</label>
+          <select id="gParentGroup" onchange="handleGroupParentChange()" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-purple-500 text-slate-200">
+            <option value="Primary">● Primary (Top Level)</option>
+          </select>
+        </div>
+        <div id="gNatureField">
+          <label class="block text-xs font-medium text-slate-400 mb-1">Nature (For Primary Groups)</label>
+          <select id="gNature" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-purple-500 text-slate-200">
+            <option value="Asset">Asset</option>
+            <option value="Liability">Liability</option>
+            <option value="Income">Income</option>
+            <option value="Expense">Expense</option>
+          </select>
+        </div>
+
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeGroupModal()" class="px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:bg-slate-800">Cancel</button>
+          <button type="submit" class="bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded-lg text-xs font-semibold text-white">Save Group</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CREATE / EDIT LEDGER -->
+  <div id="ledgerModal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
+      <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
+        <h3 id="ledgerModalTitle" class="font-semibold text-sm text-white">Create Ledger Account</h3>
+        <button onclick="closeLedgerModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="ledgerForm" class="p-6 space-y-4">
+        <input type="hidden" id="lId">
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Ledger Name</label>
+          <input type="text" id="lName" placeholder="Account Name" required class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-blue-500 text-slate-200">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Under Group / Sub-Group</label>
+          <select id="lGroup" onchange="toggleCreditCardFields()" required class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-blue-500 text-slate-200"></select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Opening Balance (₹)</label>
+          <input type="number" step="0.01" id="lOpeningBalance" placeholder="0.00" value="0.00" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-blue-500 text-slate-200">
+        </div>
+
+        <div id="creditCardOptions" class="hidden grid-cols-2 gap-3 p-3 bg-slate-800 rounded-lg border border-slate-700">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Bill Gen. Day (1-31)</label>
+            <input type="number" min="1" max="31" id="lBillingDay" placeholder="15" value="15" class="w-full bg-slate-800 border border-slate-700 px-2 py-1.5 rounded text-sm outline-none focus:border-blue-500 text-slate-200">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Grace Period (Days)</label>
+            <input type="number" min="1" max="45" id="lGraceDays" placeholder="20" value="20" class="w-full bg-slate-800 border border-slate-700 px-2 py-1.5 rounded text-sm outline-none focus:border-blue-500 text-slate-200">
+          </div>
+        </div>
+
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeLedgerModal()" class="px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:bg-slate-800">Cancel</button>
+          <button type="submit" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg text-xs font-semibold text-white">Save Ledger</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- APPLICATION ENGINE -->
   <script>
-    let masterGroups = [];
-    let masterLedgers = [];
+    let activeTab = 'dashboard';
+    let masterData = { groups: [], ledgers: [] };
+    let reportData = null;
+    let currentStatementLedger = null;
+    let currentSummaryGroup = null;
 
-    document.getElementById('vch-date').value = new Date().toISOString().split('T')[0];
-
-    function openTab(tabId) {
-      document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      event.target.classList.add('active');
-      if (tabId === 'tab-dashboard' || tabId === 'tab-trial' || tabId === 'tab-vouchers') {
-        loadReports();
+    function toggleCreditCardFields() {
+      const grp = document.getElementById('lGroup');
+      const ccFields = document.getElementById('creditCardOptions');
+      if (grp && ccFields) {
+        if (grp.value === 'Credit Cards') {
+          ccFields.classList.remove('hidden');
+          ccFields.classList.add('grid');
+        } else {
+          ccFields.classList.add('hidden');
+          ccFields.classList.remove('grid');
+        }
       }
     }
 
-    async function loadMasters() {
-      const res = await fetch('/api/masters');
-      const data = await res.json();
-      masterGroups = data.groups || [];
-      masterLedgers = data.ledgers || [];
-
-      const grpSelect = document.getElementById('led-group');
-      grpSelect.innerHTML = masterGroups.map(g => `<option value="${g.name}">${g.name} (${g.nature})</option>`).join('');
-
-      renderLedgerTable();
-    }
-
-    function renderLedgerTable() {
-      const tbody = document.getElementById('ledgers-tbody');
-      tbody.innerHTML = masterLedgers.map(l => `
-        <tr>
-          <td><strong>${l.name}</strong></td>
-          <td>${l.group}</td>
-          <td>${l.nature}</td>
-          <td>₹${(l.openingBalance || 0).toFixed(2)}</td>
-          <td><button class="remove-btn" onclick="deleteLedger(${l.id})">×</button></td>
-        </tr>
-      `).join('');
-    }
-
-    async function loadReports() {
-      const res = await fetch('/api/reports');
-      const data = await res.json();
-
-      // Top KPI Cards
-      const m = data.metrics || {};
-      document.getElementById('kpi-networth').innerText = `₹${(m.netWorth || 0).toFixed(2)}`;
-      document.getElementById('kpi-cashbank').innerText = `₹${(m.liquidCashBank || 0).toFixed(2)}`;
-      document.getElementById('kpi-debt').innerText = `₹${(m.totalLiabilities || 0).toFixed(2)}`;
-      document.getElementById('kpi-surplus').innerText = `₹${(m.netSurplus || 0).toFixed(2)}`;
-
-      // Split Panels
-      const bs = data.balanceSheet || { assets: [], liabilities: [] };
-      document.getElementById('tot-assets-hdr').innerText = `₹${(m.totalAssets || 0).toFixed(2)}`;
-      document.getElementById('tot-liabilities-hdr').innerText = `₹${(m.totalLiabilities || 0).toFixed(2)}`;
-
-      document.getElementById('assets-list').innerHTML = (bs.assets || []).map(a => `
-        <div class="panel-row">
-          <div class="row-meta">
-            <div class="row-name">${a.name}</div>
-            <div class="row-sub">${a.group}</div>
-          </div>
-          <div class="row-val ${a.balance < 0 ? 'text-red' : ''}">₹${(a.balance || 0).toFixed(2)}</div>
-        </div>
-      `).join('') || '<div style="padding:16px;color:#64748b;">No active assets</div>';
-
-      document.getElementById('liabilities-list').innerHTML = (bs.liabilities || []).map(l => `
-        <div class="panel-row">
-          <div class="row-meta">
-            <div class="row-name">${l.name}</div>
-            <div class="row-sub">${l.group}</div>
-          </div>
-          <div class="row-val">₹${(l.balance || 0).toFixed(2)}</div>
-        </div>
-      `).join('') || '<div style="padding:16px;color:#64748b;">No active liabilities</div>';
-
-      // Day Book Table
-      const vtbody = document.getElementById('vouchers-tbody');
-      vtbody.innerHTML = (data.vouchers || []).map(v => `
-        <tr>
-          <td><strong>${v.voucher_no || '#' + v.id}</strong></td>
-          <td>${v.date}</td>
-          <td><span class="badge" style="background:#1e293b;">${v.voucher_type}</span></td>
-          <td>${v.dr_ledger} <span style="color:#64748b;">to</span> ${v.cr_ledger}</td>
-          <td><strong>₹${(v.amount || 0).toFixed(2)}</strong></td>
-          <td><button class="remove-btn" onclick="deleteVoucher(${v.id})">×</button></td>
-        </tr>
-      `).join('') || '<tr><td colspan="6" style="text-align:center;color:#64748b;">No vouchers recorded</td></tr>';
-
-      // Trial Balance
-      const tb = data.trialBalance || { rows: [], totals: {} };
-      document.getElementById('trial-tbody').innerHTML = (tb.rows || []).map(r => `
-        <tr>
-          <td><strong>${r.name}</strong></td>
-          <td>${r.group}</td>
-          <td>${r.nature}</td>
-          <td style="text-align: right;">${r.closingDr ? '₹' + r.closingDr.toFixed(2) : '-'}</td>
-          <td style="text-align: right;">${r.closingCr ? '₹' + r.closingCr.toFixed(2) : '-'}</td>
-        </tr>
-      `).join('');
-
-      const t = tb.totals || {};
-      document.getElementById('tb-tot-dr').innerText = `₹${(t.closingDr || 0).toFixed(2)}`;
-      document.getElementById('tb-tot-cr').innerText = `₹${(t.closingCr || 0).toFixed(2)}`;
-      
-      const badge = document.getElementById('trial-balance-badge');
-      if (t.isBalanced) {
-        badge.className = 'badge badge-balanced';
-        badge.innerText = 'Books In Balance (Δ ₹0.00)';
-      } else {
-        badge.className = 'badge badge-diff';
-        badge.innerText = `Difference: ₹${(t.difference || 0).toFixed(2)}`;
-      }
-    }
-
-    // Split Voucher Row Operations
-    function addEntryRow(type = 'Dr', ledger = '', amount = '') {
-      const container = document.getElementById('entries-container');
-      const row = document.createElement('div');
-      row.className = 'entry-row';
-      row.innerHTML = `
-        <select class="form-control entry-type" onchange="calculateEntryDiff()">
-          <option value="Dr" ${type === 'Dr' ? 'selected' : ''}>Dr</option>
-          <option value="Cr" ${type === 'Cr' ? 'selected' : ''}>Cr</option>
-        </select>
-        <select class="form-control entry-ledger">
-          ${masterLedgers.map(l => `<option value="${l.name}" ${l.name === ledger ? 'selected' : ''}>${l.name}</option>`).join('')}
-        </select>
-        <input type="number" step="0.01" class="form-control entry-amt" placeholder="Amount" value="${amount}" oninput="calculateEntryDiff()">
-        <button type="button" class="remove-btn" onclick="this.parentElement.remove(); calculateEntryDiff();">×</button>
-      `;
-      container.appendChild(row);
-      calculateEntryDiff();
-    }
-
-    function calculateEntryDiff() {
-      let dr = 0;
-      let cr = 0;
-      document.querySelectorAll('.entry-row').forEach(row => {
-        const type = row.querySelector('.entry-type').value;
-        const amt = parseFloat(row.querySelector('.entry-amt').value) || 0;
-        if (type === 'Dr') dr += amt;
-        else cr += amt;
-      });
-      const diffBox = document.getElementById('vch-balance-diff');
-      const diff = Math.abs(dr - cr);
-      diffBox.innerHTML = `Dr: ₹${dr.toFixed(2)} | Cr: ₹${cr.toFixed(2)} ${diff < 0.01 ? '<span class="text-green">✔ Equal</span>' : `<span class="text-red">Diff: ₹${diff.toFixed(2)}</span>`}`;
-    }
-
-    async function submitVoucher() {
-      const entries = [];
-      document.querySelectorAll('.entry-row').forEach(row => {
-        entries.push({
-          type: row.querySelector('.entry-type').value,
-          ledger: row.querySelector('.entry-ledger').value,
-          amount: parseFloat(row.querySelector('.entry-amt').value) || 0
-        });
-      });
-
-      if (entries.length < 2) {
-        alert('A voucher requires at least two legs (one Debit and one Credit).');
-        return;
-      }
-
-      const payload = {
-        voucher_type: document.getElementById('vch-type').value,
-        date: document.getElementById('vch-date').value,
-        narration: document.getElementById('vch-narration').value,
-        entries
-      };
-
-      const res = await fetch('/api/vouchers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const result = await res.json();
-      if (!res.ok) {
-        alert(result.error || 'Failed to record voucher');
-        return;
-      }
-
-      alert('Voucher recorded successfully!');
-      document.getElementById('entries-container').innerHTML = '';
-      addEntryRow('Dr');
-      addEntryRow('Cr');
-      loadReports();
-    }
-
-    async function deleteVoucher(id) {
-      if (!confirm('Are you sure you want to delete this voucher?')) return;
-      await fetch(`/api/vouchers/${id}`, { method: 'DELETE' });
-      loadReports();
-    }
-
-    async function submitLedger() {
-      const name = document.getElementById('led-name').value.trim();
-      const group = document.getElementById('led-group').value;
-      const openingBalance = parseFloat(document.getElementById('led-opbal').value) || 0;
-
-      if (!name) return alert('Ledger name is required');
-
-      await fetch('/api/ledgers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, group, openingBalance })
-      });
-
-      document.getElementById('led-name').value = '';
-      document.getElementById('led-opbal').value = '0.00';
-      await loadMasters();
-      loadReports();
-    }
-
-    async function deleteLedger(id) {
-      if (!confirm('Are you sure you want to delete this ledger?')) return;
-      const res = await fetch(`/api/ledgers/${id}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const d = await res.json();
-        alert(d.error || 'Cannot delete ledger');
-        return;
-      }
-      await loadMasters();
-      loadReports();
-    }
-
-    function downloadBackup() {
-      window.location.href = '/api/backup';
-    }
-
-    async function restoreBackup(e) {
-      const file = e.target.files[0];
+    async function uploadBackup(event) {
+      const file = event.target.files[0];
       if (!file) return;
+
+      if (!confirm('Restoring will replace all current books with the backup file. Proceed?')) {
+        event.target.value = '';
+        return;
+      }
+
       const reader = new FileReader();
-      reader.onload = async (evt) => {
+      reader.onload = async (e) => {
         try {
+          const content = e.target.result;
+          JSON.parse(content);
+
           const res = await fetch('/api/restore', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: evt.target.result
+            body: content
           });
-          if (res.ok) {
-            alert('Database restored successfully!');
-            location.reload();
-          } else {
-            alert('Failed to restore database');
+
+          const data = await res.json();
+          if (data.error) alert('Restore failed: ' + data.error);
+          else {
+            alert('Books successfully restored!');
+            await loadData();
           }
         } catch (err) {
-          alert('Error uploading file');
+          alert('Invalid backup JSON file.');
+        } finally {
+          event.target.value = '';
         }
       };
       reader.readAsText(file);
     }
 
-    // Init
-    window.onload = async () => {
-      await loadMasters();
-      addEntryRow('Dr');
-      addEntryRow('Cr');
-      loadReports();
-    };
+    function switchTab(tab) {
+      activeTab = tab;
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.className = 'nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left';
+      });
+      const activeBtn = document.getElementById('nav-' + tab);
+      if (activeBtn) activeBtn.className = 'nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition bg-blue-600 text-white text-left';
+
+      ['dashboard', 'cashflow', 'comparativepnl', 'budgets', 'trialbalance', 'groupsummary', 'ledgerstatement', 'dues', 'balancesheet', 'pnl', 'daybook', 'masters'].forEach(t => {
+        const el = document.getElementById('tab-' + t);
+        if (el) {
+          if (t === tab) {
+            el.classList.remove('hidden');
+            if (t === 'dashboard' || t === 'balancesheet' || t === 'pnl') el.classList.add('grid');
+          } else {
+            el.classList.add('hidden');
+            el.classList.remove('grid');
+          }
+        }
+      });
+
+      const titles = {
+        dashboard: 'Financial Position & Net Worth',
+        cashflow: 'Cash Flow Statement (Direct Method)',
+        comparativepnl: 'Month-over-Month Variance Analysis',
+        budgets: 'Monthly Budget Ceilings vs Actual Spending',
+        trialbalance: 'Trial Balance • Classical Double-Entry Audit',
+        groupsummary: 'Group Summary & Sub-Ledger Roll-Up',
+        ledgerstatement: 'Ledger Statement & Register',
+        dues: 'Dues & Outstandings • Billed/Unbilled Cycle',
+        balancesheet: 'Balance Sheet (Statement of Financial Affairs)',
+        pnl: 'Income & Expenditure (Profit & Loss)',
+        daybook: 'Day Book • Journal Register',
+        masters: 'Chart of Accounts & Hierarchy Master'
+      };
+      const titleEl = document.getElementById('view-title');
+      if (titleEl) titleEl.innerText = titles[tab] || 'Dashboard';
+
+      if (tab === 'cashflow') renderCashFlow();
+      else if (tab === 'comparativepnl') renderComparativePnL();
+      else if (tab === 'budgets') renderBudgets();
+      else if (tab === 'trialbalance') renderTrialBalance();
+      else if (tab === 'groupsummary') {
+        populateGroupSummaryDropdown();
+        renderGroupSummary();
+      } else if (tab === 'ledgerstatement') {
+        populateStatementLedgerDropdown();
+        applyStatementFilters();
+      }
+    }
+
+    // EXPORT ENGINE: Export Current Tab to CSV
+    function exportCurrentViewCSV() {
+      let csv = [];
+      let filename = `${activeTab}_export_${new Date().toISOString().split('T')[0]}.csv`;
+
+      if (activeTab === 'ledgerstatement') {
+        csv.push(['Date', 'Particulars', 'Voucher Type', 'Voucher No', 'Debit (Dr)', 'Credit (Cr)', 'Running Balance']);
+        document.querySelectorAll('#statementTableBody tr').forEach(row => {
+          const cols = Array.from(row.querySelectorAll('td')).map(td => `"${td.innerText.replace(/"/g, '""').trim()}"`);
+          if (cols.length > 0) csv.push(cols);
+        });
+      } else if (activeTab === 'trialbalance') {
+        csv.push(['Ledger Particulars', 'Group', 'Gross Debit', 'Gross Credit', 'Closing Debit', 'Closing Credit']);
+        document.querySelectorAll('#trialBalanceTableBody tr').forEach(row => {
+          const cols = Array.from(row.querySelectorAll('td')).map(td => `"${td.innerText.replace(/"/g, '""').trim()}"`);
+          if (cols.length > 0) csv.push(cols);
+        });
+      } else if (activeTab === 'daybook') {
+        csv.push(['Date', 'Voucher No', 'Type', 'Dr Ledgers', 'Cr Ledgers', 'Narration', 'Amount']);
+        document.querySelectorAll('#daybookList tr').forEach(row => {
+          const cols = Array.from(row.querySelectorAll('td')).slice(0, 7).map(td => `"${td.innerText.replace(/"/g, '""').trim()}"`);
+          if (cols.length > 0) csv.push(cols);
+        });
+      } else if (activeTab === 'cashflow') {
+        csv.push(['Pillar', 'Ledger', 'Group', 'Amount']);
+        document.querySelectorAll('#cashFlowTableBody tr').forEach(row => {
+          const cols = Array.from(row.querySelectorAll('td')).map(td => `"${td.innerText.replace(/"/g, '""').trim()}"`);
+          if (cols.length > 0) csv.push(cols);
+        });
+      } else {
+        alert('CSV Export is optimized for Ledger Statement, Trial Balance, Cash Flow, and Day Book.');
+        return;
+      }
+
+      const csvContent = 'data:text/csv;charset=utf-8,' + csv.map(e => e.join(',')).join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+
+    // CASH FLOW RENDERER (OPTION 2)
+    function renderCashFlow() {
+      if (!reportData || !reportData.cashFlow) return;
+      const cf = reportData.cashFlow;
+
+      document.getElementById('cfNetChange').innerText = '₹' + cf.netCashFlow.toFixed(2);
+      document.getElementById('cfOperatingSum').innerText = '₹' + cf.operating.total.toFixed(2);
+      document.getElementById('cfInvestingSum').innerText = '₹' + cf.investing.total.toFixed(2);
+      document.getElementById('cfFinancingSum').innerText = '₹' + cf.financing.total.toFixed(2);
+
+      const tbody = document.getElementById('cashFlowTableBody');
+      const tfoot = document.getElementById('cashFlowTableFoot');
+
+      let rows = '';
+
+      function appendPillarRows(label, badgeClass, items) {
+        if (!items || items.length === 0) return;
+        items.forEach(it => {
+          const isPos = it.amount >= 0;
+          rows += '<tr class="hover:bg-slate-800 transition">' +
+            '<td class="p-3.5"><span class="px-2 py-0.5 rounded text-[11px] font-mono ' + badgeClass + '">' + label + '</span></td>' +
+            '<td class="p-3.5"><a href="javascript:void(0)" onclick="openLedgerStatement(\'' + it.ledger + '\')" class="font-medium text-slate-200 hover:text-blue-400">' + it.ledger + '</a>' +
+            (it.narration ? '<div class="text-xs text-slate-500 italic">' + it.narration + '</div>' : '') + '</td>' +
+            '<td class="p-3.5 text-xs text-slate-400">' + it.group + '</td>' +
+            '<td class="p-3.5 text-right font-mono font-semibold ' + (isPos ? 'text-green-400' : 'text-red-400') + '">' + (isPos ? '+' : '') + '₹' + it.amount.toFixed(2) + '</td>' +
+            '</tr>';
+        });
+      }
+
+      appendPillarRows('Operating', 'bg-emerald-950 text-emerald-400 border border-emerald-800', cf.operating.items);
+      appendPillarRows('Investing', 'bg-purple-950 text-purple-400 border border-purple-800', cf.investing.items);
+      appendPillarRows('Financing', 'bg-blue-950 text-blue-400 border border-blue-800', cf.financing.items);
+
+      tbody.innerHTML = rows || '<tr><td colspan="4" class="p-8 text-center text-slate-500">No cash or bank transactions recorded yet.</td></tr>';
+
+      tfoot.innerHTML = '<tr class="border-b border-slate-800">' +
+        '<td colspan="3" class="p-3.5 text-slate-400">Opening Cash & Bank Balance</td>' +
+        '<td class="p-3.5 text-right font-mono text-slate-200">₹' + cf.openingCash.toFixed(2) + '</td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td colspan="3" class="p-3.5 text-white font-bold">Closing Cash & Bank Balance (Reconciled)</td>' +
+        '<td class="p-3.5 text-right font-mono text-emerald-400 font-bold">₹' + cf.closingCash.toFixed(2) + '</td>' +
+        '</tr>';
+    }
+
+    // MoM COMPARATIVE P&L RENDERER (OPTION 2)
+    function renderComparativePnL() {
+      if (!reportData || !reportData.comparativePnL) return;
+      const cp = reportData.comparativePnL;
+
+      document.getElementById('momPeriodBadge').innerText = `${cp.curLabel} vs ${cp.prevLabel}`;
+
+      const eList = document.getElementById('momExpensesList');
+      eList.innerHTML = (cp.expenses || []).map(e => {
+        const isUp = e.diff > 0;
+        const badge = isUp ? 'bg-red-950 text-red-400 border-red-800' : 'bg-green-950 text-green-400 border-green-800';
+        return '<tr class="hover:bg-slate-800 transition">' +
+          '<td class="p-3 font-medium text-slate-200"><a href="javascript:void(0)" onclick="openLedgerStatement(\'' + e.name + '\')" class="hover:text-blue-400">' + e.name + '</a></td>' +
+          '<td class="p-3 text-right font-mono text-white">₹' + e.current.toFixed(2) + '</td>' +
+          '<td class="p-3 text-right font-mono text-slate-400">₹' + e.previous.toFixed(2) + '</td>' +
+          '<td class="p-3 text-right font-mono"><span class="px-1.5 py-0.5 rounded text-[11px] border ' + badge + '">' + (isUp ? '+' : '') + e.pct.toFixed(0) + '%</span></td>' +
+          '</tr>';
+      }).join('') || '<tr><td colspan="4" class="p-4 text-center text-slate-500">No comparative expense activity.</td></tr>';
+
+      const iList = document.getElementById('momIncomesList');
+      iList.innerHTML = (cp.incomes || []).map(i => {
+        const isUp = i.diff >= 0;
+        const badge = isUp ? 'bg-green-950 text-green-400 border-green-800' : 'bg-red-950 text-red-400 border-red-800';
+        return '<tr class="hover:bg-slate-800 transition">' +
+          '<td class="p-3 font-medium text-slate-200"><a href="javascript:void(0)" onclick="openLedgerStatement(\'' + i.name + '\')" class="hover:text-blue-400">' + i.name + '</a></td>' +
+          '<td class="p-3 text-right font-mono text-white">₹' + i.current.toFixed(2) + '</td>' +
+          '<td class="p-3 text-right font-mono text-slate-400">₹' + i.previous.toFixed(2) + '</td>' +
+          '<td class="p-3 text-right font-mono"><span class="px-1.5 py-0.5 rounded text-[11px] border ' + badge + '">' + (isUp ? '+' : '') + i.pct.toFixed(0) + '%</span></td>' +
+          '</tr>';
+      }).join('') || '<tr><td colspan="4" class="p-4 text-center text-slate-500">No comparative income activity.</td></tr>';
+    }
+
+    // MONTHLY BUDGETS RENDERER (OPTION 3)
+    function renderBudgets() {
+      if (!reportData || !reportData.budgets) return;
+      const bGrid = document.getElementById('budgetsGrid');
+
+      bGrid.innerHTML = reportData.budgets.map(b => {
+        const barColor = b.isOver ? 'bg-red-500' : (b.pct > 80 ? 'bg-amber-500' : 'bg-indigo-500');
+        const statusBadge = !b.hasBudget 
+          ? '<span class="text-[10px] font-mono text-slate-500">No Limit Set</span>'
+          : (b.isOver 
+            ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-red-950 text-red-400 border border-red-800 uppercase font-bold">Over Budget</span>'
+            : '<span class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-green-950 text-green-400 border border-green-800 uppercase font-bold">' + b.pct + '% Spent</span>');
+
+        return '<div class="bg-slate-900 border border-slate-800 p-5 rounded-xl space-y-3">' +
+          '<div class="flex justify-between items-start">' +
+          '<div><h4 class="font-bold text-slate-100 text-sm"><a href="javascript:void(0)" onclick="openLedgerStatement(\'' + b.ledger + '\')" class="hover:text-blue-400">' + b.ledger + '</a></h4>' +
+          '<span class="text-xs text-slate-500">' + b.group + '</span></div>' +
+          statusBadge +
+          '</div>' +
+          '<div class="space-y-1.5">' +
+          '<div class="flex justify-between text-xs font-mono">' +
+          '<span class="text-slate-400">Spent: ₹' + b.spent.toFixed(2) + '</span>' +
+          '<span class="text-slate-300 font-bold">Limit: ₹' + b.allocated.toFixed(2) + '</span>' +
+          '</div>' +
+          '<div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">' +
+          '<div class="' + barColor + ' h-2 rounded-full" style="width: ' + b.pct + '%"></div>' +
+          '</div>' +
+          '<div class="text-[11px] text-right font-mono ' + (b.remaining < 0 ? 'text-red-400 font-bold' : 'text-slate-400') + '">' +
+          (b.remaining < 0 ? 'Over limit by ₹' + Math.abs(b.remaining).toFixed(2) : 'Remaining room: ₹' + b.remaining.toFixed(2)) +
+          '</div>' +
+          '</div>' +
+          '</div>';
+      }).join('');
+    }
+
+    function openBudgetModal() {
+      const bSel = document.getElementById('bLedger');
+      bSel.innerHTML = (masterData.ledgers || [])
+        .filter(l => l.nature === 'Expense')
+        .map(l => '<option value="' + l.name + '">' + l.name + ' [' + l.group + ']</option>')
+        .join('');
+
+      const modal = document.getElementById('budgetModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeBudgetModal() {
+      const modal = document.getElementById('budgetModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.getElementById('budgetForm').reset();
+    }
+
+    // TRIAL BALANCE
+    function renderTrialBalance() {
+      if (!reportData || !reportData.trialBalance) return;
+      const tb = reportData.trialBalance;
+      const tbody = document.getElementById('trialBalanceTableBody');
+      const tfoot = document.getElementById('trialBalanceTableFoot');
+      const badge = document.getElementById('tbAuditBadge');
+
+      if (tb.totals.isBalanced) {
+        badge.className = 'px-3 py-1.5 rounded-lg border font-mono text-xs font-bold uppercase flex items-center gap-2 bg-green-950 text-green-400 border-green-800';
+        badge.innerHTML = '<i class="fa-solid fa-circle-check"></i> Books In Balance (Δ ₹0.00)';
+      } else {
+        badge.className = 'px-3 py-1.5 rounded-lg border font-mono text-xs font-bold uppercase flex items-center gap-2 bg-red-950 text-red-400 border-red-800';
+        badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Imbalance Detected: ₹' + tb.totals.difference.toFixed(2);
+      }
+
+      tbody.innerHTML = (tb.rows || []).map(r => {
+        return '<tr class="hover:bg-slate-800 transition">' +
+          '<td class="p-3.5"><a href="javascript:void(0)" onclick="openLedgerStatement(\'' + r.name + '\')" class="font-medium text-slate-200 hover:text-blue-400">' + r.name + '</a></td>' +
+          '<td class="p-3.5 text-xs text-slate-400">' + r.group + '</td>' +
+          '<td class="p-3.5 text-right font-mono text-slate-400">' + (r.grossDr > 0 ? '₹' + r.grossDr.toFixed(2) : '-') + '</td>' +
+          '<td class="p-3.5 text-right font-mono text-slate-400">' + (r.grossCr > 0 ? '₹' + r.grossCr.toFixed(2) : '-') + '</td>' +
+          '<td class="p-3.5 text-right font-mono font-semibold text-green-400">' + (r.closingDr > 0 ? '₹' + r.closingDr.toFixed(2) : '-') + '</td>' +
+          '<td class="p-3.5 text-right font-mono font-semibold text-red-400">' + (r.closingCr > 0 ? '₹' + r.closingCr.toFixed(2) : '-') + '</td>' +
+          '</tr>';
+      }).join('') || '<tr><td colspan="6" class="p-8 text-center text-slate-500">No ledger balances available.</td></tr>';
+
+      tfoot.innerHTML = '<tr>' +
+        '<td class="p-3.5 text-white" colspan="2">Total Equalization Sum</td>' +
+        '<td class="p-3.5 text-right text-slate-400">₹' + tb.totals.grossDr.toFixed(2) + '</td>' +
+        '<td class="p-3.5 text-right text-slate-400">₹' + tb.totals.grossCr.toFixed(2) + '</td>' +
+        '<td class="p-3.5 text-right text-green-400">₹' + tb.totals.closingDr.toFixed(2) + '</td>' +
+        '<td class="p-3.5 text-right text-red-400">₹' + tb.totals.closingCr.toFixed(2) + '</td>' +
+        '</tr>';
+    }
+
+    // MULTI-LEG VOUCHERS
+    function addVoucherEntryRow(type = 'Dr', ledger = '', amount = '') {
+      const container = document.getElementById('voucherEntriesContainer');
+      const rowId = 'ventry_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+
+      const opts = (masterData.ledgers || []).map(l => {
+        return '<option value="' + l.name + '"' + (l.name === ledger ? ' selected' : '') + '>' + l.name + ' [' + l.group + ']</option>';
+      }).join('');
+
+      const div = document.createElement('div');
+      div.className = 'flex items-center gap-2 bg-slate-900 p-2 rounded border border-slate-800';
+      div.id = rowId;
+      div.innerHTML = '<select class="ventry-type w-20 bg-slate-800 border border-slate-700 px-2 py-1.5 rounded text-xs font-mono font-bold text-slate-200 outline-none" onchange="updateVoucherMeter()">' +
+        '<option value="Dr"' + (type === 'Dr' ? ' selected' : '') + '>Dr (Debit)</option>' +
+        '<option value="Cr"' + (type === 'Cr' ? ' selected' : '') + '>Cr (Credit)</option>' +
+        '</select>' +
+        '<select class="ventry-ledger flex-1 bg-slate-800 border border-slate-700 px-2 py-1.5 rounded text-xs text-slate-200 outline-none focus:border-blue-500">' +
+        opts +
+        '</select>' +
+        '<input type="number" step="0.01" class="ventry-amount w-28 bg-slate-800 border border-slate-700 px-2 py-1.5 rounded text-xs font-mono text-slate-200 outline-none text-right focus:border-blue-500" placeholder="0.00" value="' + (amount || '') + '" oninput="updateVoucherMeter()">' +
+        '<button type="button" onclick="removeVoucherEntryRow(\'' + rowId + '\')" class="text-red-400 hover:text-red-300 px-2 text-xs" title="Remove line"><i class="fa-solid fa-trash"></i></button>';
+
+      container.appendChild(div);
+      updateVoucherMeter();
+    }
+
+    function removeVoucherEntryRow(rowId) {
+      const rows = document.querySelectorAll('#voucherEntriesContainer > div');
+      if (rows.length <= 2) {
+        alert('A valid accounting voucher must have at least 2 entries (Debit and Credit).');
+        return;
+      }
+      const el = document.getElementById(rowId);
+      if (el) el.remove();
+      updateVoucherMeter();
+    }
+
+    function updateVoucherMeter() {
+      let totalDr = 0;
+      let totalCr = 0;
+
+      document.querySelectorAll('#voucherEntriesContainer > div').forEach(row => {
+        const type = row.querySelector('.ventry-type').value;
+        const amt = parseFloat(row.querySelector('.ventry-amount').value) || 0;
+        if (type === 'Dr') totalDr += amt;
+        else totalCr += amt;
+      });
+
+      const diff = totalDr - totalCr;
+      document.getElementById('vMeterDr').innerText = '₹' + totalDr.toFixed(2);
+      document.getElementById('vMeterCr').innerText = '₹' + totalCr.toFixed(2);
+
+      const diffBox = document.getElementById('vMeterDiffBox');
+      const diffEl = document.getElementById('vMeterDiff');
+      const submitBtn = document.getElementById('vSubmitBtn');
+
+      if (Math.abs(diff) < 0.01 && (totalDr > 0 || totalCr > 0)) {
+        diffBox.className = 'p-2 rounded border bg-green-950/40 border-green-800';
+        diffEl.className = 'font-bold text-green-400 text-sm';
+        diffEl.innerText = 'Balanced (₹0.00)';
+        submitBtn.disabled = false;
+        submitBtn.className = 'bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg text-xs font-semibold text-white';
+      } else {
+        diffBox.className = 'p-2 rounded border bg-red-950/40 border-red-800';
+        diffEl.className = 'font-bold text-red-400 text-sm';
+        diffEl.innerText = 'Δ ₹' + Math.abs(diff).toFixed(2);
+        submitBtn.disabled = true;
+        submitBtn.className = 'bg-slate-700 px-4 py-2 rounded-lg text-xs font-semibold text-slate-400 cursor-not-allowed';
+      }
+    }
+
+    function openVoucherModal(id = null) {
+      let voucher = null;
+      if (id && reportData && reportData.vouchers) {
+        voucher = reportData.vouchers.find(v => v.id === id);
+      }
+
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('vId').value = voucher ? voucher.id : '';
+      document.getElementById('voucherModalTitle').innerText = voucher ? 'Edit Split Voucher' : 'Record Split Voucher';
+      document.getElementById('voucherNoPreview').innerText = voucher && voucher.voucher_no ? `Voucher No: ${voucher.voucher_no}` : 'Voucher No: Auto-Generated Sequential';
+      document.getElementById('vDate').value = voucher && voucher.date ? voucher.date : today;
+      document.getElementById('vDueDate').value = voucher && voucher.dueDate ? voucher.dueDate : (voucher && voucher.date ? voucher.date : today);
+      document.getElementById('vType').value = voucher ? voucher.voucher_type : 'Payment';
+      document.getElementById('vNarration').value = voucher ? voucher.narration : '';
+
+      const container = document.getElementById('voucherEntriesContainer');
+      container.innerHTML = '';
+
+      if (voucher && Array.isArray(voucher.entries) && voucher.entries.length >= 2) {
+        voucher.entries.forEach(e => addVoucherEntryRow(e.type, e.ledger, e.amount));
+      } else if (voucher) {
+        addVoucherEntryRow('Dr', voucher.dr_ledger, voucher.amount);
+        addVoucherEntryRow('Cr', voucher.cr_ledger, voucher.amount);
+      } else {
+        const exp = masterData.ledgers.find(l => l.nature === 'Expense');
+        const bank = masterData.ledgers.find(l => l.group.includes('Bank') || l.group === 'Credit Cards');
+        addVoucherEntryRow('Dr', exp ? exp.name : '', '');
+        addVoucherEntryRow('Cr', bank ? bank.name : '', '');
+      }
+
+      const modal = document.getElementById('voucherModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeVoucherModal() {
+      const modal = document.getElementById('voucherModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.getElementById('voucherForm').reset();
+    }
+
+    // GROUP SUMMARY
+    function populateGroupSummaryDropdown() {
+      const sel = document.getElementById('groupSummarySelect');
+      if (!sel || !masterData.groups) return;
+
+      const currentVal = currentSummaryGroup || sel.value || (masterData.groups[0] ? masterData.groups[0].name : '');
+      sel.innerHTML = masterData.groups.map(g => {
+        const prefix = g.parentGroup ? '↳ ' + g.parentGroup + ' ➔ ' : '● ';
+        return '<option value="' + g.name + '">' + prefix + g.name + ' (' + g.nature + ')</option>';
+      }).join('');
+
+      if (currentVal) sel.value = currentVal;
+    }
+
+    function getAllDescendantGroups(groupName) {
+      let descendants = [groupName];
+      (masterData.groups || []).forEach(g => {
+        if (g.parentGroup === groupName) {
+          descendants = descendants.concat(getAllDescendantGroups(g.name));
+        }
+      });
+      return descendants;
+    }
+
+    function getGroupRollupBalance(groupName) {
+      const allSubGroupNames = getAllDescendantGroups(groupName);
+      const allLedgersInSubtree = (masterData.ledgers || []).filter(l => allSubGroupNames.includes(l.group));
+
+      const assetsAndLiabs = [...((reportData && reportData.balanceSheet && reportData.balanceSheet.assets) || []), ...((reportData && reportData.balanceSheet && reportData.balanceSheet.liabilities) || [])];
+      const incAndExp = [...((reportData && reportData.profitAndLoss && reportData.profitAndLoss.incomes) || []), ...((reportData && reportData.profitAndLoss && reportData.profitAndLoss.expenses) || [])];
+      const allBalances = [...assetsAndLiabs, ...incAndExp];
+
+      let netBal = 0;
+      allLedgersInSubtree.forEach(l => {
+        const match = allBalances.find(x => x.name === l.name);
+        netBal += match ? match.balance : 0;
+      });
+
+      return { netBal, ledgerCount: allLedgersInSubtree.length };
+    }
+
+    function drillIntoGroup(groupName) {
+      currentSummaryGroup = groupName;
+      const sel = document.getElementById('groupSummarySelect');
+      if (sel) sel.value = groupName;
+      renderGroupSummary(groupName);
+    }
+
+    function renderGroupSummary(groupName = null) {
+      if (!masterData.groups || masterData.groups.length === 0) return;
+      const targetGroupName = groupName || document.getElementById('groupSummarySelect').value || masterData.groups[0].name;
+      currentSummaryGroup = targetGroupName;
+
+      const groupObj = masterData.groups.find(g => g.name === targetGroupName);
+      if (!groupObj) return;
+
+      const bcEl = document.getElementById('groupBreadcrumb');
+      let crumbs = [];
+      let cur = groupObj;
+      while (cur) {
+        crumbs.unshift(cur);
+        cur = cur.parentGroup ? masterData.groups.find(g => g.name === cur.parentGroup) : null;
+      }
+      bcEl.innerHTML = '<span class="text-slate-500">Path:</span> ' +
+        crumbs.map((c, idx) => {
+          const isLast = (idx === crumbs.length - 1);
+          return isLast
+            ? '<span class="text-white font-semibold">' + c.name + '</span>'
+            : '<a href="javascript:void(0)" onclick="drillIntoGroup(\'' + c.name + '\')" class="text-blue-400 hover:underline">' + c.name + '</a> <span class="text-slate-600">/</span>';
+        }).join(' ');
+
+      const directSubgroups = (masterData.groups || []).filter(g => g.parentGroup === targetGroupName);
+      const directLedgers = (masterData.ledgers || []).filter(l => l.group === targetGroupName);
+
+      const assetsAndLiabs = [...((reportData && reportData.balanceSheet && reportData.balanceSheet.assets) || []), ...((reportData && reportData.balanceSheet && reportData.balanceSheet.liabilities) || [])];
+      const incAndExp = [...((reportData && reportData.profitAndLoss && reportData.profitAndLoss.incomes) || []), ...((reportData && reportData.profitAndLoss && reportData.profitAndLoss.expenses) || [])];
+      const allBalances = [...assetsAndLiabs, ...incAndExp];
+
+      let rowsHtml = '';
+      let groupTotalBalance = 0;
+
+      directSubgroups.forEach(sg => {
+        const rollup = getGroupRollupBalance(sg.name);
+        groupTotalBalance += rollup.netBal;
+        const balLabel = '₹' + Math.abs(rollup.netBal).toFixed(2) + ' ' + (groupObj.nature === 'Asset' || groupObj.nature === 'Expense' ? (rollup.netBal >= 0 ? 'Dr' : 'Cr') : (rollup.netBal >= 0 ? 'Cr' : 'Dr'));
+
+        rowsHtml += '<tr class="hover:bg-slate-800 transition cursor-pointer" onclick="drillIntoGroup(\'' + sg.name + '\')">' +
+          '<td class="p-3.5"><div class="flex items-center gap-2 font-semibold text-purple-300">' +
+          '<i class="fa-solid fa-folder-open text-amber-400"></i>' + sg.name +
+          '<span class="text-[10px] text-slate-500 font-normal">(' + rollup.ledgerCount + ' ledgers inside)</span></div></td>' +
+          '<td class="p-3.5"><span class="px-2 py-0.5 rounded text-xs font-mono bg-purple-900 text-purple-200">Sub-Group</span></td>' +
+          '<td class="p-3.5 text-right font-mono text-slate-500">-</td>' +
+          '<td class="p-3.5 text-right font-mono text-slate-500">-</td>' +
+          '<td class="p-3.5 text-right font-mono font-bold text-sky-400">' + balLabel + ' <i class="fa-solid fa-chevron-right text-[10px] ml-1 text-slate-500"></i></td>' +
+          '</tr>';
+      });
+
+      directLedgers.forEach(l => {
+        const match = allBalances.find(x => x.name === l.name);
+        const bal = match ? match.balance : 0;
+        groupTotalBalance += bal;
+
+        const balLabel = '₹' + Math.abs(bal).toFixed(2) + ' ' + (l.nature === 'Asset' || l.nature === 'Expense' ? (bal >= 0 ? 'Dr' : 'Cr') : (bal >= 0 ? 'Cr' : 'Dr'));
+
+        rowsHtml += '<tr class="hover:bg-slate-800 transition">' +
+          '<td class="p-3.5 pl-8"><div class="flex items-center gap-2 font-medium text-slate-200">' +
+          '<i class="fa-regular fa-file-lines text-slate-400 text-xs"></i>' +
+          '<a href="javascript:void(0)" onclick="openLedgerStatement(\'' + l.name + '\')" class="hover:text-blue-400">' + l.name + '</a>' +
+          '</div></td>' +
+          '<td class="p-3.5"><span class="px-2 py-0.5 rounded text-xs font-mono bg-slate-800 text-slate-400">Ledger</span></td>' +
+          '<td class="p-3.5 text-right font-mono text-green-400">' + (l.nature === 'Asset' || l.nature === 'Expense' ? (bal > 0 ? '₹' + bal.toFixed(2) : '-') : '-') + '</td>' +
+          '<td class="p-3.5 text-right font-mono text-red-400">' + (l.nature === 'Liability' || l.nature === 'Income' ? (bal > 0 ? '₹' + bal.toFixed(2) : '-') : '-') + '</td>' +
+          '<td class="p-3.5 text-right font-mono font-bold text-white">' + balLabel + '</td>' +
+          '</tr>';
+      });
+
+      if (directSubgroups.length === 0 && directLedgers.length === 0) {
+        rowsHtml = '<tr><td colspan="5" class="p-8 text-center text-slate-500">No sub-groups or ledger accounts found directly under ' + targetGroupName + '.</td></tr>';
+      }
+
+      document.getElementById('groupSummaryTableBody').innerHTML = rowsHtml;
+      const totalSign = (groupObj.nature === 'Asset' || groupObj.nature === 'Expense') ? (groupTotalBalance >= 0 ? 'Dr' : 'Cr') : (groupTotalBalance >= 0 ? 'Cr' : 'Dr');
+      document.getElementById('groupTotalBalanceDisplay').innerText = '₹' + Math.abs(groupTotalBalance).toFixed(2) + ' ' + totalSign;
+      document.getElementById('groupSummaryTableHeader').innerText = targetGroupName + ' • Group Summary';
+    }
+
+    // LEDGER STATEMENT
+    function openLedgerStatement(ledgerName) {
+      currentStatementLedger = ledgerName;
+      switchTab('ledgerstatement');
+      const sel = document.getElementById('statementLedgerSelect');
+      if (sel) sel.value = ledgerName;
+      applyStatementFilters();
+    }
+
+    function setDateRangePreset(preset) {
+      const now = new Date();
+      const fromEl = document.getElementById('filterFromDate');
+      const toEl = document.getElementById('filterToDate');
+
+      if (preset === 'this_month') {
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+        fromEl.value = firstDay;
+        toEl.value = lastDay;
+      } else if (preset === 'this_fy') {
+        let fyStartYear = now.getFullYear();
+        if (now.getMonth() < 3) fyStartYear -= 1;
+        fromEl.value = fyStartYear + '-04-01';
+        toEl.value = (fyStartYear + 1) + '-03-31';
+      } else if (preset === 'all') {
+        fromEl.value = '';
+        toEl.value = '';
+      }
+
+      applyStatementFilters();
+    }
+
+    function populateStatementLedgerDropdown() {
+      const sel = document.getElementById('statementLedgerSelect');
+      if (!sel || !masterData.ledgers) return;
+
+      const currentVal = currentStatementLedger || sel.value || (masterData.ledgers[0] ? masterData.ledgers[0].name : '');
+      sel.innerHTML = masterData.ledgers.map(l => {
+        return '<option value="' + l.name + '">' + l.name + ' [' + l.group + ' - ' + l.nature + ']</option>';
+      }).join('');
+
+      if (currentVal) sel.value = currentVal;
+    }
+
+    function applyStatementFilters() {
+      const sel = document.getElementById('statementLedgerSelect');
+      if (!sel || !masterData.ledgers || masterData.ledgers.length === 0) return;
+
+      const selectedName = sel.value || masterData.ledgers[0].name;
+      currentStatementLedger = selectedName;
+
+      const ledgerObj = masterData.ledgers.find(l => l.name === selectedName);
+      if (!ledgerObj) return;
+
+      const fromDate = document.getElementById('filterFromDate').value;
+      const toDate = document.getElementById('filterToDate').value;
+
+      const allVouchers = (reportData && reportData.vouchers) ? reportData.vouchers.slice() : [];
+      allVouchers.sort((a, b) => (a.date > b.date ? 1 : -1));
+
+      const isDebitNature = (ledgerObj.nature === 'Asset' || ledgerObj.nature === 'Expense');
+      let runningOpBal = parseFloat(ledgerObj.openingBalance) || 0;
+
+      const filteredVouchers = [];
+      allVouchers.forEach(v => {
+        const entries = (Array.isArray(v.entries) && v.entries.length > 0)
+          ? v.entries
+          : [{ type: 'Dr', ledger: v.dr_ledger, amount: v.amount }, { type: 'Cr', ledger: v.cr_ledger, amount: v.amount }];
+
+        const myEntries = entries.filter(e => e.ledger === selectedName);
+        if (myEntries.length === 0) return;
+
+        const vDate = v.date || '';
+        myEntries.forEach(me => {
+          const amt = parseFloat(me.amount) || 0;
+          if (fromDate && vDate < fromDate) {
+            if (isDebitNature) runningOpBal += (me.type === 'Dr' ? amt : -amt);
+            else runningOpBal += (me.type === 'Cr' ? amt : -amt);
+          }
+        });
+
+        if (!fromDate || vDate >= fromDate) {
+          if (!toDate || vDate <= toDate) {
+            filteredVouchers.push({ ...v, myEntries });
+          }
+        }
+      });
+
+      const opLabel = runningOpBal >= 0 
+        ? '₹' + runningOpBal.toFixed(2) + ' ' + (isDebitNature ? 'Dr' : 'Cr')
+        : '₹' + Math.abs(runningOpBal).toFixed(2) + ' ' + (isDebitNature ? 'Cr' : 'Dr');
+      document.getElementById('stmtOpBal').innerText = opLabel;
+
+      let totalPeriodDr = 0;
+      let totalPeriodCr = 0;
+      let currentRunningBal = runningOpBal;
+      const tbody = document.getElementById('statementTableBody');
+
+      let rowsHtml = '';
+      rowsHtml += '<tr class="bg-slate-900 font-mono text-xs text-slate-400 font-semibold">' +
+        '<td class="p-3.5">' + (fromDate || 'Beginning') + '</td>' +
+        '<td class="p-3.5 italic text-slate-300" colspan="3">Opening Balance b/f</td>' +
+        '<td class="p-3.5 text-right font-mono">' + (isDebitNature && runningOpBal > 0 ? '₹' + runningOpBal.toFixed(2) : '-') + '</td>' +
+        '<td class="p-3.5 text-right font-mono">' + (!isDebitNature && runningOpBal > 0 ? '₹' + runningOpBal.toFixed(2) : '-') + '</td>' +
+        '<td class="p-3.5 text-right font-bold text-blue-400">' + opLabel + '</td>' +
+        '</tr>';
+
+      filteredVouchers.forEach(v => {
+        const allEntries = (Array.isArray(v.entries) && v.entries.length > 0)
+          ? v.entries
+          : [{ type: 'Dr', ledger: v.dr_ledger, amount: v.amount }, { type: 'Cr', ledger: v.cr_ledger, amount: v.amount }];
+
+        v.myEntries.forEach(me => {
+          const amt = parseFloat(me.amount) || 0;
+          const isDr = (me.type === 'Dr');
+          const oppositeAccounts = allEntries.filter(e => e.type !== me.type).map(e => e.ledger).join(', ') || 'Compound Split';
+
+          if (isDr) totalPeriodDr += amt;
+          else totalPeriodCr += amt;
+
+          if (isDebitNature) currentRunningBal += (isDr ? amt : -amt);
+          else currentRunningBal += (!isDr ? amt : -amt);
+
+          const curSign = currentRunningBal >= 0 ? (isDebitNature ? 'Dr' : 'Cr') : (isDebitNature ? 'Cr' : 'Dr');
+          const runningStr = '₹' + Math.abs(currentRunningBal).toFixed(2) + ' ' + curSign;
+
+          rowsHtml += '<tr class="hover:bg-slate-800 transition">' +
+            '<td class="p-3.5 text-xs font-mono text-slate-400">' + v.date + '</td>' +
+            '<td class="p-3.5"><div class="font-medium text-slate-200">' + oppositeAccounts + '</div>' +
+            (v.narration ? '<div class="text-xs text-slate-500 italic">' + v.narration + '</div>' : '') + '</td>' +
+            '<td class="p-3.5"><span class="px-2 py-0.5 rounded text-xs font-mono bg-slate-800 text-slate-300">' + v.voucher_type + '</span></td>' +
+            '<td class="p-3.5 text-xs font-mono text-slate-400">' + (v.voucher_no || `#${String(v.id).slice(-6)}`) + '</td>' +
+            '<td class="p-3.5 text-right font-mono font-semibold ' + (isDr ? 'text-green-400' : 'text-slate-600') + '">' + (isDr ? '₹' + amt.toFixed(2) : '-') + '</td>' +
+            '<td class="p-3.5 text-right font-mono font-semibold ' + (!isDr ? 'text-red-400' : 'text-slate-600') + '">' + (!isDr ? '₹' + amt.toFixed(2) : '-') + '</td>' +
+            '<td class="p-3.5 text-right font-mono font-bold text-white">' + runningStr + '</td>' +
+            '</tr>';
+        });
+      });
+
+      tbody.innerHTML = rowsHtml;
+      document.getElementById('stmtDrTotal').innerText = '₹' + totalPeriodDr.toFixed(2);
+      document.getElementById('stmtCrTotal').innerText = '₹' + totalPeriodCr.toFixed(2);
+
+      const clSign = currentRunningBal >= 0 ? (isDebitNature ? 'Dr' : 'Cr') : (isDebitNature ? 'Cr' : 'Dr');
+      document.getElementById('stmtClBal').innerText = '₹' + Math.abs(currentRunningBal).toFixed(2) + ' ' + clSign;
+    }
+
+    // GROUP MODAL
+    function handleGroupParentChange() {
+      const p = document.getElementById('gParentGroup').value;
+      const nf = document.getElementById('gNatureField');
+      if (p === 'Primary') nf.classList.remove('hidden');
+      else nf.classList.add('hidden');
+    }
+
+    function openGroupModal(id = null) {
+      let grp = null;
+      if (id && masterData && masterData.groups) {
+        grp = masterData.groups.find(g => g.id === id);
+      }
+
+      document.getElementById('gId').value = grp ? grp.id : '';
+      document.getElementById('groupModalTitle').innerText = grp ? 'Edit Account Group' : 'Create Account Group';
+      document.getElementById('gName').value = grp ? grp.name : '';
+
+      const pSelect = document.getElementById('gParentGroup');
+      pSelect.innerHTML = '<option value="Primary">● Primary (Top Level Group)</option>' +
+        (masterData.groups || [])
+          .filter(g => !grp || g.id !== grp.id)
+          .map(g => '<option value="' + g.name + '">' + g.name + ' (' + g.nature + ')</option>')
+          .join('');
+
+      pSelect.value = grp && grp.parentGroup ? grp.parentGroup : 'Primary';
+      if (grp) document.getElementById('gNature').value = grp.nature || 'Asset';
+
+      handleGroupParentChange();
+
+      const modal = document.getElementById('groupModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeGroupModal() {
+      const modal = document.getElementById('groupModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.getElementById('groupForm').reset();
+    }
+
+    async function deleteGroup(id) {
+      if (!confirm('Are you sure you want to delete this group?')) return;
+      const res = await fetch('/api/groups/' + id, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.error) alert(data.error);
+      else await loadData();
+    }
+
+    // LEDGER MODAL
+    function openLedgerModal(id = null) {
+      let ledger = null;
+      if (id && masterData && masterData.ledgers) {
+        ledger = masterData.ledgers.find(l => l.id === id);
+      }
+
+      const lId = document.getElementById('lId');
+      const lTitle = document.getElementById('ledgerModalTitle');
+      const lName = document.getElementById('lName');
+      const lOp = document.getElementById('lOpeningBalance');
+      const lBill = document.getElementById('lBillingDay');
+      const lGrace = document.getElementById('lGraceDays');
+
+      if (lId) lId.value = ledger ? ledger.id : '';
+      if (lTitle) lTitle.innerText = ledger ? 'Edit Ledger' : 'Create Ledger Account';
+      if (lName) lName.value = ledger ? ledger.name : '';
+      if (lOp) lOp.value = ledger ? ledger.openingBalance : '0.00';
+      if (lBill) lBill.value = ledger && ledger.billingDay ? ledger.billingDay : 15;
+      if (lGrace) lGrace.value = ledger && ledger.gracePeriodDays ? ledger.gracePeriodDays : 20;
+
+      const grpSelect = document.getElementById('lGroup');
+      if (grpSelect) {
+        grpSelect.innerHTML = (masterData.groups || []).map(g => {
+          const prefix = g.parentGroup ? '↳ ' + g.parentGroup + ' ➔ ' : '';
+          return '<option value="' + g.name + '">' + prefix + g.name + ' (' + g.nature + ')</option>';
+        }).join('');
+        if (ledger) grpSelect.value = ledger.group;
+      }
+
+      toggleCreditCardFields();
+
+      const modal = document.getElementById('ledgerModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeLedgerModal() {
+      const modal = document.getElementById('ledgerModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.getElementById('ledgerForm').reset();
+    }
+
+    async function loadData() {
+      try {
+        const mRes = await fetch('/api/masters').then(r => r.json());
+        if (mRes) {
+          masterData = mRes;
+          populateStatementLedgerDropdown();
+          populateGroupSummaryDropdown();
+          renderMasters();
+        }
+      } catch (e) {
+        console.error('Failed to load masters:', e);
+      }
+
+      try {
+        const rRes = await fetch('/api/reports').then(r => r.json());
+        if (rRes) {
+          reportData = rRes;
+          renderMetrics();
+          renderCashFlow();
+          renderComparativePnL();
+          renderBudgets();
+          renderTrialBalance();
+          renderDues();
+          renderDaybook();
+          renderBalanceSheet();
+          renderPnL();
+          if (activeTab === 'ledgerstatement') applyStatementFilters();
+          if (activeTab === 'groupsummary') renderGroupSummary();
+        }
+      } catch (e) {
+        console.error('Failed to load reports:', e);
+      }
+    }
+
+    function renderMetrics() {
+      if (!reportData || !reportData.metrics) return;
+      const m = reportData.metrics;
+
+      const nw = document.getElementById('metricNetWorth');
+      const cb = document.getElementById('metricCashBank');
+      const dt = document.getElementById('metricDebt');
+      const sp = document.getElementById('metricSurplus');
+
+      if (nw) nw.innerText = '₹' + (m.netWorth || 0).toFixed(2);
+      if (cb) cb.innerText = '₹' + (m.liquidCashBank || 0).toFixed(2);
+      if (dt) dt.innerText = '₹' + (m.totalUnsecuredDebt || 0).toFixed(2);
+      if (sp) sp.innerText = '₹' + (m.netSurplus || 0).toFixed(2);
+
+      const badge = document.getElementById('solvencyBadge');
+      const note = document.getElementById('solvencyNote');
+      const card = document.getElementById('solvencyCard');
+
+      if (badge && note && card) {
+        if (m.isDebtTrap) {
+          badge.className = 'px-1.5 py-0.5 rounded text-xs uppercase font-mono bg-red-900 text-red-300 border border-red-700';
+          badge.innerText = 'High Risk';
+          note.innerHTML = '<span class="text-red-400 font-semibold">Critical:</span> Card/loan dues exceed liquid cash.';
+          card.className = 'm-4 p-3.5 rounded-xl border border-red-800 bg-red-950 text-xs space-y-1';
+        } else {
+          badge.className = 'px-1.5 py-0.5 rounded text-xs uppercase font-mono bg-green-900 text-green-300 border border-green-700';
+          badge.innerText = 'Solvent';
+          note.innerText = 'Healthy liquidity. Cash covers all commitments.';
+          card.className = 'm-4 p-3.5 rounded-xl border border-green-800 bg-green-950 text-xs space-y-1';
+        }
+      }
+
+      const qb = document.getElementById('quickBalancesList');
+      if (qb && masterData.ledgers) {
+        const assetsAndLiabs = [...((reportData.balanceSheet && reportData.balanceSheet.assets) || []), ...((reportData.balanceSheet && reportData.balanceSheet.liabilities) || [])];
+        qb.innerHTML = masterData.ledgers
+          .filter(l => l.nature === 'Asset' || l.nature === 'Liability')
+          .map(l => {
+            const match = assetsAndLiabs.find(x => x.name === l.name);
+            const bal = match ? match.balance : 0;
+            return '<div class="py-2.5 flex justify-between items-center text-xs"><div>' +
+              '<a href="javascript:void(0)" onclick="openLedgerStatement(\'' + l.name + '\')" class="font-medium text-slate-200 hover:text-blue-400">' + l.name + '</a>' +
+              '<span class="text-slate-500 block text-xs">' + l.group + '</span></div>' +
+              '<span class="font-mono font-semibold ' + (l.nature === 'Asset' ? 'text-green-400' : 'text-red-400') + '">₹' + (bal || 0).toFixed(2) + '</span></div>';
+          }).join('') || '<div class="text-xs text-slate-500 py-3">No balances found.</div>';
+      }
+
+      const qv = document.getElementById('quickVouchersList');
+      if (qv && reportData.vouchers) {
+        qv.innerHTML = reportData.vouchers.slice(0, 5).map(v => {
+          return '<div class="py-2 flex justify-between items-center text-xs"><div><div class="font-medium text-slate-300">' +
+            (v.dr_ledger || 'Compound') + ' <span class="text-slate-500">←</span> ' + (v.cr_ledger || 'Compound') + '</div>' +
+            '<div class="text-xs text-slate-500 font-mono">' + v.date + ' • ' + (v.voucher_no || `#${String(v.id).slice(-6)}`) + '</div></div>' +
+            '<span class="font-mono font-bold text-slate-100">₹' + Number(v.amount).toFixed(2) + '</span></div>';
+        }).join('') || '<div class="text-xs text-slate-500 py-4 text-center">No transactions recorded yet.</div>';
+      }
+    }
+
+    function renderDues() {
+      if (!reportData || !reportData.dues) return;
+      const cards = reportData.dues.creditCards || [];
+      const recs = reportData.dues.receivables || [];
+
+      const deck = document.getElementById('creditCardsDeck');
+      if (deck) {
+        if (cards.length === 0) {
+          deck.innerHTML = '<div class="text-xs text-slate-500 py-4">No Credit Card ledgers configured.</div>';
+        } else {
+          deck.innerHTML = cards.map(c => {
+            const badgeClass = c.status === 'OVERDUE' ? 'bg-red-900 text-red-300 border border-red-700' : (c.status === 'URGENT' ? 'bg-yellow-900 text-yellow-300 border border-yellow-700' : 'bg-green-900 text-green-300 border border-green-700');
+            return '<div class="bg-slate-800 border border-slate-700 p-5 rounded-xl space-y-4">' +
+              '<div class="flex justify-between items-start"><div>' +
+              '<h4 class="font-bold text-slate-100 text-sm"><a href="javascript:void(0)" onclick="openLedgerStatement(\'' + c.name + '\')" class="hover:text-blue-400">' + c.name + '</a></h4>' +
+              '<span class="text-xs text-slate-400 font-mono">Bill Day: ' + c.statementDay + 'th • Grace: ' + c.gracePeriodDays + 'd</span></div>' +
+              '<span class="text-xs font-mono px-2 py-0.5 rounded uppercase ' + badgeClass + '">' + c.status + ' (' + c.daysLeft + 'd left)</span></div>' +
+              '<div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-700 text-xs"><div><span class="text-slate-400 block text-xs">Billed Due</span>' +
+              '<span class="font-mono font-bold text-red-400 text-sm">₹' + (c.billedAmount || 0).toFixed(2) + '</span></div><div><span class="text-slate-400 block text-xs">Unbilled Amount</span>' +
+              '<span class="font-mono font-semibold text-slate-300 text-sm">₹' + (c.unbilledAmount || 0).toFixed(2) + '</span></div></div>' +
+              '<div class="text-xs text-slate-400 bg-slate-900 p-2.5 rounded-lg flex justify-between">' +
+              '<span>Bill Gen: <b class="text-slate-300 font-mono">' + c.statementDate + '</b></span>' +
+              '<span>Due: <b class="text-red-300 font-mono">' + c.dueDate + '</b></span></div></div>';
+          }).join('');
+        }
+      }
+
+      const rCount = document.getElementById('receivablesCount');
+      if (rCount) rCount.innerText = recs.length + ' bills';
+
+      const rList = document.getElementById('receivablesList');
+      if (rList) {
+        if (recs.length === 0) {
+          rList.innerHTML = '<tr><td colspan="7" class="p-6 text-center text-slate-500">No open accounts receivables recorded under Sundry Debtors.</td></tr>';
+        } else {
+          rList.innerHTML = recs.map(r => {
+            const statusClass = r.daysLeft < 0 ? 'bg-red-900 text-red-300' : 'bg-green-900 text-green-300';
+            return '<tr class="hover:bg-slate-800">' +
+              '<td class="p-3.5 text-xs font-mono text-slate-400">' + r.invoiceDate + '</td>' +
+              '<td class="p-3.5 text-xs font-mono text-slate-400">' + r.voucher_no + '</td>' +
+              '<td class="p-3.5 font-medium text-slate-200"><a href="javascript:void(0)" onclick="openLedgerStatement(\'' + r.debtor + '\')" class="hover:text-blue-400">' + r.debtor + '</a></td>' +
+              '<td class="p-3.5 text-xs font-mono text-yellow-400">' + r.dueDate + '</td>' +
+              '<td class="p-3.5 text-xs font-mono"><span class="px-2 py-0.5 rounded ' + statusClass + '">' + r.status + '</span></td>' +
+              '<td class="p-3.5 text-xs text-slate-400 truncate max-w-xs">' + (r.narration || '-') + '</td>' +
+              '<td class="p-3.5 text-right font-mono font-bold text-white">₹' + Number(r.amount).toFixed(2) + '</td></tr>';
+          }).join('');
+        }
+      }
+    }
+
+    function renderDaybook() {
+      if (!reportData || !reportData.vouchers) return;
+      const list = document.getElementById('daybookList');
+      const count = document.getElementById('daybookCount');
+      if (count) count.innerText = reportData.vouchers.length + ' Vouchers';
+      if (!list) return;
+
+      if (reportData.vouchers.length === 0) {
+        list.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-500">No accounting vouchers found.</td></tr>';
+        return;
+      }
+
+      list.innerHTML = reportData.vouchers.map(v => {
+        const vNo = v.voucher_no || `#${String(v.id).slice(-6)}`;
+        return '<tr class="hover:bg-slate-800 transition">' +
+          '<td class="p-3.5 text-xs font-mono text-slate-400">' + v.date + '</td>' +
+          '<td class="p-3.5 text-xs font-mono font-semibold text-blue-400">' + vNo + '</td>' +
+          '<td class="p-3.5"><span class="px-2 py-0.5 rounded text-xs font-mono bg-slate-800 text-slate-300">' + v.voucher_type + '</span></td>' +
+          '<td class="p-3.5 text-sm font-medium text-green-400">' + (v.dr_ledger || '-') + '</td>' +
+          '<td class="p-3.5 text-sm font-medium text-red-400">' + (v.cr_ledger || '-') + '</td>' +
+          '<td class="p-3.5 text-xs text-slate-400 max-w-xs truncate">' + (v.narration || '-') + '</td>' +
+          '<td class="p-3.5 text-right font-mono font-bold text-white">₹' + Number(v.amount).toFixed(2) + '</td>' +
+          '<td class="p-3.5 text-center space-x-2">' +
+          '<button onclick="openVoucherModal(' + v.id + ')" class="text-blue-400 hover:text-blue-300 text-xs"><i class="fa-solid fa-pen"></i></button>' +
+          '<button onclick="deleteVoucher(' + v.id + ')" class="text-red-400 hover:text-red-300 text-xs"><i class="fa-solid fa-trash"></i></button>' +
+          '</td></tr>';
+      }).join('');
+    }
+
+    function renderBalanceSheet() {
+      if (!reportData || !reportData.balanceSheet) return;
+      const bs = reportData.balanceSheet;
+
+      const ta = document.getElementById('bsTotalAssets');
+      const tl = document.getElementById('bsTotalLiabilities');
+      const nw = document.getElementById('bsNetWorth');
+
+      if (ta) ta.innerText = '₹' + ((reportData.metrics && reportData.metrics.totalAssets) || 0).toFixed(2);
+      if (tl) tl.innerText = '₹' + (((reportData.metrics && reportData.metrics.totalLiabilities) || 0) + ((reportData.metrics && reportData.metrics.netWorth) || 0)).toFixed(2);
+      if (nw) nw.innerText = '₹' + ((reportData.metrics && reportData.metrics.netWorth) || 0).toFixed(2);
+
+      const aList = document.getElementById('bsAssetsList');
+      if (aList) {
+        aList.innerHTML = (bs.assets || []).map(a => {
+          return '<div class="flex justify-between items-center text-xs py-1.5 border-b border-slate-800"><div>' +
+            '<a href="javascript:void(0)" onclick="openLedgerStatement(\'' + a.name + '\')" class="text-slate-200 font-medium hover:text-blue-400">' + a.name + '</a>' +
+            '<span class="text-slate-500 block text-xs"><a href="javascript:void(0)" onclick="drillIntoGroup(\'' + a.group + '\'); switchTab(\'groupsummary\');" class="hover:underline text-purple-400">' + a.group + '</a></span></div>' +
+            '<span class="font-mono text-green-400 font-semibold">₹' + (a.balance || 0).toFixed(2) + '</span></div>';
+        }).join('') || '<div class="text-xs text-slate-500">No assets recorded.</div>';
+      }
+
+      const lList = document.getElementById('bsLiabilitiesList');
+      if (lList) {
+        lList.innerHTML = (bs.liabilities || []).map(l => {
+          return '<div class="flex justify-between items-center text-xs py-1.5 border-b border-slate-800"><div>' +
+            '<a href="javascript:void(0)" onclick="openLedgerStatement(\'' + l.name + '\')" class="text-slate-200 font-medium hover:text-blue-400">' + l.name + '</a>' +
+            '<span class="text-slate-500 block text-xs"><a href="javascript:void(0)" onclick="drillIntoGroup(\'' + l.group + '\'); switchTab(\'groupsummary\');" class="hover:underline text-purple-400">' + l.group + '</a></span></div>' +
+            '<span class="font-mono text-red-400 font-semibold">₹' + (l.balance || 0).toFixed(2) + '</span></div>';
+        }).join('') || '<div class="text-xs text-slate-500">No liabilities recorded.</div>';
+      }
+    }
+
+    function renderPnL() {
+      if (!reportData || !reportData.profitAndLoss) return;
+      const pnl = reportData.profitAndLoss;
+
+      const te = document.getElementById('pnlTotalExpenses');
+      const ti = document.getElementById('pnlTotalIncomes');
+
+      if (te) te.innerText = '₹' + ((reportData.metrics && reportData.metrics.totalExpenses) || 0).toFixed(2);
+      if (ti) ti.innerText = '₹' + ((reportData.metrics && reportData.metrics.totalIncome) || 0).toFixed(2);
+
+      const eList = document.getElementById('pnlExpensesList');
+      if (eList) {
+        eList.innerHTML = (pnl.expenses || []).map(e => {
+          return '<div class="flex justify-between items-center text-xs py-2 border-b border-slate-800"><div>' +
+            '<a href="javascript:void(0)" onclick="openLedgerStatement(\'' + e.name + '\')" class="text-slate-200 font-medium hover:text-blue-400">' + e.name + '</a>' +
+            '<span class="text-slate-500 block text-xs"><a href="javascript:void(0)" onclick="drillIntoGroup(\'' + e.group + '\'); switchTab(\'groupsummary\');" class="hover:underline text-purple-400">' + e.group + '</a></span></div>' +
+            '<span class="font-mono text-red-400 font-semibold">₹' + (e.balance || 0).toFixed(2) + '</span></div>';
+        }).join('') || '<div class="text-xs text-slate-500">No expenses recorded yet.</div>';
+      }
+
+      const iList = document.getElementById('pnlIncomesList');
+      if (iList) {
+        iList.innerHTML = (pnl.incomes || []).map(i => {
+          return '<div class="flex justify-between items-center text-xs py-2 border-b border-slate-800"><div>' +
+            '<a href="javascript:void(0)" onclick="openLedgerStatement(\'' + i.name + '\')" class="text-slate-200 font-medium hover:text-blue-400">' + i.name + '</a>' +
+            '<span class="text-slate-500 block text-xs"><a href="javascript:void(0)" onclick="drillIntoGroup(\'' + i.group + '\'); switchTab(\'groupsummary\');" class="hover:underline text-purple-400">' + i.group + '</a></span></div>' +
+            '<span class="font-mono text-green-400 font-semibold">₹' + (i.balance || 0).toFixed(2) + '</span></div>';
+        }).join('') || '<div class="text-xs text-slate-500">No incomes recorded yet.</div>';
+      }
+    }
+
+    function renderMasters() {
+      if (!masterData) return;
+
+      const gTable = document.getElementById('groupsHierarchyTable');
+      if (gTable && masterData.groups) {
+        gTable.innerHTML = masterData.groups.map(g => {
+          const natureBadge = g.nature === 'Asset' ? 'bg-blue-900 text-blue-300 border border-blue-700' :
+            (g.nature === 'Liability' ? 'bg-red-900 text-red-300 border border-red-700' :
+            (g.nature === 'Income' ? 'bg-green-900 text-green-300 border border-green-700' : 'bg-yellow-900 text-yellow-300 border border-yellow-700'));
+
+          const parentText = g.parentGroup 
+            ? '<span class="text-xs text-slate-400 block"><i class="fa-solid fa-arrow-turn-up fa-rotate-90 text-[10px] mr-1 text-slate-500"></i>Sub-group of <b class="text-slate-300">' + g.parentGroup + '</b></span>'
+            : '<span class="text-xs text-purple-400 block font-mono">● Primary Group</span>';
+
+          const ledgerCount = (masterData.ledgers || []).filter(l => l.group === g.name).length;
+
+          return '<div class="bg-slate-800 border border-slate-700 p-4 rounded-xl flex justify-between items-start">' +
+            '<div>' +
+            '<div class="font-semibold text-sm text-white flex items-center gap-1.5">' +
+            '<i class="fa-solid ' + (g.parentGroup ? 'fa-folder-open text-amber-400' : 'fa-folder text-purple-400') + ' text-xs"></i>' +
+            '<a href="javascript:void(0)" onclick="drillIntoGroup(\'' + g.name + '\'); switchTab(\'groupsummary\');" class="hover:text-blue-400">' + g.name + '</a></div>' +
+            parentText +
+            '<span class="text-xs text-slate-500 font-mono mt-1 block">' + ledgerCount + ' ledgers attached</span>' +
+            '</div>' +
+            '<div class="flex flex-col items-end gap-2">' +
+            '<span class="text-xs px-2 py-0.5 rounded font-mono ' + natureBadge + '">' + g.nature + '</span>' +
+            '<div class="space-x-2 text-xs">' +
+            '<button onclick="drillIntoGroup(\'' + g.name + '\'); switchTab(\'groupsummary\');" class="text-purple-400 hover:underline">Summary</button>' +
+            '<button onclick="openGroupModal(' + g.id + ')" class="text-blue-400 hover:underline">Edit</button>' +
+            '<button onclick="deleteGroup(' + g.id + ')" class="text-red-400 hover:underline">Delete</button>' +
+            '</div></div></div>';
+        }).join('');
+      }
+
+      const table = document.getElementById('mastersTable');
+      if (!table || !masterData.ledgers) return;
+
+      table.innerHTML = masterData.ledgers.map(l => {
+        const natureClass = l.nature === 'Asset' ? 'bg-blue-900 text-blue-300 border border-blue-700' : (l.nature === 'Liability' ? 'bg-red-900 text-red-300 border border-red-700' : (l.nature === 'Income' ? 'bg-green-900 text-green-300 border border-green-700' : 'bg-yellow-900 text-yellow-300 border border-yellow-700'));
+        const ccInfo = l.group === 'Credit Cards' ? '<div class="text-xs text-yellow-400 font-mono mt-0.5">Bill Day: ' + (l.billingDay || 15) + 'th • Grace: ' + (l.gracePeriodDays || 20) + 'd</div>' : '';
+
+        return '<div class="bg-slate-800 border border-slate-700 p-4 rounded-xl flex justify-between items-start">' +
+          '<div><div class="font-semibold text-sm text-white">' +
+          '<a href="javascript:void(0)" onclick="openLedgerStatement(\'' + l.name + '\')" class="hover:text-blue-400">' + l.name + '</a></div>' +
+          '<div class="text-xs text-slate-400"><a href="javascript:void(0)" onclick="drillIntoGroup(\'' + l.group + '\'); switchTab(\'groupsummary\');" class="hover:underline text-purple-400">' + l.group + '</a></div>' +
+          '<div class="text-xs font-mono text-slate-500 mt-1">Op. Bal: ₹' + Number(l.openingBalance || 0).toFixed(2) + '</div>' + ccInfo + '</div>' +
+          '<div class="flex flex-col items-end gap-2">' +
+          '<span class="text-xs px-2 py-0.5 rounded font-mono ' + natureClass + '">' + l.nature + '</span>' +
+          '<div class="space-x-2 text-xs">' +
+          '<button onclick="openLedgerStatement(\'' + l.name + '\')" class="text-cyan-400 hover:underline">Statement</button>' +
+          '<button onclick="openLedgerModal(' + l.id + ')" class="text-blue-400 hover:underline">Edit</button>' +
+          '<button onclick="deleteLedger(' + l.id + ')" class="text-red-400 hover:underline">Delete</button>' +
+          '</div></div></div>';
+      }).join('');
+    }
+
+    async function deleteVoucher(id) {
+      if (!confirm('Are you sure you want to void this voucher?')) return;
+      await fetch('/api/vouchers/' + id, { method: 'DELETE' });
+      await loadData();
+    }
+
+    async function deleteLedger(id) {
+      if (!confirm('Delete this ledger account?')) return;
+      const res = await fetch('/api/ledgers/' + id, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.error) alert(data.error);
+      else await loadData();
+    }
+
+    // FORM SUBMITTERS
+    const bForm = document.getElementById('budgetForm');
+    if (bForm) {
+      bForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+          ledger: document.getElementById('bLedger').value,
+          amount: document.getElementById('bAmount').value
+        };
+        const res = await fetch('/api/budgets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.error) alert(data.error);
+        else {
+          closeBudgetModal();
+          await loadData();
+        }
+      });
+    }
+
+    const vForm = document.getElementById('voucherForm');
+    if (vForm) {
+      vForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const entries = [];
+        document.querySelectorAll('#voucherEntriesContainer > div').forEach(row => {
+          const type = row.querySelector('.ventry-type').value;
+          const ledger = row.querySelector('.ventry-ledger').value;
+          const amount = parseFloat(row.querySelector('.ventry-amount').value) || 0;
+          if (amount > 0) entries.push({ type, ledger, amount });
+        });
+
+        if (entries.length < 2) {
+          alert('Please specify at least one Debit and one Credit line.');
+          return;
+        }
+
+        const payload = {
+          id: document.getElementById('vId').value || undefined,
+          voucher_type: document.getElementById('vType').value,
+          date: document.getElementById('vDate').value,
+          dueDate: document.getElementById('vDueDate').value || document.getElementById('vDate').value,
+          entries,
+          narration: document.getElementById('vNarration').value
+        };
+
+        const res = await fetch('/api/vouchers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.error) alert(data.error);
+        else {
+          closeVoucherModal();
+          await loadData();
+        }
+      });
+    }
+
+    const gForm = document.getElementById('groupForm');
+    if (gForm) {
+      gForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+          id: document.getElementById('gId').value || undefined,
+          name: document.getElementById('gName').value,
+          parentGroup: document.getElementById('gParentGroup').value,
+          nature: document.getElementById('gNature').value
+        };
+
+        const res = await fetch('/api/groups', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.error) alert(data.error);
+        else {
+          closeGroupModal();
+          await loadData();
+        }
+      });
+    }
+
+    const lForm = document.getElementById('ledgerForm');
+    if (lForm) {
+      lForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const payload = {
+          id: document.getElementById('lId').value || undefined,
+          name: document.getElementById('lName').value,
+          group: document.getElementById('lGroup').value,
+          openingBalance: document.getElementById('lOpeningBalance').value,
+          billingDay: document.getElementById('lBillingDay').value,
+          gracePeriodDays: document.getElementById('lGraceDays').value
+        };
+
+        const res = await fetch('/api/ledgers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.error) alert(data.error);
+        else {
+          closeLedgerModal();
+          await loadData();
+        }
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadData();
+    });
   </script>
 </body>
 </html>
