@@ -339,89 +339,167 @@ function computeBudgets(books) {
   return list;
 }
 
+// CREDIT CARDS & ACCURATE RECEIVABLES ENGINE
 function computeDues(books, ledgerBalances) {
   const cards = [];
   const receivables = [];
 
   try {
     const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
-    const curDay = now.getDate();
+    const pad = n => String(n).padStart(2, '0');
+    const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 
+    // 1. Credit Cards Engine
     (books.ledgers || []).filter(l => l.group === 'Credit Cards').forEach(card => {
       const bal = ledgerBalances[card.name] ? ledgerBalances[card.name].closingBalance : 0;
       const bDay = parseInt(card.billingDay) || 15;
       const grace = parseInt(card.gracePeriodDays) || 20;
 
-      let sYear = now.getFullYear();
-      let sMonth = now.getMonth();
+      let curYear = now.getFullYear();
+      let curMonth = now.getMonth();
+      let curDay = now.getDate();
+
+      let stmtYear = curYear;
+      let stmtMonth = curMonth;
+
       if (curDay < bDay) {
-        sMonth -= 1;
-        if (sMonth < 0) { sMonth = 11; sYear -= 1; }
+        stmtMonth -= 1;
+        if (stmtMonth < 0) {
+          stmtMonth = 11;
+          stmtYear -= 1;
+        }
       }
 
-      const stmtDate = new Date(sYear, sMonth, bDay);
-      const dueDate = new Date(stmtDate.getTime() + (grace * 86400000));
-      const stmtStr = stmtDate.toISOString().split('T')[0];
-      const dueStr = dueDate.toISOString().split('T')[0];
+      const maxDaysInStmtMonth = new Date(stmtYear, stmtMonth + 1, 0).getDate();
+      const actualStmtDay = Math.min(bDay, maxDaysInStmtMonth);
+      const stmtDate = new Date(stmtYear, stmtMonth, actualStmtDay);
+      const stmtStr = `${stmtYear}-${pad(stmtMonth + 1)}-${pad(actualStmtDay)}`;
 
-      let billed = 0;
+      let prevStmtYear = stmtYear;
+      let prevStmtMonth = stmtMonth - 1;
+      if (prevStmtMonth < 0) {
+        prevStmtMonth = 11;
+        prevStmtYear -= 1;
+      }
+      const maxDaysInPrevMonth = new Date(prevStmtYear, prevStmtMonth + 1, 0).getDate();
+      const actualPrevStmtDay = Math.min(bDay, maxDaysInPrevMonth);
+      const prevStmtStr = `${prevStmtYear}-${pad(prevStmtMonth + 1)}-${pad(actualPrevStmtDay)}`;
+
+      let nextStmtYear = stmtYear;
+      let nextStmtMonth = stmtMonth + 1;
+      if (nextStmtMonth > 11) {
+        nextStmtMonth = 0;
+        nextStmtYear += 1;
+      }
+      const maxDaysInNextMonth = new Date(nextStmtYear, nextStmtMonth + 1, 0).getDate();
+      const actualNextStmtDay = Math.min(bDay, maxDaysInNextMonth);
+      const nextStmtStr = `${nextStmtYear}-${pad(nextStmtMonth + 1)}-${pad(actualNextStmtDay)}`;
+
+      const dueDate = new Date(stmtDate.getTime() + (grace * 86400000));
+      const dueStr = `${dueDate.getFullYear()}-${pad(dueDate.getMonth() + 1)}-${pad(dueDate.getDate())}`;
+
+      let billedDebits = 0;
+      let repaymentsAfterStmt = 0;
       let unbilled = 0;
 
       (books.vouchers || []).forEach(v => {
         const vDate = v.date || todayStr;
         const entries = getNormalizedEntries(v);
+
         entries.forEach(e => {
           if (e.ledger === card.name) {
             if (e.type === 'Cr') {
-              if (vDate > stmtStr) unbilled += e.amount;
-              else billed += e.amount;
+              if (vDate > stmtStr) {
+                unbilled += e.amount;
+              } else if (vDate > prevStmtStr && vDate <= stmtStr) {
+                billedDebits += e.amount;
+              }
             } else if (e.type === 'Dr') {
-              billed = Math.max(0, billed - e.amount);
+              if (vDate > stmtStr) {
+                repaymentsAfterStmt += e.amount;
+              }
             }
           }
         });
       });
 
-      const daysLeft = Math.round((dueDate - now) / 86400000);
+      const billedAmount = Math.max(0, billedDebits - repaymentsAfterStmt);
+      const daysLeft = Math.ceil((dueDate - new Date(todayStr)) / 86400000);
+
+      let statusTag = '';
+      let statusLevel = '';
+      let subMessage = '';
+
+      if (billedAmount <= 0.01) {
+        if (unbilled <= 0.01) {
+          statusTag = 'NO DUES';
+          statusLevel = 'CLEAN';
+          subMessage = `Next bill on ${nextStmtStr}`;
+        } else {
+          statusTag = 'PAID';
+          statusLevel = 'PAID';
+          subMessage = `Next bill on ${nextStmtStr}`;
+        }
+      } else {
+        if (daysLeft < 0) {
+          statusTag = `OVERDUE (${Math.abs(daysLeft)}d)`;
+          statusLevel = 'OVERDUE';
+          subMessage = `Was due on ${dueStr}`;
+        } else if (daysLeft <= 3) {
+          statusTag = `URGENT (${daysLeft}d left)`;
+          statusLevel = 'URGENT';
+          subMessage = `Due on ${dueStr}`;
+        } else {
+          statusTag = `DUE IN ${daysLeft}d`;
+          statusLevel = 'SAFE';
+          subMessage = `Due on ${dueStr}`;
+        }
+      }
+
       cards.push({
         name: card.name,
         totalBalance: bal,
-        billedAmount: billed,
+        billedAmount,
         unbilledAmount: unbilled,
         statementDay: bDay,
         gracePeriodDays: grace,
         statementDate: stmtStr,
         dueDate: dueStr,
+        nextStatementDate: nextStmtStr,
         daysLeft: isNaN(daysLeft) ? 0 : daysLeft,
-        status: daysLeft < 0 ? 'OVERDUE' : (daysLeft <= 3 ? 'URGENT' : 'SAFE')
+        statusTag,
+        statusLevel,
+        subMessage
       });
     });
 
-    (books.vouchers || []).forEach(v => {
-      const entries = getNormalizedEntries(v);
-      const drEntry = entries.find(e => e.type === 'Dr');
-      if (!drEntry) return;
+    // 2. Real Net Receivables (Excludes fully paid or overpaid debtors)
+    (books.ledgers || [])
+      .filter(l => l.group && (l.group.includes('Debtor') || l.group.includes('Receivable')))
+      .forEach(debtor => {
+        const netBal = ledgerBalances[debtor.name] ? ledgerBalances[debtor.name].closingBalance : 0;
+        // Only show if debtor actually owes money (net closing balance > 0)
+        if (netBal > 0.01) {
+          // Find the most recent unpaid debit voucher for reference
+          const debtorVouchers = (books.vouchers || [])
+            .filter(v => getNormalizedEntries(v).some(e => e.ledger === debtor.name && e.type === 'Dr'))
+            .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
-      const drLedger = (books.ledgers || []).find(l => l.name === drEntry.ledger);
-      if (drLedger && drLedger.group && (drLedger.group.includes('Debtor') || drLedger.group.includes('Receivable'))) {
-        const dStr = v.dueDate || v.date || todayStr;
-        const dObj = new Date(dStr + 'T00:00:00');
-        const daysLeft = Math.round((dObj - now) / 86400000);
-        receivables.push({
-          id: v.id,
-          voucher_no: v.voucher_no || `#${String(v.id).slice(-6)}`,
-          debtor: drEntry.ledger,
-          invoiceDate: v.date || todayStr,
-          dueDate: dStr,
-          amount: drEntry.amount,
-          narration: v.narration || '',
-          daysLeft: isNaN(daysLeft) ? 0 : daysLeft,
-          status: daysLeft < 0 ? `${Math.abs(daysLeft)}d Overdue` : `${daysLeft}d Left`
-        });
-      }
-    });
-  } catch (err) {}
+          const latestVoucher = debtorVouchers[0];
+
+          receivables.push({
+            id: latestVoucher ? latestVoucher.id : debtor.id,
+            voucher_no: latestVoucher ? (latestVoucher.voucher_no || `#${String(latestVoucher.id).slice(-6)}`) : 'LEDGER-BAL',
+            debtor: debtor.name,
+            invoiceDate: latestVoucher ? latestVoucher.date : todayStr,
+            narration: latestVoucher ? (latestVoucher.narration || 'Outstanding Balance') : 'Net Outstanding Balance',
+            amount: netBal
+          });
+        }
+      });
+  } catch (err) {
+    console.error('Error computing dues:', err);
+  }
 
   return { creditCards: cards, receivables };
 }
@@ -489,7 +567,6 @@ const server = http.createServer((req, res) => {
     return res.end(JSON.stringify({ groups: books.groups, ledgers: books.ledgers }));
   }
 
-  // GROUP CRUD
   if (req.method === 'POST' && pathname === '/api/groups') {
     let body = '';
     req.on('data', chunk => body += chunk);
@@ -564,7 +641,6 @@ const server = http.createServer((req, res) => {
     return res.end(JSON.stringify({ success: true }));
   }
 
-  // LEDGER CRUD
   if (req.method === 'POST' && pathname === '/api/ledgers') {
     let body = '';
     req.on('data', chunk => body += chunk);
@@ -628,7 +704,6 @@ const server = http.createServer((req, res) => {
     return res.end(JSON.stringify({ success: true }));
   }
 
-  // VOUCHERS
   if (req.method === 'POST' && pathname === '/api/vouchers') {
     let body = '';
     req.on('data', chunk => body += chunk);
@@ -679,7 +754,6 @@ const server = http.createServer((req, res) => {
             books.vouchers[idx] = {
               ...books.vouchers[idx],
               date: vDate,
-              dueDate: payload.dueDate || vDate,
               voucher_type: vType,
               voucher_no: books.vouchers[idx].voucher_no || generateVoucherNumber(books, vType, vDate),
               entries,
@@ -695,7 +769,6 @@ const server = http.createServer((req, res) => {
             id: Date.now(),
             voucher_no: vNo,
             date: vDate,
-            dueDate: payload.dueDate || vDate,
             voucher_type: vType,
             entries,
             dr_ledger: drLedgers,
@@ -725,7 +798,6 @@ const server = http.createServer((req, res) => {
     return res.end(JSON.stringify({ success: true }));
   }
 
-  // ACCURATE NET WORTH & FINANCIAL REPORTS
   if (req.method === 'GET' && pathname === '/api/reports') {
     try {
       const books = readBooks();
@@ -803,7 +875,7 @@ const server = http.createServer((req, res) => {
         budgets,
         balanceSheet: { assets: assetList, liabilities: liabList },
         profitAndLoss: { incomes: incList, expenses: expList },
-        vouchers: (books.vouchers || []).slice().reverse(),
+        vouchers: (books.vouchers || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.id - a.id),
         dues
       }));
     } catch (err) {
