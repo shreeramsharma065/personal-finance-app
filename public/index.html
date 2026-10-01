@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TallyPersonal • Professional Ledger & Net Worth Engine</title>
+  <title>TallyPersonal • Protected Ledger & Net Worth Engine</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -22,24 +22,122 @@
       0% { background-color: #1e3a8a; }
       100% { background-color: transparent; }
     }
+    
     @page {
       size: A4 portrait;
-      margin: 12mm;
+      margin: 10mm;
     }
+
     @media print {
-      aside, header, .no-print, #daybookPagination, #daybookFilters { display: none !important; }
-      main { overflow: visible !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
-      body, html { background: #ffffff !important; color: #000000 !important; height: auto !important; overflow: visible !important; }
-      .bg-slate-950, .bg-slate-900, .bg-slate-800 { background: #ffffff !important; color: #000000 !important; border-color: #cbd5e1 !important; box-shadow: none !important; }
-      .text-slate-100, .text-slate-200, .text-slate-300, .text-slate-400, .text-slate-500, .text-white { color: #0f172a !important; }
-      table { border-collapse: collapse !important; width: 100% !important; font-size: 11px !important; }
-      th, td { border: 1px solid #94a3b8 !important; padding: 5px 8px !important; color: #000000 !important; }
-      thead { background-color: #f1f5f9 !important; }
-      a { text-decoration: none !important; color: #000000 !important; }
+      aside, header, .no-print, #daybookPagination, #daybookFilters, #authModal, #budgetModal, #voucherModal, #groupModal, #ledgerModal, #searchModal {
+        display: none !important;
+      }
+      
+      body, html {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        height: auto !important;
+        overflow: visible !important;
+        font-size: 11px !important;
+      }
+
+      main {
+        overflow: visible !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+      }
+
+      .bg-slate-950, .bg-slate-900, .bg-slate-800 {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        border-color: #cbd5e1 !important;
+        box-shadow: none !important;
+      }
+
+      .text-slate-100, .text-slate-200, .text-slate-300, .text-slate-400, .text-slate-500, .text-white {
+        color: #0f172a !important;
+      }
+
+      table {
+        border-collapse: collapse !important;
+        width: 100% !important;
+        font-size: 10.5px !important;
+      }
+
+      th, td {
+        border: 1px solid #cbd5e1 !important;
+        padding: 6px 8px !important;
+        color: #0f172a !important;
+      }
+
+      thead {
+        background-color: #f1f5f9 !important;
+        color: #0f172a !important;
+      }
+
+      a {
+        text-decoration: none !important;
+        color: #0f172a !important;
+      }
+
+      body.printing-modal aside,
+      body.printing-modal header,
+      body.printing-modal main > div > section {
+        display: none !important;
+      }
+
+      body.printing-modal #friendStatementModal {
+        position: static !important;
+        display: block !important;
+        background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-shadow: none !important;
+      }
+
+      body.printing-modal #friendStatementCard {
+        box-shadow: none !important;
+        border: 1px solid #cbd5e1 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 0 !important;
+      }
     }
   </style>
 </head>
 <body class="h-full flex overflow-hidden text-slate-100 font-sans">
+
+  <!-- AUTHENTICATION DIALOG -->
+  <div id="authModal" class="fixed inset-0 bg-slate-950 z-50 flex items-center justify-center p-4" style="display: none;">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-8 max-w-md w-full shadow-2xl space-y-6">
+      <div class="text-center space-y-2">
+        <div class="w-12 h-12 rounded-xl bg-blue-900/60 text-blue-400 flex items-center justify-center font-bold text-xl mx-auto border border-blue-700/50">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h2 id="authTitle" class="text-xl font-bold text-white tracking-tight">Security Access</h2>
+        <p id="authSubtitle" class="text-xs text-slate-400">Unlock your local encrypted financial repository.</p>
+      </div>
+
+      <form id="authForm" class="space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-slate-400 mb-1">Master Password</label>
+          <input type="password" id="authPassword" required autocomplete="current-password" placeholder="••••••••••••" class="w-full bg-slate-800 border border-slate-700 px-3.5 py-2.5 rounded-lg text-sm outline-none focus:border-blue-500 text-white font-mono">
+        </div>
+        <div id="authConfirmContainer" class="hidden">
+          <label class="block text-xs font-medium text-slate-400 mb-1">Confirm Master Password</label>
+          <input type="password" id="authConfirmPassword" autocomplete="new-password" placeholder="••••••••••••" class="w-full bg-slate-800 border border-slate-700 px-3.5 py-2.5 rounded-lg text-sm outline-none focus:border-blue-500 text-white font-mono">
+        </div>
+        <div id="authError" class="text-xs text-red-400 hidden bg-red-950/40 p-2.5 rounded-lg border border-red-800"></div>
+        <button type="submit" id="authSubmitBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-lg text-sm font-semibold transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-lock-open text-xs"></i> <span>Unlock Books</span>
+        </button>
+      </form>
+    </div>
+  </div>
 
   <!-- SIDEBAR -->
   <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col flex-shrink-0 z-20">
@@ -48,62 +146,62 @@
         <i class="fa-solid fa-receipt"></i>
       </div>
       <div>
-        <div class="text-sm font-bold tracking-wider uppercase text-white">Tally<span class="text-blue-400">Personal</span></div>
-        <div class="text-xs text-slate-500 font-mono tracking-tighter">Enterprise Double-Entry</div>
+        <div class="text-sm font-bold tracking-wider uppercase text-white whitespace-nowrap">Tally<span class="text-blue-400">Personal</span></div>
+        <div class="text-xs text-slate-500 font-mono tracking-tighter whitespace-nowrap">Enterprise Double-Entry</div>
       </div>
     </div>
 
     <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
       <div class="text-xs font-bold uppercase tracking-wider text-slate-500 px-3 pb-1">Reports & Analysis</div>
-      <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition bg-blue-600 text-white text-left">
+      <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition bg-blue-600 text-white text-left whitespace-nowrap">
         <i class="fa-solid fa-chart-pie w-5 text-center"></i>
         <span>Financial Summary</span>
       </button>
-      <button onclick="switchTab('cashflow')" id="nav-cashflow" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left">
+      <button onclick="switchTab('cashflow')" id="nav-cashflow" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
         <i class="fa-solid fa-money-bill-transfer w-5 text-center text-emerald-400"></i>
         <span>Cash Flow Statement</span>
       </button>
-      <button onclick="switchTab('comparativepnl')" id="nav-comparativepnl" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left">
+      <button onclick="switchTab('comparativepnl')" id="nav-comparativepnl" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
         <i class="fa-solid fa-chart-line w-5 text-center text-teal-400"></i>
         <span>MoM Variance P&L</span>
       </button>
-      <button onclick="switchTab('budgets')" id="nav-budgets" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left">
+      <button onclick="switchTab('budgets')" id="nav-budgets" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
         <i class="fa-solid fa-bullseye w-5 text-center text-indigo-400"></i>
         <span>Budgets vs Actuals</span>
       </button>
-      <button onclick="switchTab('trialbalance')" id="nav-trialbalance" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left">
+      <button onclick="switchTab('trialbalance')" id="nav-trialbalance" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
         <i class="fa-solid fa-balance-scale w-5 text-center text-amber-400"></i>
         <span>Trial Balance (Audit)</span>
       </button>
-      <button onclick="switchTab('groupsummary')" id="nav-groupsummary" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left">
+      <button onclick="switchTab('groupsummary')" id="nav-groupsummary" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
         <i class="fa-solid fa-sitemap w-5 text-center text-purple-400"></i>
         <span>Group Summary</span>
       </button>
-      <button onclick="switchTab('ledgerstatement')" id="nav-ledgerstatement" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left">
+      <button onclick="switchTab('ledgerstatement')" id="nav-ledgerstatement" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
         <i class="fa-solid fa-file-invoice-dollar w-5 text-center text-cyan-400"></i>
         <span>Ledger Statement</span>
       </button>
-      <button onclick="switchTab('dues')" id="nav-dues" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left">
+      <button onclick="switchTab('dues')" id="nav-dues" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
         <i class="fa-solid fa-clock-rotate-left w-5 text-center text-yellow-400"></i>
         <span>Dues & Outstandings</span>
       </button>
-      <button onclick="switchTab('balancesheet')" id="nav-balancesheet" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left">
+      <button onclick="switchTab('balancesheet')" id="nav-balancesheet" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
         <i class="fa-solid fa-scale-balanced w-5 text-center text-blue-400"></i>
         <span>Balance Sheet</span>
       </button>
-      <button onclick="switchTab('pnl')" id="nav-pnl" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left">
+      <button onclick="switchTab('pnl')" id="nav-pnl" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
         <i class="fa-solid fa-calculator w-5 text-center text-green-400"></i>
         <span>Profit & Loss</span>
       </button>
 
       <div class="text-xs font-bold uppercase tracking-wider text-slate-500 px-3 pt-4 pb-1">Transactions</div>
-      <button onclick="switchTab('daybook')" id="nav-daybook" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left">
+      <button onclick="switchTab('daybook')" id="nav-daybook" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
         <i class="fa-solid fa-book-journal-whills w-5 text-center text-indigo-400"></i>
         <span>Day Book (Vouchers)</span>
       </button>
 
       <div class="text-xs font-bold uppercase tracking-wider text-slate-500 px-3 pt-4 pb-1">Gateway of Masters</div>
-      <button onclick="switchTab('masters')" id="nav-masters" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left">
+      <button onclick="switchTab('masters')" id="nav-masters" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
         <i class="fa-solid fa-folder-tree w-5 text-center text-purple-400"></i>
         <span>Chart of Accounts</span>
       </button>
@@ -111,8 +209,8 @@
 
     <div id="solvencyCard" class="m-4 p-3.5 rounded-xl border border-slate-800 bg-slate-950 text-xs space-y-1">
       <div class="flex items-center justify-between font-bold">
-        <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-halved"></i> Solvency Check</span>
-        <span id="solvencyBadge" class="px-1.5 py-0.5 rounded text-xs uppercase font-mono">Good</span>
+        <span class="flex items-center gap-1.5 whitespace-nowrap"><i class="fa-solid fa-shield-halved"></i> Solvency Check</span>
+        <span id="solvencyBadge" class="px-1.5 py-0.5 rounded text-xs uppercase font-mono whitespace-nowrap">Good</span>
       </div>
       <div id="solvencyNote" class="text-slate-400 text-xs leading-tight">Analyzing assets & liabilities...</div>
     </div>
@@ -120,11 +218,10 @@
 
   <!-- MAIN WORKSPACE -->
   <main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-950">
-    <header class="h-16 border-b border-slate-800 flex items-center justify-between px-8 bg-slate-900 no-print">
+    <header class="h-16 border-b border-slate-800 flex items-center justify-between px-8 bg-slate-900 no-print flex-shrink-0">
       <div class="flex items-center gap-4">
-        <h2 id="view-title" class="text-lg font-semibold tracking-tight text-white">Financial Position & Net Worth</h2>
-        <!-- GLOBAL QUICK SEARCH TRIGGER (Ctrl + K) -->
-        <button onclick="openSearchModal()" class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs text-slate-300 border border-slate-700 transition">
+        <h2 id="view-title" class="text-lg font-semibold tracking-tight text-white whitespace-nowrap">Financial Position & Net Worth</h2>
+        <button onclick="openSearchModal()" class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs text-slate-300 border border-slate-700 transition whitespace-nowrap">
           <i class="fa-solid fa-magnifying-glass text-slate-400"></i>
           <span>Search vouchers...</span>
           <kbd class="ml-2 font-mono bg-slate-900 border border-slate-700 px-1.5 py-0.5 rounded text-[10px] text-slate-400">Ctrl K</kbd>
@@ -132,137 +229,140 @@
       </div>
 
       <div class="flex items-center gap-2.5">
-        <button onclick="exportCurrentViewCSV()" title="Export current view as CSV" class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg text-xs font-medium text-slate-200 border border-slate-700 transition">
-          <i class="fa-solid fa-file-csv text-green-400"></i>
-          <span>Export CSV</span>
+        <button onclick="exportCurrentViewExcel()" title="Export current view to clean Excel workbook" class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg text-xs font-medium text-emerald-300 border border-slate-700 transition whitespace-nowrap">
+          <i class="fa-solid fa-file-excel text-emerald-400"></i>
+          <span>Export Excel</span>
         </button>
 
-        <button onclick="window.print()" title="Print or save as PDF" class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg text-xs font-medium text-slate-200 border border-slate-700 transition">
+        <button onclick="printCurrentReport()" title="Print report or save as PDF" class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg text-xs font-medium text-indigo-300 border border-slate-700 transition whitespace-nowrap">
           <i class="fa-solid fa-print text-indigo-400"></i>
           <span>Print / PDF</span>
         </button>
 
-        <button onclick="window.location.href='/api/backup'" title="Download Backup file" class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg text-xs font-medium text-slate-200 border border-slate-700 transition">
+        <button onclick="window.location.href='/api/backup'" title="Download Encrypted Books Backup" class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg text-xs font-medium text-slate-200 border border-slate-700 transition whitespace-nowrap">
           <i class="fa-solid fa-download text-blue-400"></i>
           <span>Backup</span>
         </button>
 
-        <label title="Upload Backup file" class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg text-xs font-medium text-slate-200 border border-slate-700 cursor-pointer transition">
+        <label title="Upload Backup file" class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 px-3 py-2 rounded-lg text-xs font-medium text-slate-200 border border-slate-700 cursor-pointer transition whitespace-nowrap">
           <i class="fa-solid fa-upload text-yellow-400"></i>
           <span>Restore</span>
           <input type="file" id="restoreFileInput" accept=".json" class="hidden" onchange="uploadBackup(event)">
         </label>
 
-        <button onclick="openVoucherModal()" class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg text-sm font-medium text-white transition shadow-sm ml-2">
+        <button onclick="openVoucherModal()" class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg text-sm font-medium text-white transition shadow-sm ml-2 whitespace-nowrap">
           <i class="fa-solid fa-plus text-xs"></i>
           <span>Record Voucher</span>
+        </button>
+
+        <button onclick="logoutSession()" title="Lock books & Sign Out" class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-red-900/40 text-slate-400 hover:text-red-300 px-3 py-2 rounded-lg text-xs font-medium border border-slate-700 transition ml-2 whitespace-nowrap">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          <span>Lock</span>
         </button>
       </div>
     </header>
 
     <div class="flex-1 overflow-y-auto p-8 space-y-6">
 
-      <!-- TOP METRICS (WITH EMERGENCY RUNWAY METER) -->
+      <!-- TOP METRICS -->
       <section class="grid grid-cols-2 lg:grid-cols-5 gap-4 no-print">
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
-          <div class="text-xs text-slate-400 font-medium flex justify-between">
+          <div class="text-xs text-slate-400 font-medium flex justify-between whitespace-nowrap">
             <span>Net Worth (Capital)</span>
             <i class="fa-solid fa-vault text-blue-400"></i>
           </div>
-          <div id="metricNetWorth" class="text-2xl font-bold mt-2 text-blue-400">₹0.00</div>
-          <div class="text-[11px] text-slate-500 mt-1">All-Time Assets − Debts</div>
+          <div id="metricNetWorth" class="text-2xl font-bold mt-2 text-blue-400 whitespace-nowrap">₹0.00</div>
+          <div class="text-[11px] text-slate-500 mt-1 whitespace-nowrap">All-Time Assets − Debts</div>
         </div>
 
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
-          <div class="text-xs text-slate-400 font-medium flex justify-between">
+          <div class="text-xs text-slate-400 font-medium flex justify-between whitespace-nowrap">
             <span>Liquid Cash & Bank</span>
             <i class="fa-solid fa-building-columns text-green-400"></i>
           </div>
-          <div id="metricCashBank" class="text-2xl font-bold mt-2 text-green-400">₹0.00</div>
-          <div class="text-[11px] text-slate-500 mt-1">Available liquid funds</div>
+          <div id="metricCashBank" class="text-2xl font-bold mt-2 text-green-400 whitespace-nowrap">₹0.00</div>
+          <div class="text-[11px] text-slate-500 mt-1 whitespace-nowrap">Available liquid funds</div>
         </div>
 
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
-          <div class="text-xs text-slate-400 font-medium flex justify-between">
+          <div class="text-xs text-slate-400 font-medium flex justify-between whitespace-nowrap">
             <span>Total Outstanding Debt</span>
             <i class="fa-solid fa-credit-card text-red-400"></i>
           </div>
-          <div id="metricDebt" class="text-2xl font-bold mt-2 text-red-400">₹0.00</div>
-          <div class="text-[11px] text-slate-500 mt-1">Cards & loan commitments</div>
+          <div id="metricDebt" class="text-2xl font-bold mt-2 text-red-400 whitespace-nowrap">₹0.00</div>
+          <div class="text-[11px] text-slate-500 mt-1 whitespace-nowrap">Cards & loan commitments</div>
         </div>
 
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
-          <div class="text-xs text-slate-400 font-medium flex justify-between">
+          <div class="text-xs text-slate-400 font-medium flex justify-between whitespace-nowrap">
             <span>Net Surplus (All-Time)</span>
             <i class="fa-solid fa-arrow-trend-up text-purple-400"></i>
           </div>
-          <div id="metricSurplus" class="text-2xl font-bold mt-2 text-purple-400">₹0.00</div>
-          <div class="text-[11px] text-slate-500 mt-1">Cumulative Income − Expenses</div>
+          <div id="metricSurplus" class="text-2xl font-bold mt-2 text-purple-400 whitespace-nowrap">₹0.00</div>
+          <div class="text-[11px] text-slate-500 mt-1 whitespace-nowrap">Cumulative Income − Expenses</div>
         </div>
 
-        <!-- EMERGENCY RUNWAY HEALTH METER -->
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
-          <div class="text-xs text-slate-400 font-medium flex justify-between">
+          <div class="text-xs text-slate-400 font-medium flex justify-between whitespace-nowrap">
             <span>Emergency Runway</span>
             <i class="fa-solid fa-heart-pulse text-amber-400"></i>
           </div>
-          <div id="metricRunway" class="text-2xl font-bold mt-2 text-amber-400">0.0 mo</div>
-          <div id="metricRunwayNote" class="text-[11px] text-slate-500 mt-1">Safety buffer at burn rate</div>
+          <div id="metricRunway" class="text-2xl font-bold mt-2 text-amber-400 whitespace-nowrap">0.0 mo</div>
+          <div id="metricRunwayNote" class="text-[11px] text-slate-500 mt-1 whitespace-nowrap">Safety buffer at burn rate</div>
         </div>
       </section>
 
-      <!-- TAB 1: SUMMARY (WITH FRIENDS & SHARED BALANCES TRACKER) -->
+      <!-- TAB 1: SUMMARY -->
       <section id="tab-dashboard" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
           <h3 class="font-semibold text-sm text-slate-200 border-b border-slate-800 pb-3 flex items-center justify-between">
-            <span>Liquid & Debt Positions</span>
-            <span class="text-xs text-slate-500 font-normal">Real-Time</span>
+            <span class="whitespace-nowrap">Liquid & Debt Positions</span>
+            <span class="text-xs text-slate-500 font-normal whitespace-nowrap">Real-Time</span>
           </h3>
           <div id="quickBalancesList" class="divide-y divide-slate-800 mt-2"></div>
         </div>
 
-        <!-- FRIENDS & FAMILY SHARED BALANCES TRACKER -->
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
           <h3 class="font-semibold text-sm text-slate-200 border-b border-slate-800 pb-3 flex items-center justify-between">
-            <span>Friends & Shared Outstandings</span>
-            <span class="text-xs text-slate-500 font-normal">Sundry Debtors</span>
+            <span class="whitespace-nowrap">Friends & Shared Outstandings</span>
+            <span class="text-xs text-slate-500 font-normal whitespace-nowrap">Sundry Debtors</span>
           </h3>
           <div id="quickFriendsList" class="divide-y divide-slate-800 mt-2"></div>
         </div>
 
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
           <h3 class="font-semibold text-sm text-slate-200 border-b border-slate-800 pb-3 flex items-center justify-between">
-            <span>Recent Vouchers (Day Book)</span>
-            <button onclick="switchTab('daybook')" class="text-xs text-blue-400 hover:underline">View All</button>
+            <span class="whitespace-nowrap">Recent Vouchers (Day Book)</span>
+            <button onclick="switchTab('daybook')" class="text-xs text-blue-400 hover:underline whitespace-nowrap">View All</button>
           </h3>
           <div id="quickVouchersList" class="divide-y divide-slate-800 mt-2"></div>
         </div>
       </section>
 
-      <!-- TAB 2: CASH FLOW STATEMENT (NOW WITH DATE FILTERS) -->
+      <!-- TAB 2: CASH FLOW STATEMENT -->
       <section id="tab-cashflow" class="hidden space-y-6">
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4 no-print">
           <div class="flex items-center gap-3">
             <div>
-              <label class="block text-[11px] font-medium text-slate-400 mb-0.5">Cash Flow From</label>
+              <label class="block text-[11px] font-medium text-slate-400 mb-0.5 whitespace-nowrap">Cash Flow From</label>
               <input type="date" id="cfFromDate" onchange="renderCashFlow()" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-mono text-slate-200 outline-none focus:border-emerald-500">
             </div>
             <div>
-              <label class="block text-[11px] font-medium text-slate-400 mb-0.5">Cash Flow To</label>
+              <label class="block text-[11px] font-medium text-slate-400 mb-0.5 whitespace-nowrap">Cash Flow To</label>
               <input type="date" id="cfToDate" onchange="renderCashFlow()" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-mono text-slate-200 outline-none focus:border-emerald-500">
             </div>
           </div>
           <div class="flex items-center gap-1.5 pt-3">
-            <button onclick="setCFDatePreset('this_month')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700">This Month</button>
-            <button onclick="setCFDatePreset('this_fy')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700">Financial Year</button>
-            <button onclick="setCFDatePreset('all')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700">All Time</button>
+            <button onclick="setCFDatePreset('this_month')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700 whitespace-nowrap">This Month</button>
+            <button onclick="setCFDatePreset('this_fy')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700 whitespace-nowrap">Financial Year</button>
+            <button onclick="setCFDatePreset('all')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700 whitespace-nowrap">All Time</button>
           </div>
         </div>
 
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <h3 class="text-base font-bold text-white flex items-center gap-2 whitespace-nowrap">
                 <i class="fa-solid fa-money-bill-transfer text-emerald-400"></i>
                 Cash Flow Statement (Direct Method)
               </h3>
@@ -270,38 +370,38 @@
             </div>
             <div class="flex items-center gap-3">
               <div class="bg-slate-950 px-3 py-2 rounded-lg border border-slate-800 text-right">
-                <span class="text-[10px] text-slate-500 block uppercase font-mono">Net Cash Change</span>
-                <span id="cfNetChange" class="text-sm font-mono font-bold text-emerald-400">₹0.00</span>
+                <span class="text-[10px] text-slate-500 block uppercase font-mono whitespace-nowrap">Net Cash Change</span>
+                <span id="cfNetChange" class="text-sm font-mono font-bold text-emerald-400 whitespace-nowrap">₹0.00</span>
               </div>
             </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
             <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
-              <div class="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-1">Operating Activities</div>
-              <div id="cfOperatingSum" class="text-lg font-mono font-bold text-white">₹0.00</div>
-              <div class="text-[11px] text-slate-500">Income received minus living/household expenses paid</div>
+              <div class="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-1 whitespace-nowrap">Operating Activities</div>
+              <div id="cfOperatingSum" class="text-lg font-mono font-bold text-white whitespace-nowrap">₹0.00</div>
+              <div class="text-[11px] text-slate-500">Living and household revenue/costs</div>
             </div>
             <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
-              <div class="text-xs font-bold uppercase tracking-wider text-purple-400 mb-1">Investing Activities</div>
-              <div id="cfInvestingSum" class="text-lg font-mono font-bold text-white">₹0.00</div>
-              <div class="text-[11px] text-slate-500">MF SIPs, Stocks, FDs, properties bought/sold</div>
+              <div class="text-xs font-bold uppercase tracking-wider text-purple-400 mb-1 whitespace-nowrap">Investing Activities</div>
+              <div id="cfInvestingSum" class="text-lg font-mono font-bold text-white whitespace-nowrap">₹0.00</div>
+              <div class="text-[11px] text-slate-500">MF SIPs, Stocks, FDs, properties</div>
             </div>
             <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
-              <div class="text-xs font-bold uppercase tracking-wider text-blue-400 mb-1">Financing Activities</div>
-              <div id="cfFinancingSum" class="text-lg font-mono font-bold text-white">₹0.00</div>
-              <div class="text-[11px] text-slate-500">Loan borrowings, repayments, and card debt clears</div>
+              <div class="text-xs font-bold uppercase tracking-wider text-blue-400 mb-1 whitespace-nowrap">Financing Activities</div>
+              <div id="cfFinancingSum" class="text-lg font-mono font-bold text-white whitespace-nowrap">₹0.00</div>
+              <div class="text-[11px] text-slate-500">Loans, debt clears, credit lines</div>
             </div>
           </div>
         </div>
 
         <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
           <div class="p-4 border-b border-slate-800 flex justify-between items-center">
-            <span class="font-semibold text-sm text-white">Cash & Bank Movement Ledger</span>
-            <span class="text-xs font-mono text-slate-500">Reconciled</span>
+            <span class="font-semibold text-sm text-white whitespace-nowrap">Cash & Bank Movement Ledger</span>
+            <span class="text-xs font-mono text-slate-500 whitespace-nowrap">Reconciled</span>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
+            <table class="w-full text-left text-sm whitespace-nowrap">
               <thead class="bg-slate-800 text-slate-400 text-xs uppercase font-mono">
                 <tr>
                   <th class="p-3.5">Activity Pillar</th>
@@ -322,30 +422,30 @@
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <h3 class="text-base font-bold text-white flex items-center gap-2 whitespace-nowrap">
                 <i class="fa-solid fa-chart-line text-teal-400"></i>
                 Month-over-Month Comparative Variance (P&L)
               </h3>
               <p class="text-xs text-slate-400">Compares spending and income against previous calendar month with percentage shifts.</p>
             </div>
-            <div id="momPeriodBadge" class="text-xs font-mono bg-slate-800 text-teal-300 px-3 py-1.5 rounded-lg border border-slate-700"></div>
+            <div id="momPeriodBadge" class="text-xs font-mono bg-slate-800 text-teal-300 px-3 py-1.5 rounded-lg border border-slate-700 whitespace-nowrap"></div>
           </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
             <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-800/40">
-              <span class="font-bold text-sm text-red-400 uppercase tracking-wider">Expenses Variance</span>
-              <span class="text-xs font-mono text-slate-400">Cost Shift (%)</span>
+              <span class="font-bold text-sm text-red-400 uppercase tracking-wider whitespace-nowrap">Expenses Variance</span>
+              <span class="text-xs font-mono text-slate-400 whitespace-nowrap">Cost Shift (%)</span>
             </div>
             <div class="overflow-x-auto">
-              <table class="w-full text-left text-sm">
+              <table class="w-full text-left text-sm whitespace-nowrap">
                 <thead class="bg-slate-800 text-slate-400 text-xs font-mono">
                   <tr>
                     <th class="p-3">Expense Head</th>
                     <th class="p-3 text-right">Current</th>
                     <th class="p-3 text-right">Previous</th>
-                    <th class="p-3 text-right">Shift (%)</th>
+                    <th class="p-3.5 text-right">Shift (%)</th>
                   </tr>
                 </thead>
                 <tbody id="momExpensesList" class="divide-y divide-slate-800"></tbody>
@@ -355,17 +455,17 @@
 
           <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
             <div class="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-800/40">
-              <span class="font-bold text-sm text-green-400 uppercase tracking-wider">Income Variance</span>
-              <span class="text-xs font-mono text-slate-400">Earnings Shift (%)</span>
+              <span class="font-bold text-sm text-green-400 uppercase tracking-wider whitespace-nowrap">Income Variance</span>
+              <span class="text-xs font-mono text-slate-400 whitespace-nowrap">Earnings Shift (%)</span>
             </div>
             <div class="overflow-x-auto">
-              <table class="w-full text-left text-sm">
+              <table class="w-full text-left text-sm whitespace-nowrap">
                 <thead class="bg-slate-800 text-slate-400 text-xs font-mono">
                   <tr>
                     <th class="p-3">Income Stream</th>
                     <th class="p-3 text-right">Current</th>
                     <th class="p-3 text-right">Previous</th>
-                    <th class="p-3 text-right">Shift (%)</th>
+                    <th class="p-3.5 text-right">Shift (%)</th>
                   </tr>
                 </thead>
                 <tbody id="momIncomesList" class="divide-y divide-slate-800"></tbody>
@@ -379,13 +479,13 @@
       <section id="tab-budgets" class="hidden space-y-6">
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <h3 class="text-base font-bold text-white flex items-center gap-2 whitespace-nowrap">
               <i class="fa-solid fa-bullseye text-indigo-400"></i>
               Monthly Budget Ceilings vs Actual Spending
             </h3>
-            <p class="text-xs text-slate-400">Set spending limits on expense accounts to prevent lifestyle creep and overspending.</p>
+            <p class="text-xs text-slate-400">Set spending limits on expense accounts to prevent lifestyle creep.</p>
           </div>
-          <button onclick="openBudgetModal()" class="bg-indigo-600 hover:bg-indigo-500 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white transition flex items-center gap-1.5">
+          <button onclick="openBudgetModal()" class="bg-indigo-600 hover:bg-indigo-500 px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white transition flex items-center gap-1.5 whitespace-nowrap">
             <i class="fa-solid fa-pen-to-square"></i> Set Budget Limits
           </button>
         </div>
@@ -398,19 +498,19 @@
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-3">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <h3 class="text-base font-bold text-white flex items-center gap-2 whitespace-nowrap">
                 <i class="fa-solid fa-balance-scale text-amber-400"></i>
                 Trial Balance • Double-Entry Verification
               </h3>
               <p class="text-xs text-slate-400">Audits equality of total Debit and Credit balances across all ledgers.</p>
             </div>
-            <div id="tbAuditBadge" class="px-3 py-1.5 rounded-lg border font-mono text-xs font-bold uppercase flex items-center gap-2"></div>
+            <div id="tbAuditBadge" class="px-3 py-1.5 rounded-lg border font-mono text-xs font-bold uppercase flex items-center gap-2 whitespace-nowrap"></div>
           </div>
         </div>
 
         <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
           <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
+            <table class="w-full text-left text-sm whitespace-nowrap">
               <thead class="bg-slate-800 text-slate-400 text-xs uppercase font-mono">
                 <tr>
                   <th class="p-3.5">Ledger Particulars</th>
@@ -433,24 +533,24 @@
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div class="flex-1 min-w-[280px]">
-              <label class="block text-xs font-medium text-slate-400 mb-1">Select Account Group to Inspect</label>
+              <label class="block text-xs font-medium text-slate-400 mb-1 whitespace-nowrap">Select Account Group to Inspect</label>
               <select id="groupSummarySelect" onchange="renderGroupSummary(this.value)" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm font-semibold text-purple-400 outline-none focus:border-purple-500"></select>
             </div>
             <div class="bg-slate-950 px-4 py-2.5 rounded-lg border border-slate-800 text-right min-w-[200px]">
-              <span class="text-xs text-slate-500 block">Total Group Balance</span>
-              <span id="groupTotalBalanceDisplay" class="text-base font-mono font-bold text-sky-400">₹0.00</span>
+              <span class="text-xs text-slate-500 block whitespace-nowrap">Total Group Balance</span>
+              <span id="groupTotalBalanceDisplay" class="text-base font-mono font-bold text-sky-400 whitespace-nowrap">₹0.00</span>
             </div>
           </div>
-          <div id="groupBreadcrumb" class="text-xs text-slate-400 flex items-center gap-2 pt-2 border-t border-slate-800"></div>
+          <div id="groupBreadcrumb" class="text-xs text-slate-400 flex items-center gap-2 pt-2 border-t border-slate-800 flex-wrap"></div>
         </div>
 
         <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
           <div class="p-4 border-b border-slate-800 flex justify-between items-center">
-            <span class="font-semibold text-sm text-white" id="groupSummaryTableHeader">Sub-Groups & Ledger Breakdown</span>
-            <span class="text-xs text-slate-500 font-mono">Roll-Up Engine</span>
+            <span class="font-semibold text-sm text-white whitespace-nowrap" id="groupSummaryTableHeader">Sub-Groups & Ledger Breakdown</span>
+            <span class="text-xs text-slate-500 font-mono whitespace-nowrap">Roll-Up Engine</span>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
+            <table class="w-full text-left text-sm whitespace-nowrap">
               <thead class="bg-slate-800 text-slate-400 text-xs uppercase font-mono">
                 <tr>
                   <th class="p-3.5">Account / Sub-Group Particulars</th>
@@ -471,50 +571,50 @@
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div class="flex-1 min-w-[240px]">
-              <label class="block text-xs font-medium text-slate-400 mb-1">Select Ledger Account</label>
+              <label class="block text-xs font-medium text-slate-400 mb-1 whitespace-nowrap">Select Ledger Account</label>
               <select id="statementLedgerSelect" onchange="applyStatementFilters()" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm font-semibold text-blue-400 outline-none focus:border-blue-500"></select>
             </div>
 
             <div class="flex items-center gap-3">
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">From Date</label>
+                <label class="block text-xs font-medium text-slate-400 mb-1 whitespace-nowrap">From Date</label>
                 <input type="date" id="filterFromDate" onchange="applyStatementFilters()" class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-mono text-slate-200 outline-none focus:border-blue-500">
               </div>
               <div>
-                <label class="block text-xs font-medium text-slate-400 mb-1">To Date</label>
+                <label class="block text-xs font-medium text-slate-400 mb-1 whitespace-nowrap">To Date</label>
                 <input type="date" id="filterToDate" onchange="applyStatementFilters()" class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg text-xs font-mono text-slate-200 outline-none focus:border-blue-500">
               </div>
               <div class="pt-5 flex gap-1.5">
-                <button onclick="setDateRangePreset('this_month')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700">This Month</button>
-                <button onclick="setDateRangePreset('this_fy')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700">Financial Year</button>
-                <button onclick="setDateRangePreset('all')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700">All Time</button>
+                <button onclick="setDateRangePreset('this_month')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700 whitespace-nowrap">This Month</button>
+                <button onclick="setDateRangePreset('this_fy')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700 whitespace-nowrap">Financial Year</button>
+                <button onclick="setDateRangePreset('all')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700 whitespace-nowrap">All Time</button>
               </div>
             </div>
           </div>
 
           <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3 border-t border-slate-800">
             <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
-              <span class="text-xs text-slate-500 block">Opening Balance</span>
-              <span id="stmtOpBal" class="text-sm font-mono font-bold text-slate-200">₹0.00</span>
+              <span class="text-xs text-slate-500 block whitespace-nowrap">Opening Balance</span>
+              <span id="stmtOpBal" class="text-sm font-mono font-bold text-slate-200 whitespace-nowrap">₹0.00</span>
             </div>
             <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
-              <span class="text-xs text-slate-500 block">Total Debits</span>
-              <span id="stmtDrTotal" class="text-sm font-mono font-bold text-green-400">₹0.00</span>
+              <span class="text-xs text-slate-500 block whitespace-nowrap">Total Debits</span>
+              <span id="stmtDrTotal" class="text-sm font-mono font-bold text-green-400 whitespace-nowrap">₹0.00</span>
             </div>
             <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
-              <span class="text-xs text-slate-500 block">Total Credits</span>
-              <span id="stmtCrTotal" class="text-sm font-mono font-bold text-red-400">₹0.00</span>
+              <span class="text-xs text-slate-500 block whitespace-nowrap">Total Credits</span>
+              <span id="stmtCrTotal" class="text-sm font-mono font-bold text-red-400 whitespace-nowrap">₹0.00</span>
             </div>
             <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
-              <span class="text-xs text-slate-500 block">Closing Balance</span>
-              <span id="stmtClBal" class="text-sm font-mono font-bold text-blue-400">₹0.00</span>
+              <span class="text-xs text-slate-500 block whitespace-nowrap">Closing Balance</span>
+              <span id="stmtClBal" class="text-sm font-mono font-bold text-blue-400 whitespace-nowrap">₹0.00</span>
             </div>
           </div>
         </div>
 
         <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
           <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm" id="ledgerStatementTable">
+            <table class="w-full text-left text-sm whitespace-nowrap" id="ledgerStatementTable">
               <thead class="bg-slate-800 text-slate-400 text-xs uppercase font-mono">
                 <tr>
                   <th class="p-3.5">Date</th>
@@ -535,7 +635,7 @@
       <!-- TAB 8: DUES & OUTSTANDINGS -->
       <section id="tab-dues" class="hidden space-y-6">
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
-          <h3 class="font-bold text-white text-base mb-1">Credit Cards • Billed & Unbilled Cycle</h3>
+          <h3 class="font-bold text-white text-base mb-1 whitespace-nowrap">Credit Cards • Billed & Unbilled Cycle</h3>
           <p class="text-xs text-slate-400 mb-4">Tracks statement generation dates, grace periods, and upcoming dues.</p>
           <div id="creditCardsDeck" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         </div>
@@ -543,13 +643,13 @@
         <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
           <div class="p-4 border-b border-slate-800 flex justify-between items-center">
             <div>
-              <span class="font-bold text-sm text-white">Accounts Receivable • Active Due Parties</span>
-              <p class="text-xs text-slate-400">Tracks active debtor balances (fully settled and overpaid parties excluded automatically).</p>
+              <span class="font-bold text-sm text-white whitespace-nowrap">Accounts Receivable • Active Due Parties</span>
+              <p class="text-xs text-slate-400">Tracks active debtor balances (settled accounts excluded).</p>
             </div>
-            <span id="receivablesCount" class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded">0 parties</span>
+            <span id="receivablesCount" class="text-xs bg-slate-800 text-slate-400 px-2 py-1 rounded whitespace-nowrap">0 parties</span>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
+            <table class="w-full text-left text-sm whitespace-nowrap">
               <thead class="bg-slate-800 text-slate-400 text-xs uppercase">
                 <tr>
                   <th class="p-3.5">Date</th>
@@ -569,25 +669,25 @@
       <section id="tab-balancesheet" class="hidden grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
           <div class="border-b border-slate-800 pb-3 mb-4 flex justify-between items-center">
-            <h3 class="font-bold text-red-400 uppercase text-xs tracking-wider">Liabilities & Capital Equity</h3>
-            <span id="bsTotalLiabilities" class="font-mono font-bold text-sm text-red-400">₹0.00</span>
+            <h3 class="font-bold text-red-400 uppercase text-xs tracking-wider whitespace-nowrap">Liabilities & Capital Equity</h3>
+            <span id="bsTotalLiabilities" class="font-mono font-bold text-sm text-red-400 whitespace-nowrap">₹0.00</span>
           </div>
           <div class="space-y-4">
             <div>
-              <div class="text-xs font-semibold text-slate-400 uppercase mb-2">Capital & Accumulated Surplus</div>
+              <div class="text-xs font-semibold text-slate-400 uppercase mb-2 whitespace-nowrap">Capital & Accumulated Surplus</div>
               <div class="space-y-1.5">
-                <div class="flex justify-between text-xs py-1.5 border-b border-slate-800">
+                <div class="flex justify-between text-xs py-1.5 border-b border-slate-800 whitespace-nowrap">
                   <span class="text-slate-300">Base Capital Account</span>
                   <span id="bsBaseCapital" class="font-mono text-slate-200">₹0.00</span>
                 </div>
-                <div class="flex justify-between text-xs py-1.5 border-b border-slate-800">
+                <div class="flex justify-between text-xs py-1.5 border-b border-slate-800 whitespace-nowrap">
                   <span class="text-slate-300">Cumulative Net Surplus (P&L)</span>
                   <span id="bsNetWorth" class="font-mono text-blue-400 font-bold">₹0.00</span>
                 </div>
               </div>
             </div>
             <div>
-              <div class="text-xs font-semibold text-slate-400 uppercase mb-2">Outside Liabilities (Cards & Loans)</div>
+              <div class="text-xs font-semibold text-slate-400 uppercase mb-2 whitespace-nowrap">Outside Liabilities (Cards & Loans)</div>
               <div id="bsLiabilitiesList" class="space-y-1.5"></div>
             </div>
           </div>
@@ -595,12 +695,12 @@
 
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
           <div class="border-b border-slate-800 pb-3 mb-4 flex justify-between items-center">
-            <h3 class="font-bold text-green-400 uppercase text-xs tracking-wider">Assets & Properties</h3>
-            <span id="bsTotalAssets" class="font-mono font-bold text-sm text-green-400">₹0.00</span>
+            <h3 class="font-bold text-green-400 uppercase text-xs tracking-wider whitespace-nowrap">Assets & Properties</h3>
+            <span id="bsTotalAssets" class="font-mono font-bold text-sm text-green-400 whitespace-nowrap">₹0.00</span>
           </div>
           <div class="space-y-4">
             <div>
-              <div class="text-xs font-semibold text-slate-400 uppercase mb-2">Liquid, Bank & Fixed Assets</div>
+              <div class="text-xs font-semibold text-slate-400 uppercase mb-2 whitespace-nowrap">Liquid, Bank & Fixed Assets</div>
               <div id="bsAssetsList" class="space-y-1.5"></div>
             </div>
           </div>
@@ -612,34 +712,34 @@
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4 no-print">
           <div class="flex items-center gap-3">
             <div>
-              <label class="block text-[11px] font-medium text-slate-400 mb-0.5">From Date</label>
+              <label class="block text-[11px] font-medium text-slate-400 mb-0.5 whitespace-nowrap">From Date</label>
               <input type="date" id="pnlFromDate" onchange="renderPnL()" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-mono text-slate-200 outline-none focus:border-green-500">
             </div>
             <div>
-              <label class="block text-[11px] font-medium text-slate-400 mb-0.5">To Date</label>
+              <label class="block text-[11px] font-medium text-slate-400 mb-0.5 whitespace-nowrap">To Date</label>
               <input type="date" id="pnlToDate" onchange="renderPnL()" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-mono text-slate-200 outline-none focus:border-green-500">
             </div>
           </div>
           <div class="flex items-center gap-1.5 pt-3">
-            <button onclick="setPnLDatePreset('this_month')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700">This Month</button>
-            <button onclick="setPnLDatePreset('this_fy')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700">Financial Year</button>
-            <button onclick="setPnLDatePreset('all')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700">All Time</button>
+            <button onclick="setPnLDatePreset('this_month')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700 whitespace-nowrap">This Month</button>
+            <button onclick="setPnLDatePreset('this_fy')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700 whitespace-nowrap">Financial Year</button>
+            <button onclick="setPnLDatePreset('all')" class="bg-slate-800 hover:bg-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-300 border border-slate-700 whitespace-nowrap">All Time</button>
           </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
             <div class="border-b border-slate-800 pb-3 mb-4 flex justify-between items-center">
-              <h3 class="font-bold text-red-400 uppercase text-xs tracking-wider">Expenses (Debit)</h3>
-              <span id="pnlTotalExpenses" class="font-mono font-bold text-sm text-red-400">₹0.00</span>
+              <h3 class="font-bold text-red-400 uppercase text-xs tracking-wider whitespace-nowrap">Expenses (Debit)</h3>
+              <span id="pnlTotalExpenses" class="font-mono font-bold text-sm text-red-400 whitespace-nowrap">₹0.00</span>
             </div>
             <div id="pnlExpensesList" class="space-y-2"></div>
           </div>
 
           <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
             <div class="border-b border-slate-800 pb-3 mb-4 flex justify-between items-center">
-              <h3 class="font-bold text-green-400 uppercase text-xs tracking-wider">Incomes (Credit)</h3>
-              <span id="pnlTotalIncomes" class="font-mono font-bold text-sm text-green-400">₹0.00</span>
+              <h3 class="font-bold text-green-400 uppercase text-xs tracking-wider whitespace-nowrap">Incomes (Credit)</h3>
+              <span id="pnlTotalIncomes" class="font-mono font-bold text-sm text-green-400 whitespace-nowrap">₹0.00</span>
             </div>
             <div id="pnlIncomesList" class="space-y-2"></div>
           </div>
@@ -651,21 +751,19 @@
         <div id="daybookFilters" class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4 no-print">
           <div class="flex flex-wrap items-center gap-3">
             <div>
-              <label class="block text-[11px] font-medium text-slate-400 mb-0.5">Filter Ledger</label>
-              <select id="daybookLedgerFilter" onchange="renderDaybook(1)" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-blue-400 outline-none focus:border-blue-500">
-                <option value="ALL">● All Accounts</option>
-              </select>
+              <label class="block text-[11px] font-medium text-slate-400 mb-0.5 whitespace-nowrap">Filter Ledger</label>
+              <select id="daybookLedgerFilter" onchange="renderDaybook(1)" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-medium text-blue-400 outline-none focus:border-blue-500"></select>
             </div>
             <div>
-              <label class="block text-[11px] font-medium text-slate-400 mb-0.5">From Date</label>
+              <label class="block text-[11px] font-medium text-slate-400 mb-0.5 whitespace-nowrap">From Date</label>
               <input type="date" id="daybookFromDate" onchange="renderDaybook(1)" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-mono text-slate-200 outline-none focus:border-blue-500">
             </div>
             <div>
-              <label class="block text-[11px] font-medium text-slate-400 mb-0.5">To Date</label>
+              <label class="block text-[11px] font-medium text-slate-400 mb-0.5 whitespace-nowrap">To Date</label>
               <input type="date" id="daybookToDate" onchange="renderDaybook(1)" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-mono text-slate-200 outline-none focus:border-blue-500">
             </div>
             <div>
-              <label class="block text-[11px] font-medium text-slate-400 mb-0.5">Page Size</label>
+              <label class="block text-[11px] font-medium text-slate-400 mb-0.5 whitespace-nowrap">Page Size</label>
               <select id="daybookPageSize" onchange="renderDaybook(1)" class="bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg text-xs font-mono text-slate-200 outline-none">
                 <option value="25">25 per page</option>
                 <option value="50">50 per page</option>
@@ -675,15 +773,15 @@
             </div>
           </div>
           <div class="flex items-center gap-2 pt-3">
-            <button onclick="resetDaybookFilters()" class="bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 border border-slate-700">Clear</button>
-            <span id="daybookCount" class="text-xs bg-slate-800 text-slate-300 font-mono px-2.5 py-1.5 rounded border border-slate-700">0 Vouchers</span>
+            <button onclick="resetDaybookFilters()" class="bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 border border-slate-700 whitespace-nowrap">Clear</button>
+            <span id="daybookCount" class="text-xs bg-slate-800 text-slate-300 font-mono px-2.5 py-1.5 rounded border border-slate-700 whitespace-nowrap">0 Vouchers</span>
           </div>
         </div>
 
         <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-left text-sm">
-              <thead class="bg-slate-800 text-slate-400 text-xs uppercase">
+              <thead class="bg-slate-800 text-slate-400 text-xs uppercase whitespace-nowrap">
                 <tr>
                   <th class="p-3.5">Date</th>
                   <th class="p-3.5">Voucher No</th>
@@ -699,8 +797,8 @@
             </table>
           </div>
           <div id="daybookPagination" class="p-3.5 border-t border-slate-800 flex justify-between items-center text-xs text-slate-400 font-mono no-print">
-            <span id="paginationInfo">Showing 0 of 0</span>
-            <div class="space-x-1.5">
+            <span id="paginationInfo" class="whitespace-nowrap">Showing 0 of 0</span>
+            <div class="space-x-1.5 whitespace-nowrap">
               <button id="btnPrevPage" onclick="changeDaybookPage(-1)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 disabled:opacity-40">Previous</button>
               <span id="currentPageNum" class="px-2 font-bold text-white">1</span>
               <button id="btnNextPage" onclick="changeDaybookPage(1)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 disabled:opacity-40">Next</button>
@@ -714,10 +812,10 @@
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
           <div class="flex justify-between items-center mb-4">
             <div>
-              <h3 class="font-semibold text-white">Groups & Sub-Groups Hierarchy</h3>
+              <h3 class="font-semibold text-white whitespace-nowrap">Groups & Sub-Groups Hierarchy</h3>
               <p class="text-xs text-slate-400">Primary Groups define nature (Asset/Liability/Income/Expense); Sub-Groups inherit.</p>
             </div>
-            <button onclick="openGroupModal()" class="bg-purple-600 hover:bg-purple-500 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition">
+            <button onclick="openGroupModal()" class="bg-purple-600 hover:bg-purple-500 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition whitespace-nowrap">
               <i class="fa-solid fa-folder-plus mr-1"></i> New Group
             </button>
           </div>
@@ -727,10 +825,10 @@
         <div class="bg-slate-900 border border-slate-800 rounded-xl p-6">
           <div class="flex justify-between items-center mb-4">
             <div>
-              <h3 class="font-semibold text-white">Ledger Accounts Master</h3>
+              <h3 class="font-semibold text-white whitespace-nowrap">Ledger Accounts Master</h3>
               <p class="text-xs text-slate-400">Individual ledger accounts categorized under Primary or Sub-Groups.</p>
             </div>
-            <button onclick="openLedgerModal()" class="bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition">
+            <button onclick="openLedgerModal()" class="bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition whitespace-nowrap">
               <i class="fa-solid fa-plus mr-1"></i> New Ledger
             </button>
           </div>
@@ -755,46 +853,49 @@
     </div>
   </div>
 
-  <!-- MODAL: ONE-CLICK FRIEND ACCOUNT STATEMENT -->
+  <!-- MODAL: FRIEND ACCOUNT STATEMENT (HIGH CONTRAST & CLEAN PRINT PDF READY) -->
   <div id="friendStatementModal" class="fixed inset-0 bg-black bg-opacity-80 hidden items-center justify-center z-50 p-4">
-    <div class="bg-white text-slate-900 rounded-xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-      <div class="p-6 border-b border-slate-200 flex justify-between items-start bg-slate-50">
+    <div id="friendStatementCard" class="bg-slate-900 border border-slate-700 text-slate-100 rounded-2xl w-full max-w-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+      <div class="p-6 border-b border-slate-800 flex justify-between items-start bg-slate-950">
         <div>
-          <h3 id="stmtModalPartyName" class="text-lg font-bold text-slate-900">Statement of Account</h3>
-          <p class="text-xs text-slate-500 font-mono mt-0.5" id="stmtModalGenDate"></p>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-blue-950 text-blue-400 border border-blue-800 text-[10px] font-mono uppercase font-bold tracking-wider">Statement of Account</span>
+          </div>
+          <h3 id="stmtModalPartyName" class="text-xl font-bold text-white mt-1 whitespace-nowrap">Account Statement</h3>
+          <p class="text-xs text-slate-400 font-mono mt-0.5 whitespace-nowrap" id="stmtModalGenDate"></p>
         </div>
-        <div class="flex items-center gap-2">
-          <button onclick="printFriendlyStatement()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+        <div class="flex items-center gap-2 no-print">
+          <button onclick="printFriendlyStatement()" class="bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition shadow-sm whitespace-nowrap">
             <i class="fa-solid fa-print"></i> Print / PDF
           </button>
-          <button onclick="closeFriendStatementModal()" class="text-slate-400 hover:text-slate-700 px-2 py-1"><i class="fa-solid fa-xmark text-base"></i></button>
+          <button onclick="closeFriendStatementModal()" class="text-slate-400 hover:text-white p-1.5"><i class="fa-solid fa-xmark text-lg"></i></button>
         </div>
       </div>
 
-      <div class="p-6 overflow-y-auto space-y-4 text-xs font-sans">
-        <div class="flex justify-between items-center bg-slate-100 p-3.5 rounded-lg border border-slate-200">
+      <div class="p-6 overflow-y-auto space-y-5 text-xs font-sans">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-950/80 p-4 rounded-xl border border-slate-800">
           <div>
-            <span class="text-slate-500 text-[11px] block">Current Balance Status</span>
-            <span id="stmtModalNetStatus" class="font-bold text-sm text-slate-800">Calculating...</span>
+            <span class="text-slate-400 text-xs block whitespace-nowrap">Current Clearance Status</span>
+            <span id="stmtModalNetStatus" class="font-bold text-sm text-slate-200 mt-0.5 block whitespace-nowrap">Calculating...</span>
           </div>
-          <div class="text-right">
-            <span class="text-slate-500 text-[11px] block">Net Outstanding</span>
-            <span id="stmtModalNetBal" class="text-base font-bold font-mono text-blue-600">₹0.00</span>
+          <div class="text-left md:text-right">
+            <span class="text-slate-400 text-xs block whitespace-nowrap">Net Running Balance</span>
+            <span id="stmtModalNetBal" class="text-lg font-bold font-mono text-blue-400 whitespace-nowrap">₹0.00</span>
           </div>
         </div>
 
-        <div class="border border-slate-200 rounded-lg overflow-hidden">
-          <table class="w-full text-left text-xs">
-            <thead class="bg-slate-100 text-slate-600 uppercase font-mono text-[10px] border-b border-slate-200">
+        <div class="border border-slate-800 rounded-xl overflow-hidden">
+          <table class="w-full text-left text-xs whitespace-nowrap">
+            <thead class="bg-slate-800 text-slate-300 uppercase font-mono text-[10px] border-b border-slate-700">
               <tr>
-                <th class="p-2.5">Date</th>
-                <th class="p-2.5">Particulars / Reason</th>
-                <th class="p-2.5 text-right">Debit (You Lent)</th>
-                <th class="p-2.5 text-right">Credit (Received)</th>
-                <th class="p-2.5 text-right">Net Due</th>
+                <th class="p-3">Date</th>
+                <th class="p-3">Particulars / Reason</th>
+                <th class="p-3 text-right">Debit (Given)</th>
+                <th class="p-3 text-right">Credit (Received)</th>
+                <th class="p-3 text-right">Running Net Due</th>
               </tr>
             </thead>
-            <tbody id="stmtModalTableBody" class="divide-y divide-slate-100 text-slate-700"></tbody>
+            <tbody id="stmtModalTableBody" class="divide-y divide-slate-800 text-slate-200"></tbody>
           </table>
         </div>
       </div>
@@ -805,22 +906,22 @@
   <div id="budgetModal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
       <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
-        <h3 class="font-semibold text-sm text-white">Set Monthly Budget Ceiling</h3>
+        <h3 class="font-semibold text-sm text-white whitespace-nowrap">Set Monthly Budget Ceiling</h3>
         <button onclick="closeBudgetModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <form id="budgetForm" class="p-6 space-y-4">
         <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Select Expense Account</label>
+          <label class="block text-xs font-medium text-slate-400 mb-1 whitespace-nowrap">Select Expense Account</label>
           <select id="bLedger" required class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-indigo-500 text-slate-200"></select>
         </div>
         <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Monthly Ceiling Limit (₹)</label>
+          <label class="block text-xs font-medium text-slate-400 mb-1 whitespace-nowrap">Monthly Ceiling Limit (₹)</label>
           <input type="number" step="0.01" id="bAmount" required placeholder="e.g. 15000" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-indigo-500 text-slate-200">
           <span class="text-[11px] text-slate-500 mt-1 block">Set to 0 to remove budget limit.</span>
         </div>
         <div class="pt-2 flex justify-end gap-2">
-          <button type="button" onclick="closeBudgetModal()" class="px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:bg-slate-800">Cancel</button>
-          <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-xs font-semibold text-white">Save Budget</button>
+          <button type="button" onclick="closeBudgetModal()" class="px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:bg-slate-800 whitespace-nowrap">Cancel</button>
+          <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-xs font-semibold text-white whitespace-nowrap">Save Budget</button>
         </div>
       </form>
     </div>
@@ -831,8 +932,8 @@
     <div class="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-2xl overflow-hidden shadow-2xl">
       <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
         <div>
-          <h3 id="voucherModalTitle" class="font-semibold text-sm text-white">Record Accounting Voucher</h3>
-          <span id="voucherNoPreview" class="text-xs font-mono text-slate-400">Voucher No: Auto-Generated</span>
+          <h3 id="voucherModalTitle" class="font-semibold text-sm text-white whitespace-nowrap">Record Accounting Voucher</h3>
+          <span id="voucherNoPreview" class="text-xs font-mono text-slate-400 whitespace-nowrap">Voucher No: Auto-Generated</span>
         </div>
         <button onclick="closeVoucherModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
@@ -841,7 +942,7 @@
         <input type="hidden" id="vId">
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1">Voucher Type</label>
+            <label class="block text-xs font-medium text-slate-400 mb-1 whitespace-nowrap">Voucher Type</label>
             <select id="vType" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-blue-500 text-slate-200">
               <option value="Payment">Payment</option>
               <option value="Receipt">Receipt</option>
@@ -850,15 +951,15 @@
             </select>
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1">Transaction Date</label>
+            <label class="block text-xs font-medium text-slate-400 mb-1 whitespace-nowrap">Transaction Date</label>
             <input type="date" id="vDate" required class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-blue-500 text-slate-200">
           </div>
         </div>
 
         <div class="border border-slate-800 rounded-lg p-3 bg-slate-950/60 space-y-3">
           <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-            <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Voucher Split Entries (Dr / Cr Legs)</span>
-            <button type="button" onclick="addVoucherEntryRow()" class="text-xs bg-slate-800 hover:bg-slate-700 text-sky-400 px-2.5 py-1 rounded border border-slate-700 transition">
+            <span class="text-xs font-bold text-slate-300 uppercase tracking-wider whitespace-nowrap">Voucher Split Entries (Dr / Cr Legs)</span>
+            <button type="button" onclick="addVoucherEntryRow()" class="text-xs bg-slate-800 hover:bg-slate-700 text-sky-400 px-2.5 py-1 rounded border border-slate-700 transition whitespace-nowrap">
               <i class="fa-solid fa-plus text-[10px] mr-1"></i> Add Entry Line
             </button>
           </div>
@@ -867,28 +968,28 @@
 
           <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800 text-xs font-mono">
             <div class="bg-slate-900 p-2 rounded border border-slate-800">
-              <span class="text-slate-500 block text-[10px]">Total Debit (Dr)</span>
-              <span id="vMeterDr" class="font-bold text-green-400 text-sm">₹0.00</span>
+              <span class="text-slate-500 block text-[10px] whitespace-nowrap">Total Debit (Dr)</span>
+              <span id="vMeterDr" class="font-bold text-green-400 text-sm whitespace-nowrap">₹0.00</span>
             </div>
             <div class="bg-slate-900 p-2 rounded border border-slate-800">
-              <span class="text-slate-500 block text-[10px]">Total Credit (Cr)</span>
-              <span id="vMeterCr" class="font-bold text-red-400 text-sm">₹0.00</span>
+              <span class="text-slate-500 block text-[10px] whitespace-nowrap">Total Credit (Cr)</span>
+              <span id="vMeterCr" class="font-bold text-red-400 text-sm whitespace-nowrap">₹0.00</span>
             </div>
             <div id="vMeterDiffBox" class="p-2 rounded border bg-slate-900 border-slate-800">
-              <span class="text-slate-500 block text-[10px]">Difference</span>
-              <span id="vMeterDiff" class="font-bold text-white text-sm">₹0.00</span>
+              <span class="text-slate-500 block text-[10px] whitespace-nowrap">Difference</span>
+              <span id="vMeterDiff" class="font-bold text-white text-sm whitespace-nowrap">₹0.00</span>
             </div>
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Narration</label>
+          <label class="block text-xs font-medium text-slate-400 mb-1 whitespace-nowrap">Narration</label>
           <input type="text" id="vNarration" placeholder="Details or remarks" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-blue-500 text-slate-200">
         </div>
 
         <div class="pt-2 flex justify-end gap-2">
-          <button type="button" onclick="closeVoucherModal()" class="px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:bg-slate-800">Cancel</button>
-          <button type="submit" id="vSubmitBtn" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg text-xs font-semibold text-white">Save Voucher</button>
+          <button type="button" onclick="closeVoucherModal()" class="px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:bg-slate-800 whitespace-nowrap">Cancel</button>
+          <button type="submit" id="vSubmitBtn" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg text-xs font-semibold text-white whitespace-nowrap">Save Voucher</button>
         </div>
       </form>
     </div>
@@ -898,24 +999,24 @@
   <div id="groupModal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
       <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
-        <h3 id="groupModalTitle" class="font-semibold text-sm text-white">Create Account Group</h3>
+        <h3 id="groupModalTitle" class="font-semibold text-sm text-white whitespace-nowrap">Create Account Group</h3>
         <button onclick="closeGroupModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <form id="groupForm" class="p-6 space-y-4">
         <input type="hidden" id="gId">
         <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Group Name</label>
+          <label class="block text-xs font-medium text-slate-400 mb-1 whitespace-nowrap">Group Name</label>
           <input type="text" id="gName" placeholder="e.g. Private Bank Accounts, Delhi Debtors" required class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-purple-500 text-slate-200">
         </div>
         <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Under Parent Group</label>
+          <label class="block text-xs font-medium text-slate-400 mb-1 whitespace-nowrap">Under Parent Group</label>
           <select id="gParentGroup" onchange="handleGroupParentChange()" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-purple-500 text-slate-200">
             <option value="Primary">● Primary (Top Level)</option>
           </select>
         </div>
         <div id="gNatureField">
-          <label class="block text-xs font-medium text-slate-400 mb-1">Nature (For Primary Groups)</label>
+          <label class="block text-xs font-medium text-slate-400 mb-1 whitespace-nowrap">Nature (For Primary Groups)</label>
           <select id="gNature" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-purple-500 text-slate-200">
             <option value="Asset">Asset</option>
             <option value="Liability">Liability</option>
@@ -925,8 +1026,8 @@
         </div>
 
         <div class="pt-2 flex justify-end gap-2">
-          <button type="button" onclick="closeGroupModal()" class="px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:bg-slate-800">Cancel</button>
-          <button type="submit" class="bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded-lg text-xs font-semibold text-white">Save Group</button>
+          <button type="button" onclick="closeGroupModal()" class="px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:bg-slate-800 whitespace-nowrap">Cancel</button>
+          <button type="submit" class="bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded-lg text-xs font-semibold text-white whitespace-nowrap">Save Group</button>
         </div>
       </form>
     </div>
@@ -936,39 +1037,39 @@
   <div id="ledgerModal" class="fixed inset-0 bg-black bg-opacity-75 hidden items-center justify-center z-50 p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-md overflow-hidden shadow-2xl">
       <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center">
-        <h3 id="ledgerModalTitle" class="font-semibold text-sm text-white">Create Ledger Account</h3>
+        <h3 id="ledgerModalTitle" class="font-semibold text-sm text-white whitespace-nowrap">Create Ledger Account</h3>
         <button onclick="closeLedgerModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <form id="ledgerForm" class="p-6 space-y-4">
         <input type="hidden" id="lId">
         <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Ledger Name</label>
+          <label class="block text-xs font-medium text-slate-400 mb-1 whitespace-nowrap">Ledger Name</label>
           <input type="text" id="lName" placeholder="Account Name" required class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-blue-500 text-slate-200">
         </div>
         <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Under Group / Sub-Group</label>
+          <label class="block text-xs font-medium text-slate-400 mb-1 whitespace-nowrap">Under Group / Sub-Group</label>
           <select id="lGroup" onchange="toggleCreditCardFields()" required class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-blue-500 text-slate-200"></select>
         </div>
         <div>
-          <label class="block text-xs font-medium text-slate-400 mb-1">Opening Balance (₹)</label>
+          <label class="block text-xs font-medium text-slate-400 mb-1 whitespace-nowrap">Opening Balance (₹)</label>
           <input type="number" step="0.01" id="lOpeningBalance" placeholder="0.00" value="0.00" class="w-full bg-slate-800 border border-slate-700 px-3 py-2 rounded-lg text-sm outline-none focus:border-blue-500 text-slate-200">
         </div>
 
         <div id="creditCardOptions" class="hidden grid-cols-2 gap-3 p-3 bg-slate-800 rounded-lg border border-slate-700">
           <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1">Bill Gen. Day (1-31)</label>
+            <label class="block text-xs font-medium text-slate-400 mb-1 whitespace-nowrap">Bill Gen. Day (1-31)</label>
             <input type="number" min="1" max="31" id="lBillingDay" placeholder="15" value="15" class="w-full bg-slate-800 border border-slate-700 px-2 py-1.5 rounded text-sm outline-none focus:border-blue-500 text-slate-200">
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-400 mb-1">Grace Period (Days)</label>
+            <label class="block text-xs font-medium text-slate-400 mb-1 whitespace-nowrap">Grace Period (Days)</label>
             <input type="number" min="1" max="45" id="lGraceDays" placeholder="20" value="20" class="w-full bg-slate-800 border border-slate-700 px-2 py-1.5 rounded text-sm outline-none focus:border-blue-500 text-slate-200">
           </div>
         </div>
 
         <div class="pt-2 flex justify-end gap-2">
-          <button type="button" onclick="closeLedgerModal()" class="px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:bg-slate-800">Cancel</button>
-          <button type="submit" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg text-xs font-semibold text-white">Save Ledger</button>
+          <button type="button" onclick="closeLedgerModal()" class="px-4 py-2 rounded-lg text-xs font-medium text-slate-400 hover:bg-slate-800 whitespace-nowrap">Cancel</button>
+          <button type="submit" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg text-xs font-semibold text-white whitespace-nowrap">Save Ledger</button>
         </div>
       </form>
     </div>
@@ -983,12 +1084,311 @@
     let currentSummaryGroup = null;
     let daybookCurrentPage = 1;
 
+    function escapeHTML(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function escapeAttr(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     function padZero(n) {
       return String(n).padStart(2, '0');
     }
 
     function formatLocalDate(d) {
       return `${d.getFullYear()}-${padZero(d.getMonth() + 1)}-${padZero(d.getDate())}`;
+    }
+
+    // Format comma-separated ledgers into clean vertical lines
+    function formatLedgerListHtml(ledgerString, isCredit = false) {
+      if (!ledgerString || ledgerString.trim() === '' || ledgerString === '-') {
+        return '<span class="text-slate-500">-</span>';
+      }
+      const ledgers = ledgerString.split(',').map(s => s.trim()).filter(Boolean);
+      const textClass = isCredit ? 'text-red-400' : 'text-green-400';
+      return '<div class="flex flex-col gap-1 py-1">' +
+        ledgers.map(l => '<span class="block leading-snug ' + textClass + ' font-medium">' + escapeHTML(l) + '</span>').join('') +
+        '</div>';
+    }
+
+    // CENTRALIZED EVENT DELEGATION
+    document.addEventListener('click', (e) => {
+      const ledgerLink = e.target.closest('[data-ledger-link]');
+      if (ledgerLink) {
+        e.preventDefault();
+        e.stopPropagation();
+        const targetLedger = ledgerLink.getAttribute('data-ledger-link');
+        if (targetLedger) openLedgerStatement(targetLedger);
+        return;
+      }
+
+      const groupLink = e.target.closest('[data-group-link]');
+      if (groupLink) {
+        e.preventDefault();
+        e.stopPropagation();
+        const targetGroup = groupLink.getAttribute('data-group-link');
+        if (targetGroup) {
+          drillIntoGroup(targetGroup);
+          switchTab('groupsummary');
+        }
+        return;
+      }
+
+      const shareBtn = e.target.closest('[data-share-friend]');
+      if (shareBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const party = shareBtn.getAttribute('data-share-friend');
+        if (party) openFriendStatement(party);
+        return;
+      }
+
+      const settleBtn = e.target.closest('[data-settle-friend]');
+      if (settleBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+        const party = settleBtn.getAttribute('data-settle-friend');
+        const bal = parseFloat(settleBtn.getAttribute('data-settle-bal')) || 0;
+        if (party) settleFriendBalance(party, bal);
+        return;
+      }
+    });
+
+    // PRINTING PDF HELPERS
+    function printCurrentReport() {
+      document.body.classList.remove('printing-modal');
+      window.print();
+    }
+
+    function printFriendlyStatement() {
+      document.body.classList.add('printing-modal');
+      window.print();
+      setTimeout(() => {
+        document.body.classList.remove('printing-modal');
+      }, 500);
+    }
+
+    // NATIVE EXCEL WORKBOOK EXPORTER
+    function exportCurrentViewExcel() {
+      let headers = [];
+      let rows = [];
+      let filename = `${activeTab}_report_${formatLocalDate(new Date())}.xls`;
+
+      function cleanNum(val) {
+        if (typeof val === 'number') return val;
+        if (!val) return 0;
+        const cleaned = String(val).replace(/[₹,\s+]/g, '').trim();
+        const parsed = parseFloat(cleaned);
+        return isNaN(parsed) ? 0 : parsed;
+      }
+
+      if (activeTab === 'ledgerstatement') {
+        headers = ['Date', 'Particulars', 'Voucher Type', 'Voucher No', 'Debit', 'Credit', 'Running Balance'];
+        document.querySelectorAll('#statementTableBody tr').forEach(tr => {
+          const cells = Array.from(tr.querySelectorAll('td'));
+          if (cells.length >= 7) {
+            rows.push([
+              { val: cells[0].innerText.trim(), type: 'String' },
+              { val: cells[1].innerText.trim(), type: 'String' },
+              { val: cells[2].innerText.trim(), type: 'String' },
+              { val: cells[3].innerText.trim(), type: 'String' },
+              { val: cleanNum(cells[4].innerText), type: 'Number' },
+              { val: cleanNum(cells[5].innerText), type: 'Number' },
+              { val: cells[6].innerText.trim(), type: 'String' }
+            ]);
+          }
+        });
+      } else if (activeTab === 'trialbalance') {
+        headers = ['Ledger Particulars', 'Group', 'Gross Debit', 'Gross Credit', 'Closing Debit', 'Closing Credit'];
+        document.querySelectorAll('#trialBalanceTableBody tr').forEach(tr => {
+          const cells = Array.from(tr.querySelectorAll('td'));
+          if (cells.length >= 6) {
+            rows.push([
+              { val: cells[0].innerText.trim(), type: 'String' },
+              { val: cells[1].innerText.trim(), type: 'String' },
+              { val: cleanNum(cells[2].innerText), type: 'Number' },
+              { val: cleanNum(cells[3].innerText), type: 'Number' },
+              { val: cleanNum(cells[4].innerText), type: 'Number' },
+              { val: cleanNum(cells[5].innerText), type: 'Number' }
+            ]);
+          }
+        });
+      } else if (activeTab === 'daybook') {
+        headers = ['Date', 'Voucher No', 'Type', 'Debit Accounts', 'Credit Accounts', 'Narration', 'Amount'];
+        document.querySelectorAll('#daybookList tr').forEach(tr => {
+          const cells = Array.from(tr.querySelectorAll('td'));
+          if (cells.length >= 7) {
+            rows.push([
+              { val: cells[0].innerText.trim(), type: 'String' },
+              { val: cells[1].innerText.trim(), type: 'String' },
+              { val: cells[2].innerText.trim(), type: 'String' },
+              { val: cells[3].innerText.trim(), type: 'String' },
+              { val: cells[4].innerText.trim(), type: 'String' },
+              { val: cells[5].innerText.trim(), type: 'String' },
+              { val: cleanNum(cells[6].innerText), type: 'Number' }
+            ]);
+          }
+        });
+      } else if (activeTab === 'cashflow') {
+        headers = ['Pillar', 'Account / Ledger', 'Group', 'Inflow / Outflow'];
+        document.querySelectorAll('#cashFlowTableBody tr').forEach(tr => {
+          const cells = Array.from(tr.querySelectorAll('td'));
+          if (cells.length >= 4) {
+            rows.push([
+              { val: cells[0].innerText.trim(), type: 'String' },
+              { val: cells[1].innerText.trim(), type: 'String' },
+              { val: cells[2].innerText.trim(), type: 'String' },
+              { val: cleanNum(cells[3].innerText), type: 'Number' }
+            ]);
+          }
+        });
+      } else {
+        alert('Excel Export is optimized for Ledger Statement, Trial Balance, Cash Flow, and Day Book.');
+        return;
+      }
+
+      let xml = `<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <Styles>
+  <Style ss:ID="Header">
+   <Font ss:Bold="1" ss:Color="#FFFFFF"/>
+   <Interior ss:Color="#1E293B" ss:Pattern="Solid"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/>
+   </Borders>
+  </Style>
+  <Style ss:ID="Currency">
+   <NumberFormat ss:Format="#,##0.00"/>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="Sheet1">
+  <Table>`;
+
+      xml += '<Row ss:StyleID="Header">';
+      headers.forEach(h => {
+        xml += `<Cell><Data ss:Type="String">${escapeHTML(h)}</Data></Cell>`;
+      });
+      xml += '</Row>';
+
+      rows.forEach(row => {
+        xml += '<Row>';
+        row.forEach(cell => {
+          if (cell.type === 'Number') {
+            xml += `<Cell ss:StyleID="Currency"><Data ss:Type="Number">${cell.val}</Data></Cell>`;
+          } else {
+            xml += `<Cell><Data ss:Type="String">${escapeHTML(cell.val)}</Data></Cell>`;
+          }
+        });
+        xml += '</Row>';
+      });
+
+      xml += `  </Table>
+ </Worksheet>
+</Workbook>`;
+
+      const blob = new Blob([xml], { type: 'application/vnd.ms-excel' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    async function checkAuthStatus() {
+      try {
+        const res = await fetch('/api/auth/status');
+        const data = await res.json();
+        const modal = document.getElementById('authModal');
+
+        if (!data.isConfigured) {
+          document.getElementById('authTitle').innerText = 'Initial Security Setup';
+          document.getElementById('authSubtitle').innerText = 'Create a master password to encrypt your financial records.';
+          document.getElementById('authConfirmContainer').classList.remove('hidden');
+          document.getElementById('authSubmitBtn').innerHTML = '<i class="fa-solid fa-key text-xs"></i> <span>Setup Master Key</span>';
+          modal.style.display = 'flex';
+          return false;
+        } else if (!data.isAuthenticated) {
+          document.getElementById('authTitle').innerText = 'Security Verification';
+          document.getElementById('authSubtitle').innerText = 'Enter your master password to decrypt session.';
+          document.getElementById('authConfirmContainer').classList.add('hidden');
+          document.getElementById('authSubmitBtn').innerHTML = '<i class="fa-solid fa-lock-open text-xs"></i> <span>Unlock Books</span>';
+          modal.style.display = 'flex';
+          return false;
+        } else {
+          modal.style.display = 'none';
+          return true;
+        }
+      } catch (err) {
+        console.error('Failed to communicate with auth check endpoint:', err);
+        return false;
+      }
+    }
+
+    document.getElementById('authForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const pw = document.getElementById('authPassword').value;
+      const confirmContainer = document.getElementById('authConfirmContainer');
+      const errBox = document.getElementById('authError');
+      errBox.classList.add('hidden');
+
+      if (!confirmContainer.classList.contains('hidden')) {
+        const confirmPw = document.getElementById('authConfirmPassword').value;
+        if (pw !== confirmPw) {
+          errBox.innerText = 'Passwords do not match.';
+          errBox.classList.remove('hidden');
+          return;
+        }
+        const res = await fetch('/api/auth/setup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pw })
+        });
+        const data = await res.json();
+        if (data.error) {
+          errBox.innerText = data.error;
+          errBox.classList.remove('hidden');
+        } else {
+          document.getElementById('authModal').style.display = 'none';
+          await loadData();
+        }
+      } else {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pw })
+        });
+        const data = await res.json();
+        if (data.error) {
+          errBox.innerText = data.error;
+          errBox.classList.remove('hidden');
+        } else {
+          document.getElementById('authModal').style.display = 'none';
+          await loadData();
+        }
+      }
+    });
+
+    async function logoutSession() {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      window.location.reload();
     }
 
     function toggleCreditCardFields() {
@@ -1044,20 +1444,24 @@
     function switchTab(tab) {
       activeTab = tab;
       document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.className = 'nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left';
+        btn.className = 'nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap';
       });
       const activeBtn = document.getElementById('nav-' + tab);
-      if (activeBtn) activeBtn.className = 'nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition bg-blue-600 text-white text-left';
+      if (activeBtn) activeBtn.className = 'nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition bg-blue-600 text-white text-left whitespace-nowrap';
 
       ['dashboard', 'cashflow', 'comparativepnl', 'budgets', 'trialbalance', 'groupsummary', 'ledgerstatement', 'dues', 'balancesheet', 'pnl', 'daybook', 'masters'].forEach(t => {
         const el = document.getElementById('tab-' + t);
         if (el) {
           if (t === tab) {
             el.classList.remove('hidden');
-            if (t === 'dashboard' || t === 'balancesheet') el.classList.add('grid');
+            if (t === 'dashboard' || t === 'balancesheet') {
+              el.style.display = 'grid';
+            } else {
+              el.style.display = 'block';
+            }
           } else {
             el.classList.add('hidden');
-            if (t === 'dashboard' || t === 'balancesheet') el.classList.remove('grid');
+            el.style.display = 'none';
           }
         }
       });
@@ -1093,53 +1497,13 @@
         renderDaybook(daybookCurrentPage);
       } else if (tab === 'pnl') {
         renderPnL();
+      } else if (tab === 'balancesheet') {
+        renderBalanceSheet();
+      } else if (tab === 'dues') {
+        renderDues();
       }
     }
 
-    function exportCurrentViewCSV() {
-      let csv = [];
-      let filename = `${activeTab}_export_${formatLocalDate(new Date())}.csv`;
-
-      if (activeTab === 'ledgerstatement') {
-        csv.push(['Date', 'Particulars', 'Voucher Type', 'Voucher No', 'Debit (Dr)', 'Credit (Cr)', 'Running Balance']);
-        document.querySelectorAll('#statementTableBody tr').forEach(row => {
-          const cols = Array.from(row.querySelectorAll('td')).map(td => `"${td.innerText.replace(/"/g, '""').trim()}"`);
-          if (cols.length > 0) csv.push(cols);
-        });
-      } else if (activeTab === 'trialbalance') {
-        csv.push(['Ledger Particulars', 'Group', 'Gross Debit', 'Gross Credit', 'Closing Debit', 'Closing Credit']);
-        document.querySelectorAll('#trialBalanceTableBody tr').forEach(row => {
-          const cols = Array.from(row.querySelectorAll('td')).map(td => `"${td.innerText.replace(/"/g, '""').trim()}"`);
-          if (cols.length > 0) csv.push(cols);
-        });
-      } else if (activeTab === 'daybook') {
-        csv.push(['Date', 'Voucher No', 'Type', 'Dr Ledgers', 'Cr Ledgers', 'Narration', 'Amount']);
-        document.querySelectorAll('#daybookList tr').forEach(row => {
-          const cols = Array.from(row.querySelectorAll('td')).slice(0, 7).map(td => `"${td.innerText.replace(/"/g, '""').trim()}"`);
-          if (cols.length > 0) csv.push(cols);
-        });
-      } else if (activeTab === 'cashflow') {
-        csv.push(['Pillar', 'Ledger', 'Group', 'Amount']);
-        document.querySelectorAll('#cashFlowTableBody tr').forEach(row => {
-          const cols = Array.from(row.querySelectorAll('td')).map(td => `"${td.innerText.replace(/"/g, '""').trim()}"`);
-          if (cols.length > 0) csv.push(cols);
-        });
-      } else {
-        alert('CSV Export is optimized for Ledger Statement, Trial Balance, Cash Flow, and Day Book.');
-        return;
-      }
-
-      const csvContent = 'data:text/csv;charset=utf-8,' + csv.map(e => e.join(',')).join('\n');
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement('a');
-      link.setAttribute('href', encodedUri);
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    }
-
-    // CASH FLOW PRESETS & RENDERER
     function setCFDatePreset(preset) {
       const now = new Date();
       const fromEl = document.getElementById('cfFromDate');
@@ -1188,11 +1552,11 @@
           items.forEach(it => {
             const isPos = it.amount >= 0;
             rows += '<tr class="hover:bg-slate-800 transition">' +
-              '<td class="p-3.5"><span class="px-2 py-0.5 rounded text-[11px] font-mono ' + badgeClass + '">' + label + '</span></td>' +
-              '<td class="p-3.5"><a href="javascript:void(0)" onclick="openLedgerStatement(\'' + it.ledger + '\')" class="font-medium text-slate-200 hover:text-blue-400">' + it.ledger + '</a>' +
-              (it.narration ? '<div class="text-xs text-slate-500 italic">' + it.narration + '</div>' : '') + '</td>' +
-              '<td class="p-3.5 text-xs text-slate-400">' + it.group + '</td>' +
-              '<td class="p-3.5 text-right font-mono font-semibold ' + (isPos ? 'text-green-400' : 'text-red-400') + '">' + (isPos ? '+' : '') + '₹' + it.amount.toFixed(2) + '</td>' +
+              '<td class="p-3.5"><span class="px-2 py-0.5 rounded text-[11px] font-mono whitespace-nowrap ' + badgeClass + '">' + label + '</span></td>' +
+              '<td class="p-3.5"><a href="#" data-ledger-link="' + escapeAttr(it.ledger) + '" class="font-medium text-slate-200 hover:text-blue-400 whitespace-nowrap">' + escapeHTML(it.ledger) + '</a>' +
+              (it.narration ? '<div class="text-xs text-slate-500 italic">' + escapeHTML(it.narration) + '</div>' : '') + '</td>' +
+              '<td class="p-3.5 text-xs text-slate-400 whitespace-nowrap">' + escapeHTML(it.group) + '</td>' +
+              '<td class="p-3.5 text-right font-mono font-semibold whitespace-nowrap ' + (isPos ? 'text-green-400' : 'text-red-400') + '">' + (isPos ? '+' : '') + '₹' + it.amount.toFixed(2) + '</td>' +
               '</tr>';
           });
         }
@@ -1204,12 +1568,12 @@
         tbody.innerHTML = rows || '<tr><td colspan="4" class="p-8 text-center text-slate-500">No cash or bank movement recorded for this period.</td></tr>';
 
         tfoot.innerHTML = '<tr class="border-b border-slate-800">' +
-          '<td colspan="3" class="p-3.5 text-slate-400">Opening Cash & Bank Balance b/f</td>' +
-          '<td class="p-3.5 text-right font-mono text-slate-200">₹' + cf.openingCash.toFixed(2) + '</td>' +
+          '<td colspan="3" class="p-3.5 text-slate-400 whitespace-nowrap">Opening Cash & Bank Balance b/f</td>' +
+          '<td class="p-3.5 text-right font-mono text-slate-200 whitespace-nowrap">₹' + cf.openingCash.toFixed(2) + '</td>' +
           '</tr>' +
           '<tr>' +
-          '<td colspan="3" class="p-3.5 text-white font-bold">Closing Cash & Bank Balance (Reconciled)</td>' +
-          '<td class="p-3.5 text-right font-mono text-emerald-400 font-bold">₹' + cf.closingCash.toFixed(2) + '</td>' +
+          '<td colspan="3" class="p-3.5 text-white font-bold whitespace-nowrap">Closing Cash & Bank Balance (Reconciled)</td>' +
+          '<td class="p-3.5 text-right font-mono text-emerald-400 font-bold whitespace-nowrap">₹' + cf.closingCash.toFixed(2) + '</td>' +
           '</tr>';
       } catch (err) {
         console.error('Failed to load filtered cash flow:', err);
@@ -1220,17 +1584,17 @@
       if (!reportData || !reportData.comparativePnL) return;
       const cp = reportData.comparativePnL;
 
-      document.getElementById('momPeriodBadge').innerText = `${cp.curLabel} vs${cp.prevLabel}`;
+      document.getElementById('momPeriodBadge').innerText = `${cp.curLabel} vs ${cp.prevLabel}`;
 
       const eList = document.getElementById('momExpensesList');
       eList.innerHTML = (cp.expenses || []).map(e => {
         const isUp = e.diff > 0;
         const badge = isUp ? 'bg-red-950 text-red-400 border-red-800' : 'bg-green-950 text-green-400 border-green-800';
         return '<tr class="hover:bg-slate-800 transition">' +
-          '<td class="p-3 font-medium text-slate-200"><a href="javascript:void(0)" onclick="openLedgerStatement(\'' + e.name + '\')" class="hover:text-blue-400">' + e.name + '</a></td>' +
-          '<td class="p-3 text-right font-mono text-white">₹' + e.current.toFixed(2) + '</td>' +
-          '<td class="p-3 text-right font-mono text-slate-400">₹' + e.previous.toFixed(2) + '</td>' +
-          '<td class="p-3 text-right font-mono"><span class="px-1.5 py-0.5 rounded text-[11px] border ' + badge + '">' + (isUp ? '+' : '') + e.pct.toFixed(0) + '%</span></td>' +
+          '<td class="p-3 font-medium text-slate-200"><a href="#" data-ledger-link="' + escapeAttr(e.name) + '" class="hover:text-blue-400 whitespace-nowrap">' + escapeHTML(e.name) + '</a></td>' +
+          '<td class="p-3 text-right font-mono text-white whitespace-nowrap">₹' + e.current.toFixed(2) + '</td>' +
+          '<td class="p-3 text-right font-mono text-slate-400 whitespace-nowrap">₹' + e.previous.toFixed(2) + '</td>' +
+          '<td class="p-3 text-right font-mono whitespace-nowrap"><span class="px-1.5 py-0.5 rounded text-[11px] border ' + badge + '">' + (isUp ? '+' : '') + e.pct.toFixed(0) + '%</span></td>' +
           '</tr>';
       }).join('') || '<tr><td colspan="4" class="p-4 text-center text-slate-500">No comparative expense activity.</td></tr>';
 
@@ -1239,10 +1603,10 @@
         const isUp = i.diff >= 0;
         const badge = isUp ? 'bg-green-950 text-green-400 border-green-800' : 'bg-red-950 text-red-400 border-red-800';
         return '<tr class="hover:bg-slate-800 transition">' +
-          '<td class="p-3 font-medium text-slate-200"><a href="javascript:void(0)" onclick="openLedgerStatement(\'' + i.name + '\')" class="hover:text-blue-400">' + i.name + '</a></td>' +
-          '<td class="p-3 text-right font-mono text-white">₹' + i.current.toFixed(2) + '</td>' +
-          '<td class="p-3 text-right font-mono text-slate-400">₹' + i.previous.toFixed(2) + '</td>' +
-          '<td class="p-3 text-right font-mono"><span class="px-1.5 py-0.5 rounded text-[11px] border ' + badge + '">' + (isUp ? '+' : '') + i.pct.toFixed(0) + '%</span></td>' +
+          '<td class="p-3 font-medium text-slate-200"><a href="#" data-ledger-link="' + escapeAttr(i.name) + '" class="hover:text-blue-400 whitespace-nowrap">' + escapeHTML(i.name) + '</a></td>' +
+          '<td class="p-3 text-right font-mono text-white whitespace-nowrap">₹' + i.current.toFixed(2) + '</td>' +
+          '<td class="p-3 text-right font-mono text-slate-400 whitespace-nowrap">₹' + i.previous.toFixed(2) + '</td>' +
+          '<td class="p-3 text-right font-mono whitespace-nowrap"><span class="px-1.5 py-0.5 rounded text-[11px] border ' + badge + '">' + (isUp ? '+' : '') + i.pct.toFixed(0) + '%</span></td>' +
           '</tr>';
       }).join('') || '<tr><td colspan="4" class="p-4 text-center text-slate-500">No comparative income activity.</td></tr>';
     }
@@ -1254,26 +1618,26 @@
       bGrid.innerHTML = reportData.budgets.map(b => {
         const barColor = b.isOver ? 'bg-red-500' : (b.pct > 80 ? 'bg-amber-500' : 'bg-indigo-500');
         const statusBadge = !b.hasBudget 
-          ? '<span class="text-[10px] font-mono text-slate-500">No Limit Set</span>'
+          ? '<span class="text-[10px] font-mono text-slate-500 whitespace-nowrap">No Limit Set</span>'
           : (b.isOver 
-            ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-red-950 text-red-400 border border-red-800 uppercase font-bold">Over Budget</span>'
-            : '<span class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-green-950 text-green-400 border border-green-800 uppercase font-bold">' + b.pct + '% Spent</span>');
+            ? '<span class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-red-950 text-red-400 border border-red-800 uppercase font-bold whitespace-nowrap">Over Budget</span>'
+            : '<span class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-green-950 text-green-400 border border-green-800 uppercase font-bold whitespace-nowrap">' + b.pct + '% Spent</span>');
 
         return '<div class="bg-slate-900 border border-slate-800 p-5 rounded-xl space-y-3">' +
           '<div class="flex justify-between items-start">' +
-          '<div><h4 class="font-bold text-slate-100 text-sm"><a href="javascript:void(0)" onclick="openLedgerStatement(\'' + b.ledger + '\')" class="hover:text-blue-400">' + b.ledger + '</a></h4>' +
-          '<span class="text-xs text-slate-500">' + b.group + '</span></div>' +
+          '<div><h4 class="font-bold text-slate-100 text-sm"><a href="#" data-ledger-link="' + escapeAttr(b.ledger) + '" class="hover:text-blue-400 whitespace-nowrap">' + escapeHTML(b.ledger) + '</a></h4>' +
+          '<span class="text-xs text-slate-500 whitespace-nowrap">' + escapeHTML(b.group) + '</span></div>' +
           statusBadge +
           '</div>' +
           '<div class="space-y-1.5">' +
-          '<div class="flex justify-between text-xs font-mono">' +
+          '<div class="flex justify-between text-xs font-mono whitespace-nowrap">' +
           '<span class="text-slate-400">Spent: ₹' + b.spent.toFixed(2) + '</span>' +
           '<span class="text-slate-300 font-bold">Limit: ₹' + b.allocated.toFixed(2) + '</span>' +
           '</div>' +
           '<div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">' +
           '<div class="' + barColor + ' h-2 rounded-full" style="width: ' + b.pct + '%"></div>' +
           '</div>' +
-          '<div class="text-[11px] text-right font-mono ' + (b.remaining < 0 ? 'text-red-400 font-bold' : 'text-slate-400') + '">' +
+          '<div class="text-[11px] text-right font-mono whitespace-nowrap ' + (b.remaining < 0 ? 'text-red-400 font-bold' : 'text-slate-400') + '">' +
           (b.remaining < 0 ? 'Over limit by ₹' + Math.abs(b.remaining).toFixed(2) : 'Remaining room: ₹' + b.remaining.toFixed(2)) +
           '</div>' +
           '</div>' +
@@ -1285,7 +1649,7 @@
       const bSel = document.getElementById('bLedger');
       bSel.innerHTML = (masterData.ledgers || [])
         .filter(l => l.nature === 'Expense')
-        .map(l => '<option value="' + l.name + '">' + l.name + ' [' + l.group + ']</option>')
+        .map(l => '<option value="' + escapeHTML(l.name) + '">' + escapeHTML(l.name) + ' [' + escapeHTML(l.group) + ']</option>')
         .join('');
 
       const modal = document.getElementById('budgetModal');
@@ -1308,30 +1672,30 @@
       const badge = document.getElementById('tbAuditBadge');
 
       if (tb.totals.isBalanced) {
-        badge.className = 'px-3 py-1.5 rounded-lg border font-mono text-xs font-bold uppercase flex items-center gap-2 bg-green-950 text-green-400 border-green-800';
+        badge.className = 'px-3 py-1.5 rounded-lg border font-mono text-xs font-bold uppercase flex items-center gap-2 bg-green-950 text-green-400 border-green-800 whitespace-nowrap';
         badge.innerHTML = '<i class="fa-solid fa-circle-check"></i> Books In Balance (Δ ₹0.00)';
       } else {
-        badge.className = 'px-3 py-1.5 rounded-lg border font-mono text-xs font-bold uppercase flex items-center gap-2 bg-red-950 text-red-400 border-red-800';
+        badge.className = 'px-3 py-1.5 rounded-lg border font-mono text-xs font-bold uppercase flex items-center gap-2 bg-red-950 text-red-400 border-red-800 whitespace-nowrap';
         badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Imbalance Detected: ₹' + tb.totals.difference.toFixed(2);
       }
 
       tbody.innerHTML = (tb.rows || []).map(r => {
         return '<tr class="hover:bg-slate-800 transition">' +
-          '<td class="p-3.5"><a href="javascript:void(0)" onclick="openLedgerStatement(\'' + r.name + '\')" class="font-medium text-slate-200 hover:text-blue-400">' + r.name + '</a></td>' +
-          '<td class="p-3.5 text-xs text-slate-400">' + r.group + '</td>' +
-          '<td class="p-3.5 text-right font-mono text-slate-400">' + (r.grossDr > 0 ? '₹' + r.grossDr.toFixed(2) : '-') + '</td>' +
-          '<td class="p-3.5 text-right font-mono text-slate-400">' + (r.grossCr > 0 ? '₹' + r.grossCr.toFixed(2) : '-') + '</td>' +
-          '<td class="p-3.5 text-right font-mono font-semibold text-green-400">' + (r.closingDr > 0 ? '₹' + r.closingDr.toFixed(2) : '-') + '</td>' +
-          '<td class="p-3.5 text-right font-mono font-semibold text-red-400">' + (r.closingCr > 0 ? '₹' + r.closingCr.toFixed(2) : '-') + '</td>' +
+          '<td class="p-3.5"><a href="#" data-ledger-link="' + escapeAttr(r.name) + '" class="font-medium text-slate-200 hover:text-blue-400 whitespace-nowrap">' + escapeHTML(r.name) + '</a></td>' +
+          '<td class="p-3.5 text-xs text-slate-400 whitespace-nowrap">' + escapeHTML(r.group) + '</td>' +
+          '<td class="p-3.5 text-right font-mono text-slate-400 whitespace-nowrap">' + (r.grossDr > 0 ? '₹' + r.grossDr.toFixed(2) : '-') + '</td>' +
+          '<td class="p-3.5 text-right font-mono text-slate-400 whitespace-nowrap">' + (r.grossCr > 0 ? '₹' + r.grossCr.toFixed(2) : '-') + '</td>' +
+          '<td class="p-3.5 text-right font-mono font-semibold text-green-400 whitespace-nowrap">' + (r.closingDr > 0 ? '₹' + r.closingDr.toFixed(2) : '-') + '</td>' +
+          '<td class="p-3.5 text-right font-mono font-semibold text-red-400 whitespace-nowrap">' + (r.closingCr > 0 ? '₹' + r.closingCr.toFixed(2) : '-') + '</td>' +
           '</tr>';
       }).join('') || '<tr><td colspan="6" class="p-8 text-center text-slate-500">No ledger balances available.</td></tr>';
 
       tfoot.innerHTML = '<tr>' +
-        '<td class="p-3.5 text-white" colspan="2">Total Equalization Sum</td>' +
-        '<td class="p-3.5 text-right text-slate-400">₹' + tb.totals.grossDr.toFixed(2) + '</td>' +
-        '<td class="p-3.5 text-right text-slate-400">₹' + tb.totals.grossCr.toFixed(2) + '</td>' +
-        '<td class="p-3.5 text-right text-green-400">₹' + tb.totals.closingDr.toFixed(2) + '</td>' +
-        '<td class="p-3.5 text-right text-red-400">₹' + tb.totals.closingCr.toFixed(2) + '</td>' +
+        '<td class="p-3.5 text-white whitespace-nowrap" colspan="2">Total Equalization Sum</td>' +
+        '<td class="p-3.5 text-right text-slate-400 whitespace-nowrap">₹' + tb.totals.grossDr.toFixed(2) + '</td>' +
+        '<td class="p-3.5 text-right text-slate-400 whitespace-nowrap">₹' + tb.totals.grossCr.toFixed(2) + '</td>' +
+        '<td class="p-3.5 text-right text-green-400 whitespace-nowrap">₹' + tb.totals.closingDr.toFixed(2) + '</td>' +
+        '<td class="p-3.5 text-right text-red-400 whitespace-nowrap">₹' + tb.totals.closingCr.toFixed(2) + '</td>' +
         '</tr>';
     }
 
@@ -1340,7 +1704,7 @@
       const rowId = 'ventry_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
 
       const opts = (masterData.ledgers || []).map(l => {
-        return '<option value="' + l.name + '"' + (l.name === ledger ? ' selected' : '') + '>' + l.name + ' [' + l.group + ']</option>';
+        return '<option value="' + escapeHTML(l.name) + '"' + (l.name === ledger ? ' selected' : '') + '>' + escapeHTML(l.name) + ' [' + escapeHTML(l.group) + ']</option>';
       }).join('');
 
       const div = document.createElement('div');
@@ -1392,16 +1756,16 @@
 
       if (Math.abs(diff) < 0.01 && (totalDr > 0 || totalCr > 0)) {
         diffBox.className = 'p-2 rounded border bg-green-950/40 border-green-800';
-        diffEl.className = 'font-bold text-green-400 text-sm';
+        diffEl.className = 'font-bold text-green-400 text-sm whitespace-nowrap';
         diffEl.innerText = 'Balanced (₹0.00)';
         submitBtn.disabled = false;
-        submitBtn.className = 'bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg text-xs font-semibold text-white';
+        submitBtn.className = 'bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg text-xs font-semibold text-white whitespace-nowrap';
       } else {
         diffBox.className = 'p-2 rounded border bg-red-950/40 border-red-800';
-        diffEl.className = 'font-bold text-red-400 text-sm';
+        diffEl.className = 'font-bold text-red-400 text-sm whitespace-nowrap';
         diffEl.innerText = 'Δ ₹' + Math.abs(diff).toFixed(2);
         submitBtn.disabled = true;
-        submitBtn.className = 'bg-slate-700 px-4 py-2 rounded-lg text-xs font-semibold text-slate-400 cursor-not-allowed';
+        submitBtn.className = 'bg-slate-700 px-4 py-2 rounded-lg text-xs font-semibold text-slate-400 cursor-not-allowed whitespace-nowrap';
       }
     }
 
@@ -1431,7 +1795,7 @@
         prefillData.entries.forEach(e => addVoucherEntryRow(e.type, e.ledger, e.amount));
       } else {
         const exp = masterData.ledgers.find(l => l.nature === 'Expense');
-        const bank = masterData.ledgers.find(l => l.group.includes('Bank') || l.group === 'Credit Cards');
+        const bank = masterData.ledgers.find(l => (l.group || '').toLowerCase().includes('bank') || (l.group || '').toLowerCase().includes('card'));
         addVoucherEntryRow('Dr', exp ? exp.name : '', '');
         addVoucherEntryRow('Cr', bank ? bank.name : '', '');
       }
@@ -1448,13 +1812,11 @@
       document.getElementById('voucherForm').reset();
     }
 
-    // 1-CLICK SETTLEMENT FOR FRIENDS
     function settleFriendBalance(debtorName, amount) {
-      const defaultBank = (masterData.ledgers || []).find(l => l.group.includes('Bank') || l.group.includes('Cash'));
+      const defaultBank = (masterData.ledgers || []).find(l => (l.group || '').toLowerCase().includes('bank') || (l.group || '').toLowerCase().includes('cash'));
       const bankName = defaultBank ? defaultBank.name : 'Cash Wallet';
 
       if (amount > 0) {
-        // Friend owes you: record a Receipt
         openVoucherModal(null, {
           voucher_type: 'Receipt',
           narration: `Full settlement from ${debtorName}`,
@@ -1464,7 +1826,6 @@
           ]
         });
       } else {
-        // You overpaid friend / owe friend: record a Payment
         openVoucherModal(null, {
           voucher_type: 'Payment',
           narration: `Settlement payment to ${debtorName}`,
@@ -1476,10 +1837,9 @@
       }
     }
 
-    // FRIEND STATEMENT MODAL (ONE-CLICK SHARE)
     function openFriendStatement(partyName) {
       const modal = document.getElementById('friendStatementModal');
-      document.getElementById('stmtModalPartyName').innerText = `Statement of Account: ${partyName}`;
+      document.getElementById('stmtModalPartyName').innerText = `${partyName}`;
       document.getElementById('stmtModalGenDate').innerText = `Generated on ${formatLocalDate(new Date())}`;
 
       const allVouchers = (reportData && reportData.vouchers) ? reportData.vouchers.slice() : [];
@@ -1492,13 +1852,13 @@
       let rowsHtml = '';
 
       if (runningBal !== 0) {
-        rowsHtml += `<tr class="bg-slate-50 font-mono text-[11px] font-semibold text-slate-500">
-          <td class="p-2.5">Beginning</td>
-          <td class="p-2.5 italic">Opening Balance b/f</td>
-          <td class="p-2.5 text-right font-mono">${runningBal > 0 ? '₹' + runningBal.toFixed(2) : '-'}</td>
-          <td class="p-2.5 text-right font-mono">${runningBal < 0 ? '₹' + Math.abs(runningBal).toFixed(2) : '-'}</td>
-          <td class="p-2.5 text-right font-bold text-slate-800">₹${runningBal.toFixed(2)}</td>
-        </tr>`;
+        rowsHtml += '<tr class="bg-slate-950 font-mono text-[11px] font-semibold text-slate-400 whitespace-nowrap">' +
+          '<td class="p-3">Beginning</td>' +
+          '<td class="p-3 italic text-slate-300">Opening Balance b/f</td>' +
+          '<td class="p-3 text-right font-mono">' + (runningBal > 0 ? '₹' + runningBal.toFixed(2) : '-') + '</td>' +
+          '<td class="p-3 text-right font-mono">' + (runningBal < 0 ? '₹' + Math.abs(runningBal).toFixed(2) : '-') + '</td>' +
+          '<td class="p-3 text-right font-bold text-white">₹' + runningBal.toFixed(2) + '</td>' +
+          '</tr>';
       }
 
       allVouchers.forEach(v => {
@@ -1512,37 +1872,35 @@
         const amt = parseFloat(myEntry.amount) || 0;
         const isDr = (myEntry.type === 'Dr');
 
-        // Dr on debtor = You lent / spent on their behalf
-        // Cr on debtor = They reimbursed / paid you
         if (isDr) runningBal += amt;
         else runningBal -= amt;
 
-        rowsHtml += `<tr class="hover:bg-slate-50">
-          <td class="p-2.5 text-slate-500 font-mono">${v.date}</td>
-          <td class="p-2.5"><span class="font-medium text-slate-900">${v.narration || v.voucher_type}</span> <span class="text-[10px] text-slate-400 font-mono">(${v.voucher_no || '#' + String(v.id).slice(-4)})</span></td>
-          <td class="p-2.5 text-right font-mono font-semibold ${isDr ? 'text-amber-600' : 'text-slate-400'}">${isDr ? '₹' + amt.toFixed(2) : '-'}</td>
-          <td class="p-2.5 text-right font-mono font-semibold ${!isDr ? 'text-green-600' : 'text-slate-400'}">${!isDr ? '₹' + amt.toFixed(2) : '-'}</td>
-          <td class="p-2.5 text-right font-mono font-bold text-slate-800">₹${runningBal.toFixed(2)}</td>
-        </tr>`;
+        rowsHtml += '<tr class="hover:bg-slate-800/80 transition">' +
+          '<td class="p-3 text-slate-400 font-mono whitespace-nowrap">' + escapeHTML(v.date) + '</td>' +
+          '<td class="p-3 whitespace-nowrap"><span class="font-medium text-slate-100">' + escapeHTML(v.narration || v.voucher_type) + '</span> <span class="text-[10px] text-slate-500 font-mono">(' + escapeHTML(v.voucher_no || '#' + String(v.id).slice(-4)) + ')</span></td>' +
+          '<td class="p-3 text-right font-mono font-semibold whitespace-nowrap ' + (isDr ? 'text-amber-400' : 'text-slate-600') + '">' + (isDr ? '₹' + amt.toFixed(2) : '-') + '</td>' +
+          '<td class="p-3 text-right font-mono font-semibold whitespace-nowrap ' + (!isDr ? 'text-green-400' : 'text-slate-600') + '">' + (!isDr ? '₹' + amt.toFixed(2) : '-') + '</td>' +
+          '<td class="p-3 text-right font-mono font-bold text-slate-100 whitespace-nowrap">₹' + runningBal.toFixed(2) + '</td>' +
+          '</tr>';
       });
 
-      tbody.innerHTML = rowsHtml || '<tr><td colspan="5" class="p-6 text-center text-slate-400">No transactions recorded for this account.</td></tr>';
+      tbody.innerHTML = rowsHtml || '<tr><td colspan="5" class="p-8 text-center text-slate-500">No transactions recorded for this account.</td></tr>';
 
       const statusEl = document.getElementById('stmtModalNetStatus');
       const balEl = document.getElementById('stmtModalNetBal');
 
       if (runningBal > 0.01) {
-        statusEl.innerText = `${partyName} owes you money`;
+        statusEl.innerHTML = `<span class="text-amber-400 font-semibold">${escapeHTML(partyName)} owes you funds</span>`;
         balEl.innerText = '₹' + runningBal.toFixed(2);
-        balEl.className = 'text-base font-bold font-mono text-amber-600';
+        balEl.className = 'text-xl font-bold font-mono text-amber-400 whitespace-nowrap';
       } else if (runningBal < -0.01) {
-        statusEl.innerText = `You owe ${partyName} (Excess Advance)`;
+        statusEl.innerHTML = `<span class="text-red-400 font-semibold">You owe ${escapeHTML(partyName)} (Excess Advance Received)</span>`;
         balEl.innerText = '₹' + Math.abs(runningBal).toFixed(2);
-        balEl.className = 'text-base font-bold font-mono text-red-600';
+        balEl.className = 'text-xl font-bold font-mono text-red-400 whitespace-nowrap';
       } else {
-        statusEl.innerText = 'All accounts settled & cleared (₹0.00)';
+        statusEl.innerHTML = '<span class="text-green-400 font-semibold">All balances settled and clear</span>';
         balEl.innerText = '₹0.00';
-        balEl.className = 'text-base font-bold font-mono text-green-600';
+        balEl.className = 'text-xl font-bold font-mono text-green-400 whitespace-nowrap';
       }
 
       modal.classList.remove('hidden');
@@ -1553,13 +1911,9 @@
       const modal = document.getElementById('friendStatementModal');
       modal.classList.add('hidden');
       modal.classList.remove('flex');
+      document.body.classList.remove('printing-modal');
     }
 
-    function printFriendlyStatement() {
-      window.print();
-    }
-
-    // GLOBAL SMART SEARCH (Ctrl + K)
     function openSearchModal() {
       const m = document.getElementById('searchModal');
       m.classList.remove('hidden');
@@ -1576,45 +1930,122 @@
       m.classList.remove('flex');
     }
 
+    function handleGlobalSearchResultClick(type, idOrName) {
+      closeSearchModal();
+      if (type === 'voucher') {
+        openVoucherModal(idOrName);
+      } else if (type === 'ledger') {
+        openLedgerStatement(idOrName);
+      } else if (type === 'group') {
+        drillIntoGroup(idOrName);
+        switchTab('groupsummary');
+      }
+    }
+
     function executeGlobalSearch() {
       const q = (document.getElementById('globalSearchInput').value || '').trim().toLowerCase();
       const container = document.getElementById('searchResultsList');
 
-      if (!reportData || !reportData.vouchers) return;
-
       if (!q) {
-        container.innerHTML = '<div class="text-slate-500 text-center py-6">Type anything to search across all vouchers...</div>';
+        container.innerHTML = '<div class="text-slate-500 text-center py-6">Type anything to search across vouchers, ledgers, and groups...</div>';
         return;
       }
 
-      const matches = reportData.vouchers.filter(v => {
-        const vNo = (v.voucher_no || '').toLowerCase();
-        const narr = (v.narration || '').toLowerCase();
-        const amt = String(v.amount);
-        const dr = (v.dr_ledger || '').toLowerCase();
-        const cr = (v.cr_ledger || '').toLowerCase();
-        const date = (v.date || '').toLowerCase();
+      let resultsHtml = '';
+      let matchCount = 0;
 
-        return vNo.includes(q) || narr.includes(q) || amt.includes(q) || dr.includes(q) || cr.includes(q) || date.includes(q);
-      }).slice(0, 15);
+      if (masterData && Array.isArray(masterData.groups)) {
+        const matchedGroups = masterData.groups.filter(g => {
+          const name = (g.name || '').toLowerCase();
+          const nature = (g.nature || '').toLowerCase();
+          const parent = (g.parentGroup || '').toLowerCase();
+          return name.includes(q) || nature.includes(q) || parent.includes(q);
+        }).slice(0, 5);
 
-      if (matches.length === 0) {
-        container.innerHTML = `<div class="text-slate-500 text-center py-6">No matching vouchers found for "${q}".</div>`;
+        if (matchedGroups.length > 0) {
+          resultsHtml += '<div class="px-2 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-purple-400 font-mono">Groups & Sub-Groups</div>';
+          matchedGroups.forEach(g => {
+            matchCount++;
+            resultsHtml += '<div onclick="handleGlobalSearchResultClick(\'group\', \'' + escapeAttr(g.name) + '\')" class="p-2.5 rounded-lg hover:bg-slate-800 cursor-pointer flex justify-between items-center transition">' +
+              '<div class="flex items-center gap-2.5 min-w-0">' +
+                '<div class="w-7 h-7 rounded bg-purple-950 text-purple-400 border border-purple-800 flex items-center justify-center text-xs flex-shrink-0">' +
+                  '<i class="fa-solid fa-folder-tree"></i>' +
+                '</div>' +
+                '<div class="truncate">' +
+                  '<div class="font-semibold text-slate-100 truncate">' + escapeHTML(g.name) + '</div>' +
+                  '<div class="text-[11px] text-slate-400 font-mono">' + (g.parentGroup ? '↳ ' + escapeHTML(g.parentGroup) : '● Primary') + ' • ' + escapeHTML(g.nature) + '</div>' +
+                '</div>' +
+              '</div>' +
+              '<span class="text-[11px] text-purple-400 font-mono bg-purple-950/60 px-2 py-0.5 rounded border border-purple-800/60 flex-shrink-0">Open Summary</span>' +
+            '</div>';
+          });
+        }
+      }
+
+      if (masterData && Array.isArray(masterData.ledgers)) {
+        const matchedLedgers = masterData.ledgers.filter(l => {
+          const name = (l.name || '').toLowerCase();
+          const group = (l.group || '').toLowerCase();
+          const nature = (l.nature || '').toLowerCase();
+          return name.includes(q) || group.includes(q) || nature.includes(q);
+        }).slice(0, 6);
+
+        if (matchedLedgers.length > 0) {
+          resultsHtml += '<div class="px-2 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-blue-400 font-mono">Ledger Accounts</div>';
+          matchedLedgers.forEach(l => {
+            matchCount++;
+            resultsHtml += '<div onclick="handleGlobalSearchResultClick(\'ledger\', \'' + escapeAttr(l.name) + '\')" class="p-2.5 rounded-lg hover:bg-slate-800 cursor-pointer flex justify-between items-center transition">' +
+              '<div class="flex items-center gap-2.5 min-w-0">' +
+                '<div class="w-7 h-7 rounded bg-blue-950 text-blue-400 border border-blue-800 flex items-center justify-center text-xs flex-shrink-0">' +
+                  '<i class="fa-solid fa-file-invoice-dollar"></i>' +
+                '</div>' +
+                '<div class="truncate">' +
+                  '<div class="font-semibold text-slate-100 truncate">' + escapeHTML(l.name) + '</div>' +
+                  '<div class="text-[11px] text-slate-400 font-mono">' + escapeHTML(l.group) + ' • ' + escapeHTML(l.nature) + '</div>' +
+                '</div>' +
+              '</div>' +
+              '<span class="text-[11px] text-blue-400 font-mono bg-blue-950/60 px-2 py-0.5 rounded border border-blue-800/60 flex-shrink-0">Statement</span>' +
+            '</div>';
+          });
+        }
+      }
+
+      if (reportData && Array.isArray(reportData.vouchers)) {
+        const matchedVouchers = reportData.vouchers.filter(v => {
+          const vNo = (v.voucher_no || '').toLowerCase();
+          const narr = (v.narration || '').toLowerCase();
+          const amt = String(v.amount);
+          const dr = (v.dr_ledger || '').toLowerCase();
+          const cr = (v.cr_ledger || '').toLowerCase();
+          const date = (v.date || '').toLowerCase();
+          const type = (v.voucher_type || '').toLowerCase();
+          return vNo.includes(q) || narr.includes(q) || amt.includes(q) || dr.includes(q) || cr.includes(q) || date.includes(q) || type.includes(q);
+        }).slice(0, 10);
+
+        if (matchedVouchers.length > 0) {
+          resultsHtml += '<div class="px-2 pt-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-green-400 font-mono">Vouchers & Transactions</div>';
+          matchedVouchers.forEach(v => {
+            matchCount++;
+            resultsHtml += '<div onclick="handleGlobalSearchResultClick(\'voucher\', ' + v.id + ')" class="p-2.5 rounded-lg hover:bg-slate-800 cursor-pointer flex justify-between items-center transition">' +
+              '<div class="min-w-0 pr-2">' +
+                '<div class="font-semibold text-slate-200 flex items-center gap-2 truncate">' +
+                  '<span class="text-blue-400 font-mono flex-shrink-0">' + escapeHTML(v.voucher_no || '#' + String(v.id).slice(-4)) + '</span>' +
+                  '<span class="text-slate-400 truncate">' + escapeHTML(v.dr_ledger) + ' ← ' + escapeHTML(v.cr_ledger) + '</span>' +
+                '</div>' +
+                '<div class="text-[11px] text-slate-500 mt-0.5 font-mono truncate">' + escapeHTML(v.date) + ' • ' + escapeHTML(v.voucher_type) + ' • ' + escapeHTML(v.narration || 'No narration') + '</div>' +
+              '</div>' +
+              '<span class="font-mono font-bold text-white text-sm whitespace-nowrap flex-shrink-0">₹' + Number(v.amount).toFixed(2) + '</span>' +
+            '</div>';
+          });
+        }
+      }
+
+      if (matchCount === 0) {
+        container.innerHTML = '<div class="text-slate-500 text-center py-6">No matching vouchers, ledgers, or groups found for "' + escapeHTML(q) + '".</div>';
         return;
       }
 
-      container.innerHTML = matches.map(v => {
-        return `<div onclick="closeSearchModal(); openVoucherModal(${v.id})" class="p-2.5 rounded-lg hover:bg-slate-800 cursor-pointer flex justify-between items-center transition">
-          <div>
-            <div class="font-semibold text-slate-200 flex items-center gap-2">
-              <span class="text-blue-400 font-mono">${v.voucher_no || '#' + String(v.id).slice(-4)}</span>
-              <span class="text-slate-400">${v.dr_ledger} ←${v.cr_ledger}</span>
-            </div>
-            <div class="text-[11px] text-slate-500 mt-0.5">${v.date} •${v.narration || 'No narration'}</div>
-          </div>
-          <span class="font-mono font-bold text-white text-sm">₹${Number(v.amount).toFixed(2)}</span>
-        </div>`;
-      }).join('');
+      container.innerHTML = resultsHtml;
     }
 
     window.addEventListener('keydown', (e) => {
@@ -1635,7 +2066,7 @@
       const currentVal = currentSummaryGroup || sel.value || (masterData.groups[0] ? masterData.groups[0].name : '');
       sel.innerHTML = masterData.groups.map(g => {
         const prefix = g.parentGroup ? '↳ ' + g.parentGroup + ' ➔ ' : '● ';
-        return '<option value="' + g.name + '">' + prefix + g.name + ' (' + g.nature + ')</option>';
+        return '<option value="' + escapeHTML(g.name) + '">' + escapeHTML(prefix + g.name) + ' (' + escapeHTML(g.nature) + ')</option>';
       }).join('');
 
       if (currentVal) sel.value = currentVal;
@@ -1644,7 +2075,7 @@
     function getAllDescendantGroups(groupName) {
       let descendants = [groupName];
       (masterData.groups || []).forEach(g => {
-        if (g.parentGroup === groupName) {
+        if ((g.parentGroup || '').toLowerCase() === (groupName || '').toLowerCase()) {
           descendants = descendants.concat(getAllDescendantGroups(g.name));
         }
       });
@@ -1652,8 +2083,8 @@
     }
 
     function getGroupRollupBalance(groupName) {
-      const allSubGroupNames = getAllDescendantGroups(groupName);
-      const allLedgersInSubtree = (masterData.ledgers || []).filter(l => allSubGroupNames.includes(l.group));
+      const allSubGroupNames = getAllDescendantGroups(groupName).map(s => s.toLowerCase());
+      const allLedgersInSubtree = (masterData.ledgers || []).filter(l => allSubGroupNames.includes((l.group || '').toLowerCase()));
 
       const assetsAndLiabs = [...((reportData && reportData.balanceSheet && reportData.balanceSheet.assets) || []), ...((reportData && reportData.balanceSheet && reportData.balanceSheet.liabilities) || [])];
       const incAndExp = [...((reportData && reportData.profitAndLoss && reportData.profitAndLoss.incomes) || []), ...((reportData && reportData.profitAndLoss && reportData.profitAndLoss.expenses) || [])];
@@ -1661,7 +2092,7 @@
 
       let netBal = 0;
       allLedgersInSubtree.forEach(l => {
-        const match = allBalances.find(x => x.name === l.name);
+        const match = allBalances.find(x => x.name.toLowerCase() === l.name.toLowerCase());
         netBal += match ? match.balance : 0;
       });
 
@@ -1680,7 +2111,7 @@
       const targetGroupName = groupName || document.getElementById('groupSummarySelect').value || masterData.groups[0].name;
       currentSummaryGroup = targetGroupName;
 
-      const groupObj = masterData.groups.find(g => g.name === targetGroupName);
+      const groupObj = masterData.groups.find(g => g.name.toLowerCase() === targetGroupName.toLowerCase());
       if (!groupObj) return;
 
       const bcEl = document.getElementById('groupBreadcrumb');
@@ -1688,22 +2119,18 @@
       let cur = groupObj;
       while (cur) {
         crumbs.unshift(cur);
-        cur = cur.parentGroup ? masterData.groups.find(g => g.name === cur.parentGroup) : null;
+        cur = cur.parentGroup ? masterData.groups.find(g => g.name.toLowerCase() === cur.parentGroup.toLowerCase()) : null;
       }
-      bcEl.innerHTML = '<span class="text-slate-500">Path:</span> ' +
+      bcEl.innerHTML = '<span class="text-slate-500 whitespace-nowrap">Path:</span> ' +
         crumbs.map((c, idx) => {
           const isLast = (idx === crumbs.length - 1);
           return isLast
-            ? '<span class="text-white font-semibold">' + c.name + '</span>'
-            : '<a href="javascript:void(0)" onclick="drillIntoGroup(\'' + c.name + '\')" class="text-blue-400 hover:underline">' + c.name + '</a> <span class="text-slate-600">/</span>';
+            ? '<span class="text-white font-semibold whitespace-nowrap">' + escapeHTML(c.name) + '</span>'
+            : '<a href="#" data-group-link="' + escapeAttr(c.name) + '" class="text-blue-400 hover:underline whitespace-nowrap">' + escapeHTML(c.name) + '</a> <span class="text-slate-600">/</span>';
         }).join(' ');
 
-      const directSubgroups = (masterData.groups || []).filter(g => g.parentGroup === targetGroupName);
-      const directLedgers = (masterData.ledgers || []).filter(l => l.group === targetGroupName);
-
-      const assetsAndLiabs = [...((reportData && reportData.balanceSheet && reportData.balanceSheet.assets) || []), ...((reportData && reportData.balanceSheet && reportData.balanceSheet.liabilities) || [])];
-      const incAndExp = [...((reportData && reportData.profitAndLoss && reportData.profitAndLoss.incomes) || []), ...((reportData && reportData.profitAndLoss && reportData.profitAndLoss.expenses) || [])];
-      const allBalances = [...assetsAndLiabs, ...incAndExp];
+      const directSubgroups = (masterData.groups || []).filter(g => (g.parentGroup || '').toLowerCase() === targetGroupName.toLowerCase());
+      const directLedgers = (masterData.ledgers || []).filter(l => (l.group || '').toLowerCase() === targetGroupName.toLowerCase());
 
       let rowsHtml = '';
       let groupTotalBalance = 0;
@@ -1713,38 +2140,42 @@
         groupTotalBalance += rollup.netBal;
         const balLabel = '₹' + Math.abs(rollup.netBal).toFixed(2) + ' ' + (groupObj.nature === 'Asset' || groupObj.nature === 'Expense' ? (rollup.netBal >= 0 ? 'Dr' : 'Cr') : (rollup.netBal >= 0 ? 'Cr' : 'Dr'));
 
-        rowsHtml += '<tr class="hover:bg-slate-800 transition cursor-pointer" onclick="drillIntoGroup(\'' + sg.name + '\')">' +
-          '<td class="p-3.5"><div class="flex items-center gap-2 font-semibold text-purple-300">' +
-          '<i class="fa-solid fa-folder-open text-amber-400"></i>' + sg.name +
+        rowsHtml += '<tr class="hover:bg-slate-800 transition cursor-pointer" data-group-link="' + escapeAttr(sg.name) + '">' +
+          '<td class="p-3.5"><div class="flex items-center gap-2 font-semibold text-purple-300 whitespace-nowrap">' +
+          '<i class="fa-solid fa-folder-open text-amber-400"></i>' + escapeHTML(sg.name) +
           '<span class="text-[10px] text-slate-500 font-normal">(' + rollup.ledgerCount + ' ledgers inside)</span></div></td>' +
-          '<td class="p-3.5"><span class="px-2 py-0.5 rounded text-xs font-mono bg-purple-900 text-purple-200">Sub-Group</span></td>' +
-          '<td class="p-3.5 text-right font-mono text-slate-500">-</td>' +
-          '<td class="p-3.5 text-right font-mono text-slate-500">-</td>' +
-          '<td class="p-3.5 text-right font-mono font-bold text-sky-400">' + balLabel + ' <i class="fa-solid fa-chevron-right text-[10px] ml-1 text-slate-500"></i></td>' +
+          '<td class="p-3.5"><span class="px-2 py-0.5 rounded text-xs font-mono bg-purple-900 text-purple-200 whitespace-nowrap">Sub-Group</span></td>' +
+          '<td class="p-3.5 text-right font-mono text-slate-500 whitespace-nowrap">-</td>' +
+          '<td class="p-3.5 text-right font-mono text-slate-500 whitespace-nowrap">-</td>' +
+          '<td class="p-3.5 text-right font-mono font-bold text-sky-400 whitespace-nowrap">' + balLabel + ' <i class="fa-solid fa-chevron-right text-[10px] ml-1 text-slate-500"></i></td>' +
           '</tr>';
       });
 
+      const assetsAndLiabs = [...((reportData && reportData.balanceSheet && reportData.balanceSheet.assets) || []), ...((reportData && reportData.balanceSheet && reportData.balanceSheet.liabilities) || [])];
+      const incAndExp = [...((reportData && reportData.profitAndLoss && reportData.profitAndLoss.incomes) || []), ...((reportData && reportData.profitAndLoss && reportData.profitAndLoss.expenses) || [])];
+      const allBalances = [...assetsAndLiabs, ...incAndExp];
+
       directLedgers.forEach(l => {
-        const match = allBalances.find(x => x.name === l.name);
+        const match = allBalances.find(x => x.name.toLowerCase() === l.name.toLowerCase());
         const bal = match ? match.balance : 0;
         groupTotalBalance += bal;
 
         const balLabel = '₹' + Math.abs(bal).toFixed(2) + ' ' + (l.nature === 'Asset' || l.nature === 'Expense' ? (bal >= 0 ? 'Dr' : 'Cr') : (bal >= 0 ? 'Cr' : 'Dr'));
 
         rowsHtml += '<tr class="hover:bg-slate-800 transition">' +
-          '<td class="p-3.5 pl-8"><div class="flex items-center gap-2 font-medium text-slate-200">' +
+          '<td class="p-3.5 pl-8"><div class="flex items-center gap-2 font-medium text-slate-200 whitespace-nowrap">' +
           '<i class="fa-regular fa-file-lines text-slate-400 text-xs"></i>' +
-          '<a href="javascript:void(0)" onclick="openLedgerStatement(\'' + l.name + '\')" class="hover:text-blue-400">' + l.name + '</a>' +
+          '<a href="#" data-ledger-link="' + escapeAttr(l.name) + '" class="hover:text-blue-400">' + escapeHTML(l.name) + '</a>' +
           '</div></td>' +
-          '<td class="p-3.5"><span class="px-2 py-0.5 rounded text-xs font-mono bg-slate-800 text-slate-400">Ledger</span></td>' +
-          '<td class="p-3.5 text-right font-mono text-green-400">' + (l.nature === 'Asset' || l.nature === 'Expense' ? (bal > 0 ? '₹' + bal.toFixed(2) : '-') : '-') + '</td>' +
-          '<td class="p-3.5 text-right font-mono text-red-400">' + (l.nature === 'Liability' || l.nature === 'Income' ? (bal > 0 ? '₹' + bal.toFixed(2) : '-') : '-') + '</td>' +
-          '<td class="p-3.5 text-right font-mono font-bold text-white">' + balLabel + '</td>' +
+          '<td class="p-3.5"><span class="px-2 py-0.5 rounded text-xs font-mono bg-slate-800 text-slate-400 whitespace-nowrap">Ledger</span></td>' +
+          '<td class="p-3.5 text-right font-mono text-green-400 whitespace-nowrap">' + (l.nature === 'Asset' || l.nature === 'Expense' ? (bal > 0 ? '₹' + bal.toFixed(2) : '-') : '-') + '</td>' +
+          '<td class="p-3.5 text-right font-mono text-red-400 whitespace-nowrap">' + (l.nature === 'Liability' || l.nature === 'Income' ? (bal > 0 ? '₹' + bal.toFixed(2) : '-') : '-') + '</td>' +
+          '<td class="p-3.5 text-right font-mono font-bold text-white whitespace-nowrap">' + balLabel + '</td>' +
           '</tr>';
       });
 
       if (directSubgroups.length === 0 && directLedgers.length === 0) {
-        rowsHtml = '<tr><td colspan="5" class="p-8 text-center text-slate-500">No sub-groups or ledger accounts found directly under ' + targetGroupName + '.</td></tr>';
+        rowsHtml = '<tr><td colspan="5" class="p-8 text-center text-slate-500 whitespace-nowrap">No sub-groups or ledger accounts found directly under ' + escapeHTML(targetGroupName) + '.</td></tr>';
       }
 
       document.getElementById('groupSummaryTableBody').innerHTML = rowsHtml;
@@ -1754,7 +2185,9 @@
     }
 
     function openLedgerStatement(ledgerName) {
+      if (!ledgerName) return;
       currentStatementLedger = ledgerName;
+      populateStatementLedgerDropdown();
       switchTab('ledgerstatement');
       const sel = document.getElementById('statementLedgerSelect');
       if (sel) sel.value = ledgerName;
@@ -1786,14 +2219,14 @@
 
     function populateStatementLedgerDropdown() {
       const sel = document.getElementById('statementLedgerSelect');
-      if (!sel || !masterData.ledgers) return;
+      if (!sel || !masterData.ledgers || masterData.ledgers.length === 0) return;
 
-      const currentVal = currentStatementLedger || sel.value || (masterData.ledgers[0] ? masterData.ledgers[0].name : '');
+      const currentVal = currentStatementLedger || sel.value || masterData.ledgers[0].name;
       sel.innerHTML = masterData.ledgers.map(l => {
-        return '<option value="' + l.name + '">' + l.name + ' [' + l.group + ' - ' + l.nature + ']</option>';
+        return '<option value="' + escapeAttr(l.name) + '">' + escapeHTML(l.name) + ' [' + escapeHTML(l.group) + ' - ' + escapeHTML(l.nature) + ']</option>';
       }).join('');
 
-      if (currentVal) sel.value = currentVal;
+      sel.value = currentVal;
     }
 
     function jumpToDaybookVoucher(voucherId) {
@@ -1823,8 +2256,9 @@
       const sel = document.getElementById('statementLedgerSelect');
       if (!sel || !masterData.ledgers || masterData.ledgers.length === 0) return;
 
-      const selectedName = sel.value || masterData.ledgers[0].name;
+      const selectedName = currentStatementLedger || sel.value || masterData.ledgers[0].name;
       currentStatementLedger = selectedName;
+      sel.value = selectedName;
 
       const ledgerObj = masterData.ledgers.find(l => l.name === selectedName);
       if (!ledgerObj) return;
@@ -1874,7 +2308,7 @@
       const tbody = document.getElementById('statementTableBody');
 
       let rowsHtml = '';
-      rowsHtml += '<tr class="bg-slate-900 font-mono text-xs text-slate-400 font-semibold">' +
+      rowsHtml += '<tr class="bg-slate-900 font-mono text-xs text-slate-400 font-semibold whitespace-nowrap">' +
         '<td class="p-3.5">' + (fromDate || 'Beginning') + '</td>' +
         '<td class="p-3.5 italic text-slate-300" colspan="3">Opening Balance b/f</td>' +
         '<td class="p-3.5 text-right font-mono">' + (isDebitNature && runningOpBal > 0 ? '₹' + runningOpBal.toFixed(2) : '-') + '</td>' +
@@ -1890,7 +2324,7 @@
         v.myEntries.forEach(me => {
           const amt = parseFloat(me.amount) || 0;
           const isDr = (me.type === 'Dr');
-          const oppositeAccounts = allEntries.filter(e => e.type !== me.type).map(e => e.ledger).join(', ') || 'Compound Split';
+          const oppositeAccounts = allEntries.filter(e => e.type !== me.type).map(e => escapeHTML(e.ledger)).join(', ') || 'Compound Split';
 
           if (isDr) totalPeriodDr += amt;
           else totalPeriodCr += amt;
@@ -1902,14 +2336,14 @@
           const runningStr = '₹' + Math.abs(currentRunningBal).toFixed(2) + ' ' + curSign;
 
           rowsHtml += '<tr class="hover:bg-slate-800 transition cursor-pointer group" onclick="jumpToDaybookVoucher(' + v.id + ')" title="Click to view full voucher in Day Book">' +
-            '<td class="p-3.5 text-xs font-mono text-slate-400">' + v.date + '</td>' +
-            '<td class="p-3.5"><div class="font-medium text-slate-200 group-hover:text-blue-400 transition flex items-center gap-1.5">' + oppositeAccounts + ' <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-500 opacity-0 group-hover:opacity-100 transition"></i></div>' +
-            (v.narration ? '<div class="text-xs text-slate-500 italic">' + v.narration + '</div>' : '') + '</td>' +
-            '<td class="p-3.5"><span class="px-2 py-0.5 rounded text-xs font-mono bg-slate-800 text-slate-300">' + v.voucher_type + '</span></td>' +
-            '<td class="p-3.5 text-xs font-mono text-blue-400 font-semibold">' + (v.voucher_no || `#${String(v.id).slice(-6)}`) + '</td>' +
-            '<td class="p-3.5 text-right font-mono font-semibold ' + (isDr ? 'text-green-400' : 'text-slate-600') + '">' + (isDr ? '₹' + amt.toFixed(2) : '-') + '</td>' +
-            '<td class="p-3.5 text-right font-mono font-semibold ' + (!isDr ? 'text-red-400' : 'text-slate-600') + '">' + (!isDr ? '₹' + amt.toFixed(2) : '-') + '</td>' +
-            '<td class="p-3.5 text-right font-mono font-bold text-white">' + runningStr + '</td>' +
+            '<td class="p-3.5 text-xs font-mono text-slate-400 whitespace-nowrap">' + escapeHTML(v.date) + '</td>' +
+            '<td class="p-3.5 whitespace-nowrap"><div class="font-medium text-slate-200 group-hover:text-blue-400 transition flex items-center gap-1.5">' + oppositeAccounts + ' <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-slate-500 opacity-0 group-hover:opacity-100 transition"></i></div>' +
+            (v.narration ? '<div class="text-xs text-slate-500 italic">' + escapeHTML(v.narration) + '</div>' : '') + '</td>' +
+            '<td class="p-3.5 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-xs font-mono bg-slate-800 text-slate-300">' + escapeHTML(v.voucher_type) + '</span></td>' +
+            '<td class="p-3.5 text-xs font-mono text-blue-400 font-semibold whitespace-nowrap">' + escapeHTML(v.voucher_no || `#${String(v.id).slice(-6)}`) + '</td>' +
+            '<td class="p-3.5 text-right font-mono font-semibold whitespace-nowrap ' + (isDr ? 'text-green-400' : 'text-slate-600') + '">' + (isDr ? '₹' + amt.toFixed(2) : '-') + '</td>' +
+            '<td class="p-3.5 text-right font-mono font-semibold whitespace-nowrap ' + (!isDr ? 'text-red-400' : 'text-slate-600') + '">' + (!isDr ? '₹' + amt.toFixed(2) : '-') + '</td>' +
+            '<td class="p-3.5 text-right font-mono font-bold text-white whitespace-nowrap">' + runningStr + '</td>' +
             '</tr>';
         });
       });
@@ -1943,7 +2377,7 @@
       pSelect.innerHTML = '<option value="Primary">● Primary (Top Level Group)</option>' +
         (masterData.groups || [])
           .filter(g => !grp || g.id !== grp.id)
-          .map(g => '<option value="' + g.name + '">' + g.name + ' (' + g.nature + ')</option>')
+          .map(g => '<option value="' + escapeHTML(g.name) + '">' + escapeHTML(g.name) + ' (' + escapeHTML(g.nature) + ')</option>')
           .join('');
 
       pSelect.value = grp && grp.parentGroup ? grp.parentGroup : 'Primary';
@@ -1995,7 +2429,7 @@
       if (grpSelect) {
         grpSelect.innerHTML = (masterData.groups || []).map(g => {
           const prefix = g.parentGroup ? '↳ ' + g.parentGroup + ' ➔ ' : '';
-          return '<option value="' + g.name + '">' + prefix + g.name + ' (' + g.nature + ')</option>';
+          return '<option value="' + escapeHTML(g.name) + '">' + escapeHTML(prefix + g.name) + ' (' + escapeHTML(g.nature) + ')</option>';
         }).join('');
         if (ledger) grpSelect.value = ledger.group;
       }
@@ -2014,14 +2448,28 @@
       document.getElementById('ledgerForm').reset();
     }
 
+    function populateDaybookLedgerDropdown() {
+      const sel = document.getElementById('daybookLedgerFilter');
+      if (!sel || !masterData.ledgers) return;
+
+      const cur = sel.value;
+      sel.innerHTML = '<option value="ALL">● All Accounts</option>' +
+        (masterData.ledgers || []).map(l => '<option value="' + escapeHTML(l.name) + '">' + escapeHTML(l.name) + ' [' + escapeHTML(l.group) + ']</option>').join('');
+
+      if (cur) sel.value = cur;
+    }
+
     async function loadData() {
+      const ok = await checkAuthStatus();
+      if (!ok) return;
+
       try {
         const mRes = await fetch('/api/masters').then(r => r.json());
-        if (mRes) {
+        if (mRes && !mRes.error) {
           masterData = mRes;
           populateStatementLedgerDropdown();
           populateGroupSummaryDropdown();
-          populateDaybookLedgerFilter();
+          populateDaybookLedgerDropdown();
           renderMasters();
         }
       } catch (e) {
@@ -2030,7 +2478,7 @@
 
       try {
         const rRes = await fetch('/api/reports').then(r => r.json());
-        if (rRes) {
+        if (rRes && !rRes.error) {
           reportData = rRes;
           renderMetrics();
           renderCashFlow();
@@ -2069,13 +2517,13 @@
       if (rw) {
         rw.innerText = `${m.runwayMonths} mo`;
         if (m.runwayMonths < 1) {
-          rw.className = 'text-2xl font-bold mt-2 text-red-500';
+          rw.className = 'text-2xl font-bold mt-2 text-red-500 whitespace-nowrap';
           rwNote.innerHTML = '<span class="text-red-400 font-semibold">Critical:</span> Less than 1 month burn';
         } else if (m.runwayMonths < 3) {
-          rw.className = 'text-2xl font-bold mt-2 text-yellow-400';
+          rw.className = 'text-2xl font-bold mt-2 text-yellow-400 whitespace-nowrap';
           rwNote.innerText = `Burn: ₹${m.avgMonthlyBurn.toFixed(0)}/mo (Building buffer)`;
         } else {
-          rw.className = 'text-2xl font-bold mt-2 text-emerald-400';
+          rw.className = 'text-2xl font-bold mt-2 text-emerald-400 whitespace-nowrap';
           rwNote.innerText = `Burn: ₹${m.avgMonthlyBurn.toFixed(0)}/mo (Strong reserve)`;
         }
       }
@@ -2086,12 +2534,12 @@
 
       if (badge && note && card) {
         if (m.isDebtTrap) {
-          badge.className = 'px-1.5 py-0.5 rounded text-xs uppercase font-mono bg-red-900 text-red-300 border border-red-700';
+          badge.className = 'px-1.5 py-0.5 rounded text-xs uppercase font-mono bg-red-900 text-red-300 border border-red-700 whitespace-nowrap';
           badge.innerText = 'High Risk';
           note.innerHTML = '<span class="text-red-400 font-semibold">Critical:</span> Card/loan dues exceed liquid cash.';
           card.className = 'm-4 p-3.5 rounded-xl border border-red-800 bg-red-950 text-xs space-y-1';
         } else {
-          badge.className = 'px-1.5 py-0.5 rounded text-xs uppercase font-mono bg-green-900 text-green-300 border border-green-700';
+          badge.className = 'px-1.5 py-0.5 rounded text-xs uppercase font-mono bg-green-900 text-green-300 border border-green-700 whitespace-nowrap';
           badge.innerText = 'Solvent';
           note.innerText = 'Healthy liquidity. Cash covers all commitments.';
           card.className = 'm-4 p-3.5 rounded-xl border border-green-800 bg-green-950 text-xs space-y-1';
@@ -2107,30 +2555,34 @@
             const match = assetsAndLiabs.find(x => x.name === l.name);
             const bal = match ? match.balance : 0;
             return '<div class="py-2.5 flex justify-between items-center text-xs"><div>' +
-              '<a href="javascript:void(0)" onclick="openLedgerStatement(\'' + l.name + '\')" class="font-medium text-slate-200 hover:text-blue-400">' + l.name + '</a>' +
-              '<span class="text-slate-500 block text-xs">' + l.group + '</span></div>' +
-              '<span class="font-mono font-semibold ' + (l.nature === 'Asset' ? 'text-green-400' : 'text-red-400') + '">₹' + (bal || 0).toFixed(2) + '</span></div>';
+              '<a href="#" data-ledger-link="' + escapeAttr(l.name) + '" class="font-medium text-slate-200 hover:text-blue-400 whitespace-nowrap">' + escapeHTML(l.name) + '</a>' +
+              '<span class="text-slate-500 block text-xs whitespace-nowrap">' + escapeHTML(l.group) + '</span></div>' +
+              '<span class="font-mono font-semibold whitespace-nowrap ' + (l.nature === 'Asset' ? 'text-green-400' : 'text-red-400') + '">₹' + (bal || 0).toFixed(2) + '</span></div>';
           }).join('') || '<div class="text-xs text-slate-500 py-3">No balances found.</div>';
       }
 
       const qv = document.getElementById('quickVouchersList');
       if (qv && reportData.vouchers) {
         qv.innerHTML = reportData.vouchers.slice(0, 5).map(v => {
-          return '<div class="py-2 flex justify-between items-center text-xs"><div><div class="font-medium text-slate-300">' +
-            (v.dr_ledger || 'Compound') + ' <span class="text-slate-500">←</span> ' + (v.cr_ledger || 'Compound') + '</div>' +
-            '<div class="text-xs text-slate-500 font-mono">' + v.date + ' • ' + (v.voucher_no || `#${String(v.id).slice(-6)}`) + '</div></div>' +
-            '<span class="font-mono font-bold text-slate-100">₹' + Number(v.amount).toFixed(2) + '</span></div>';
+          return '<div class="py-2.5 flex justify-between items-center text-xs border-b border-slate-800/60 last:border-0">' +
+            '<div class="flex-1 min-w-0 pr-3">' +
+            '<div class="font-medium text-slate-300 truncate" title="' + escapeAttr((v.dr_ledger || 'Compound') + ' ← ' + (v.cr_ledger || 'Compound')) + '">' +
+            escapeHTML(v.dr_ledger || 'Compound') + ' <span class="text-slate-500">←</span> ' + escapeHTML(v.cr_ledger || 'Compound') +
+            '</div>' +
+            '<div class="text-[11px] text-slate-500 font-mono whitespace-nowrap mt-0.5">' + escapeHTML(v.date) + ' • ' + escapeHTML(v.voucher_no || `#${String(v.id).slice(-6)}`) + '</div>' +
+            '</div>' +
+            '<span class="font-mono font-bold text-slate-100 whitespace-nowrap flex-shrink-0 text-sm">₹' + Number(v.amount).toFixed(2) + '</span>' +
+            '</div>';
         }).join('') || '<div class="text-xs text-slate-500 py-4 text-center">No transactions recorded yet.</div>';
       }
     }
 
-    // RENDER FRIENDS DASHBOARD TRACKER
     function renderFriendsDashboard() {
       const container = document.getElementById('quickFriendsList');
       if (!container || !reportData || !reportData.friendsList) return;
 
       if (reportData.friendsList.length === 0) {
-        container.innerHTML = '<div class="text-xs text-slate-500 py-4 text-center">No friends or debtor accounts under Sundry Debtors.</div>';
+        container.innerHTML = '<div class="text-xs text-slate-500 py-4 text-center">No debtor accounts found.</div>';
         return;
       }
 
@@ -2138,23 +2590,23 @@
         const bal = f.balance || 0;
         let badge = '';
         if (bal > 0.01) {
-          badge = `<span class="text-amber-400 font-mono font-bold">Owes ₹${bal.toFixed(2)}</span>`;
+          badge = `<span class="text-amber-400 font-mono font-bold whitespace-nowrap">Owes ₹${bal.toFixed(2)}</span>`;
         } else if (bal < -0.01) {
-          badge = `<span class="text-red-400 font-mono font-semibold">Advance ₹${Math.abs(bal).toFixed(2)}</span>`;
+          badge = `<span class="text-red-400 font-mono font-semibold whitespace-nowrap">Advance ₹${Math.abs(bal).toFixed(2)}</span>`;
         } else {
-          badge = '<span class="text-emerald-400 font-mono text-[11px] bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-800">Settled (₹0)</span>';
+          badge = '<span class="text-emerald-400 font-mono text-[11px] bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-800 whitespace-nowrap">Settled (₹0)</span>';
         }
 
         return `<div class="py-2.5 flex justify-between items-center text-xs">
           <div>
-            <a href="javascript:void(0)" onclick="openLedgerStatement('${f.name}')" class="font-medium text-slate-200 hover:text-blue-400">${f.name}</a>
+            <a href="#" data-ledger-link="${escapeAttr(f.name)}" class="font-medium text-slate-200 hover:text-blue-400 whitespace-nowrap">${escapeHTML(f.name)}</a>
             <div class="mt-0.5">${badge}</div>
           </div>
-          <div class="flex items-center gap-1.5">
-            <button onclick="openFriendStatement('${f.name}')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded text-[11px] font-medium border border-slate-700 transition" title="Generate Shareable Statement">
+          <div class="flex items-center gap-1.5 whitespace-nowrap">
+            <button data-share-friend="${escapeAttr(f.name)}" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded text-[11px] font-medium border border-slate-700 transition" title="Generate Shareable Statement">
               <i class="fa-solid fa-file-invoice mr-1 text-blue-400"></i>Share
             </button>
-            <button onclick="settleFriendBalance('${f.name}',${bal})" class="bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded text-[11px] font-semibold transition" title="1-Click Settle">
+            <button data-settle-friend="${escapeAttr(f.name)}" data-settle-bal="${bal}" class="bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded text-[11px] font-semibold transition" title="1-Click Settle">
               Settle
             </button>
           </div>
@@ -2182,15 +2634,15 @@
 
             return '<div class="bg-slate-800 border border-slate-700 p-5 rounded-xl space-y-4">' +
               '<div class="flex justify-between items-start gap-2"><div>' +
-              '<h4 class="font-bold text-slate-100 text-sm"><a href="javascript:void(0)" onclick="openLedgerStatement(\'' + c.name + '\')" class="hover:text-blue-400">' + c.name + '</a></h4>' +
-              '<span class="text-xs text-slate-400 font-mono">Bill Day: ' + c.statementDay + 'th • Grace: ' + c.gracePeriodDays + 'd</span></div>' +
-              '<span class="text-xs font-mono font-bold px-2.5 py-1 rounded whitespace-nowrap ' + badgeClass + '">' + c.statusTag + '</span></div>' +
-              '<div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-700 text-xs"><div><span class="text-slate-400 block text-xs">Billed Due</span>' +
-              '<span class="font-mono font-bold ' + (c.billedAmount > 0 ? 'text-red-400' : 'text-slate-400') + ' text-sm">₹' + (c.billedAmount || 0).toFixed(2) + '</span></div><div><span class="text-slate-400 block text-xs">Unbilled Amount</span>' +
-              '<span class="font-mono font-semibold text-slate-200 text-sm">₹' + (c.unbilledAmount || 0).toFixed(2) + '</span></div></div>' +
+              '<h4 class="font-bold text-slate-100 text-sm"><a href="#" data-ledger-link="' + escapeAttr(c.name) + '" class="hover:text-blue-400 whitespace-nowrap">' + escapeHTML(c.name) + '</a></h4>' +
+              '<span class="text-xs text-slate-400 font-mono whitespace-nowrap">Bill Day: ' + c.statementDay + 'th • Grace: ' + c.gracePeriodDays + 'd</span></div>' +
+              '<span class="text-xs font-mono font-bold px-2.5 py-1 rounded whitespace-nowrap ' + badgeClass + '">' + escapeHTML(c.statusTag) + '</span></div>' +
+              '<div class="grid grid-cols-2 gap-2 pt-1 border-t border-slate-700 text-xs"><div><span class="text-slate-400 block text-xs whitespace-nowrap">Billed Due</span>' +
+              '<span class="font-mono font-bold ' + (c.billedAmount > 0 ? 'text-red-400' : 'text-slate-400') + ' text-sm whitespace-nowrap">₹' + (c.billedAmount || 0).toFixed(2) + '</span></div><div><span class="text-slate-400 block text-xs whitespace-nowrap">Unbilled Amount</span>' +
+              '<span class="font-mono font-semibold text-slate-200 text-sm whitespace-nowrap">₹' + (c.unbilledAmount || 0).toFixed(2) + '</span></div></div>' +
               '<div class="text-xs text-slate-400 bg-slate-900 p-2.5 rounded-lg flex justify-between items-center">' +
-              '<span>Bill Gen: <b class="text-slate-300 font-mono">' + c.statementDate + '</b></span>' +
-              '<span class="text-right text-[11px] font-mono ' + (c.billedAmount > 0 ? 'text-red-300' : 'text-green-400') + '">' + c.subMessage + '</span></div></div>';
+              '<span class="whitespace-nowrap">Bill Gen: <b class="text-slate-300 font-mono">' + escapeHTML(c.statementDate) + '</b></span>' +
+              '<span class="text-right text-[11px] font-mono whitespace-nowrap ' + (c.billedAmount > 0 ? 'text-red-300' : 'text-green-400') + '">' + escapeHTML(c.subMessage) + '</span></div></div>';
           }).join('');
         }
       }
@@ -2201,29 +2653,18 @@
       const rList = document.getElementById('receivablesList');
       if (rList) {
         if (recs.length === 0) {
-          rList.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-500">No active accounts receivable. All debtor balances are cleared or in credit.</td></tr>';
+          rList.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-500 whitespace-nowrap">No active accounts receivable. All debtor balances are cleared or in credit.</td></tr>';
         } else {
           rList.innerHTML = recs.map(r => {
             return '<tr class="hover:bg-slate-800">' +
-              '<td class="p-3.5 text-xs font-mono text-slate-400">' + r.invoiceDate + '</td>' +
-              '<td class="p-3.5 text-xs font-mono text-slate-400">' + r.voucher_no + '</td>' +
-              '<td class="p-3.5 font-medium text-slate-200"><a href="javascript:void(0)" onclick="openLedgerStatement(\'' + r.debtor + '\')" class="hover:text-blue-400">' + r.debtor + '</a></td>' +
-              '<td class="p-3.5 text-xs text-slate-400 truncate max-w-xs">' + (r.narration || '-') + '</td>' +
-              '<td class="p-3.5 text-right font-mono font-bold text-green-400">₹' + Number(r.amount).toFixed(2) + '</td></tr>';
+              '<td class="p-3.5 text-xs font-mono text-slate-400 whitespace-nowrap">' + escapeHTML(r.invoiceDate) + '</td>' +
+              '<td class="p-3.5 text-xs font-mono text-slate-400 whitespace-nowrap">' + escapeHTML(r.voucher_no) + '</td>' +
+              '<td class="p-3.5 font-medium text-slate-200 whitespace-nowrap"><a href="#" data-ledger-link="' + escapeAttr(r.debtor) + '" class="hover:text-blue-400">' + escapeHTML(r.debtor) + '</a></td>' +
+              '<td class="p-3.5 text-xs text-slate-400 truncate max-w-xs">' + escapeHTML(r.narration || '-') + '</td>' +
+              '<td class="p-3.5 text-right font-mono font-bold text-green-400 whitespace-nowrap">₹' + Number(r.amount).toFixed(2) + '</td></tr>';
           }).join('');
         }
       }
-    }
-
-    function populateDaybookLedgerFilter() {
-      const sel = document.getElementById('daybookLedgerFilter');
-      if (!sel || !masterData.ledgers) return;
-
-      const cur = sel.value;
-      sel.innerHTML = '<option value="ALL">● All Accounts</option>' +
-        (masterData.ledgers || []).map(l => '<option value="' + l.name + '">' + l.name + ' [' + l.group + ']</option>').join('');
-
-      if (cur) sel.value = cur;
     }
 
     function resetDaybookFilters() {
@@ -2250,8 +2691,6 @@
       const pageSizeVal = document.getElementById('daybookPageSize') ? document.getElementById('daybookPageSize').value : '25';
 
       let vouchers = reportData.vouchers.slice();
-
-      // Sort newest to oldest
       vouchers.sort((a, b) => (b.date || '').localeCompare(a.date || '') || b.id - a.id);
 
       if (ledgerFilter && ledgerFilter !== 'ALL') {
@@ -2263,17 +2702,12 @@
         });
       }
 
-      if (fromDate) {
-        vouchers = vouchers.filter(v => (v.date || '') >= fromDate);
-      }
-      if (toDate) {
-        vouchers = vouchers.filter(v => (v.date || '') <= toDate);
-      }
+      if (fromDate) vouchers = vouchers.filter(v => (v.date || '') >= fromDate);
+      if (toDate) vouchers = vouchers.filter(v => (v.date || '') <= toDate);
 
       const totalItems = vouchers.length;
       if (count) count.innerText = totalItems + ' Vouchers';
 
-      // Pagination
       const pageSize = pageSizeVal === 'ALL' ? totalItems : parseInt(pageSizeVal);
       const totalPages = Math.max(1, Math.ceil(totalItems / (pageSize || 1)));
       daybookCurrentPage = Math.min(Math.max(1, page), totalPages);
@@ -2288,31 +2722,31 @@
 
       if (paginationInfo) {
         paginationInfo.innerText = totalItems > 0 
-          ? `Showing ${startIndex + 1}–${Math.min(startIndex + pageVouchers.length, totalItems)} of${totalItems}`
+          ? `Showing ${startIndex + 1}–${Math.min(startIndex + pageVouchers.length, totalItems)} of ${totalItems}`
           : 'Showing 0 of 0';
       }
-      if (currentPageNum) currentPageNum.innerText = `${daybookCurrentPage} /${totalPages}`;
+      if (currentPageNum) currentPageNum.innerText = `${daybookCurrentPage} / ${totalPages}`;
       if (btnPrev) btnPrev.disabled = (daybookCurrentPage <= 1);
       if (btnNext) btnNext.disabled = (daybookCurrentPage >= totalPages);
 
       if (pageVouchers.length === 0) {
-        list.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-500">No vouchers match the selected filter.</td></tr>';
+        list.innerHTML = '<tr><td colspan="8" class="p-8 text-center text-slate-500 whitespace-nowrap">No vouchers match the selected filter.</td></tr>';
         return;
       }
 
       list.innerHTML = pageVouchers.map(v => {
         const vNo = v.voucher_no || `#${String(v.id).slice(-6)}`;
-        return '<tr id="db_vch_' + v.id + '" class="hover:bg-slate-800 transition">' +
-          '<td class="p-3.5 text-xs font-mono text-slate-400">' + v.date + '</td>' +
-          '<td class="p-3.5 text-xs font-mono font-semibold text-blue-400"><a href="javascript:void(0)" onclick="openVoucherModal(' + v.id + ')" class="hover:underline">' + vNo + '</a></td>' +
-          '<td class="p-3.5"><span class="px-2 py-0.5 rounded text-xs font-mono bg-slate-800 text-slate-300">' + v.voucher_type + '</span></td>' +
-          '<td class="p-3.5 text-sm font-medium text-green-400">' + (v.dr_ledger || '-') + '</td>' +
-          '<td class="p-3.5 text-sm font-medium text-red-400">' + (v.cr_ledger || '-') + '</td>' +
-          '<td class="p-3.5 text-xs text-slate-400 max-w-xs truncate">' + (v.narration || '-') + '</td>' +
-          '<td class="p-3.5 text-right font-mono font-bold text-white">₹' + Number(v.amount).toFixed(2) + '</td>' +
-          '<td class="p-3.5 text-center space-x-2 no-print">' +
-          '<button onclick="openVoucherModal(' + v.id + ')" class="text-blue-400 hover:text-blue-300 text-xs"><i class="fa-solid fa-pen"></i></button>' +
-          '<button onclick="deleteVoucher(' + v.id + ')" class="text-red-400 hover:text-red-300 text-xs"><i class="fa-solid fa-trash"></i></button>' +
+        return '<tr id="db_vch_' + v.id + '" class="hover:bg-slate-800 transition align-top">' +
+          '<td class="p-3.5 text-xs font-mono text-slate-400 whitespace-nowrap">' + escapeHTML(v.date) + '</td>' +
+          '<td class="p-3.5 text-xs font-mono font-semibold text-blue-400 whitespace-nowrap"><a href="#" onclick="openVoucherModal(' + v.id + '); return false;" class="hover:underline">' + escapeHTML(vNo) + '</a></td>' +
+          '<td class="p-3.5 whitespace-nowrap"><span class="px-2 py-0.5 rounded text-xs font-mono bg-slate-800 text-slate-300">' + escapeHTML(v.voucher_type) + '</span></td>' +
+          '<td class="p-3.5 text-sm max-w-[200px] md:max-w-[240px] break-words">' + formatLedgerListHtml(v.dr_ledger, false) + '</td>' +
+          '<td class="p-3.5 text-sm max-w-[200px] md:max-w-[240px] break-words">' + formatLedgerListHtml(v.cr_ledger, true) + '</td>' +
+          '<td class="p-3.5 text-xs text-slate-400 max-w-xs break-words">' + escapeHTML(v.narration || '-') + '</td>' +
+          '<td class="p-3.5 text-right font-mono font-bold text-white whitespace-nowrap">₹' + Number(v.amount).toFixed(2) + '</td>' +
+          '<td class="p-3.5 text-center space-x-2 no-print whitespace-nowrap">' +
+          '<button onclick="openVoucherModal(' + v.id + ')" class="text-blue-400 hover:text-blue-300 text-xs" title="Edit Voucher"><i class="fa-solid fa-pen"></i></button>' +
+          '<button onclick="deleteVoucher(' + v.id + ')" class="text-red-400 hover:text-red-300 text-xs" title="Delete Voucher"><i class="fa-solid fa-trash"></i></button>' +
           '</td></tr>';
       }).join('');
     }
@@ -2326,10 +2760,10 @@
       const nw = document.getElementById('bsNetWorth');
       const bc = document.getElementById('bsBaseCapital');
 
-      const totalAssets = (reportData.metrics && reportData.metrics.totalAssets) || 0;
-      const totalLiab = (reportData.metrics && reportData.metrics.totalLiabilities) || 0;
-      const baseCapital = bs.capital || 0;
-      const netSurplus = bs.netSurplus || 0;
+      const totalAssets = (bs.assets || []).reduce((sum, a) => sum + (parseFloat(a.balance) || 0), 0);
+      const totalLiab = (bs.liabilities || []).reduce((sum, l) => sum + (parseFloat(l.balance) || 0), 0);
+      const baseCapital = parseFloat(bs.capital) || 0;
+      const netSurplus = parseFloat(bs.netSurplus) || 0;
 
       if (ta) ta.innerText = '₹' + totalAssets.toFixed(2);
       if (tl) tl.innerText = '₹' + (totalLiab + baseCapital + netSurplus).toFixed(2);
@@ -2339,9 +2773,9 @@
       const aList = document.getElementById('bsAssetsList');
       if (aList) {
         aList.innerHTML = (bs.assets || []).map(a => {
-          return '<div class="flex justify-between items-center text-xs py-1.5 border-b border-slate-800"><div>' +
-            '<a href="javascript:void(0)" onclick="openLedgerStatement(\'' + a.name + '\')" class="text-slate-200 font-medium hover:text-blue-400">' + a.name + '</a>' +
-            '<span class="text-slate-500 block text-xs"><a href="javascript:void(0)" onclick="drillIntoGroup(\'' + a.group + '\'); switchTab(\'groupsummary\');" class="hover:underline text-purple-400">' + a.group + '</a></span></div>' +
+          return '<div class="flex justify-between items-center text-xs py-1.5 border-b border-slate-800 whitespace-nowrap"><div>' +
+            '<a href="#" data-ledger-link="' + escapeAttr(a.name) + '" class="text-slate-200 font-medium hover:text-blue-400">' + escapeHTML(a.name) + '</a>' +
+            '<span class="text-slate-500 block text-xs"><a href="#" data-group-link="' + escapeAttr(a.group) + '" class="hover:underline text-purple-400">' + escapeHTML(a.group) + '</a></span></div>' +
             '<span class="font-mono text-green-400 font-semibold">₹' + (a.balance || 0).toFixed(2) + '</span></div>';
         }).join('') || '<div class="text-xs text-slate-500">No assets recorded.</div>';
       }
@@ -2349,9 +2783,9 @@
       const lList = document.getElementById('bsLiabilitiesList');
       if (lList) {
         lList.innerHTML = (bs.liabilities || []).map(l => {
-          return '<div class="flex justify-between items-center text-xs py-1.5 border-b border-slate-800"><div>' +
-            '<a href="javascript:void(0)" onclick="openLedgerStatement(\'' + l.name + '\')" class="text-slate-200 font-medium hover:text-blue-400">' + l.name + '</a>' +
-            '<span class="text-slate-500 block text-xs"><a href="javascript:void(0)" onclick="drillIntoGroup(\'' + l.group + '\'); switchTab(\'groupsummary\');" class="hover:underline text-purple-400">' + l.group + '</a></span></div>' +
+          return '<div class="flex justify-between items-center text-xs py-1.5 border-b border-slate-800 whitespace-nowrap"><div>' +
+            '<a href="#" data-ledger-link="' + escapeAttr(l.name) + '" class="text-slate-200 font-medium hover:text-blue-400">' + escapeHTML(l.name) + '</a>' +
+            '<span class="text-slate-500 block text-xs"><a href="#" data-group-link="' + escapeAttr(l.group) + '" class="hover:underline text-purple-400">' + escapeHTML(l.group) + '</a></span></div>' +
             '<span class="font-mono text-red-400 font-semibold">₹' + (l.balance || 0).toFixed(2) + '</span></div>';
         }).join('') || '<div class="text-xs text-slate-500">No outside liabilities recorded.</div>';
       }
@@ -2429,9 +2863,9 @@
       const eContainer = document.getElementById('pnlExpensesList');
       if (eContainer) {
         eContainer.innerHTML = expList.map(e => {
-          return '<div class="flex justify-between items-center text-xs py-2 border-b border-slate-800"><div>' +
-            '<a href="javascript:void(0)" onclick="openLedgerStatement(\'' + e.name + '\')" class="text-slate-200 font-medium hover:text-blue-400">' + e.name + '</a>' +
-            '<span class="text-slate-500 block text-xs"><a href="javascript:void(0)" onclick="drillIntoGroup(\'' + e.group + '\'); switchTab(\'groupsummary\');" class="hover:underline text-purple-400">' + e.group + '</a></span></div>' +
+          return '<div class="flex justify-between items-center text-xs py-2 border-b border-slate-800 whitespace-nowrap"><div>' +
+            '<a href="#" data-ledger-link="' + escapeAttr(e.name) + '" class="text-slate-200 font-medium hover:text-blue-400">' + escapeHTML(e.name) + '</a>' +
+            '<span class="text-slate-500 block text-xs"><a href="#" data-group-link="' + escapeAttr(e.group) + '" class="hover:underline text-purple-400">' + escapeHTML(e.group) + '</a></span></div>' +
             '<span class="font-mono text-red-400 font-semibold">₹' + e.balance.toFixed(2) + '</span></div>';
         }).join('') || '<div class="text-xs text-slate-500">No expenses recorded for this period.</div>';
       }
@@ -2439,9 +2873,9 @@
       const iContainer = document.getElementById('pnlIncomesList');
       if (iContainer) {
         iContainer.innerHTML = incList.map(i => {
-          return '<div class="flex justify-between items-center text-xs py-2 border-b border-slate-800"><div>' +
-            '<a href="javascript:void(0)" onclick="openLedgerStatement(\'' + i.name + '\')" class="text-slate-200 font-medium hover:text-blue-400">' + i.name + '</a>' +
-            '<span class="text-slate-500 block text-xs"><a href="javascript:void(0)" onclick="drillIntoGroup(\'' + i.group + '\'); switchTab(\'groupsummary\');" class="hover:underline text-purple-400">' + i.group + '</a></span></div>' +
+          return '<div class="flex justify-between items-center text-xs py-2 border-b border-slate-800 whitespace-nowrap"><div>' +
+            '<a href="#" data-ledger-link="' + escapeAttr(i.name) + '" class="text-slate-200 font-medium hover:text-blue-400">' + escapeHTML(i.name) + '</a>' +
+            '<span class="text-slate-500 block text-xs"><a href="#" data-group-link="' + escapeAttr(i.group) + '" class="hover:underline text-purple-400">' + escapeHTML(i.group) + '</a></span></div>' +
             '<span class="font-mono text-green-400 font-semibold">₹' + i.balance.toFixed(2) + '</span></div>';
         }).join('') || '<div class="text-xs text-slate-500">No incomes recorded for this period.</div>';
       }
@@ -2458,23 +2892,23 @@
             (g.nature === 'Income' ? 'bg-green-900 text-green-300 border border-green-700' : 'bg-yellow-900 text-yellow-300 border border-yellow-700'));
 
           const parentText = g.parentGroup 
-            ? '<span class="text-xs text-slate-400 block"><i class="fa-solid fa-arrow-turn-up fa-rotate-90 text-[10px] mr-1 text-slate-500"></i>Sub-group of <b class="text-slate-300">' + g.parentGroup + '</b></span>'
-            : '<span class="text-xs text-purple-400 block font-mono">● Primary Group</span>';
+            ? '<span class="text-xs text-slate-400 block whitespace-nowrap"><i class="fa-solid fa-arrow-turn-up fa-rotate-90 text-[10px] mr-1 text-slate-500"></i>Sub-group of <b class="text-slate-300">' + escapeHTML(g.parentGroup) + '</b></span>'
+            : '<span class="text-xs text-purple-400 block font-mono whitespace-nowrap">● Primary Group</span>';
 
-          const ledgerCount = (masterData.ledgers || []).filter(l => l.group === g.name).length;
+          const ledgerCount = (masterData.ledgers || []).filter(l => (l.group || '').toLowerCase() === g.name.toLowerCase()).length;
 
           return '<div class="bg-slate-800 border border-slate-700 p-4 rounded-xl flex justify-between items-start">' +
             '<div>' +
-            '<div class="font-semibold text-sm text-white flex items-center gap-1.5">' +
+            '<div class="font-semibold text-sm text-white flex items-center gap-1.5 whitespace-nowrap">' +
             '<i class="fa-solid ' + (g.parentGroup ? 'fa-folder-open text-amber-400' : 'fa-folder text-purple-400') + ' text-xs"></i>' +
-            '<a href="javascript:void(0)" onclick="drillIntoGroup(\'' + g.name + '\'); switchTab(\'groupsummary\');" class="hover:text-blue-400">' + g.name + '</a></div>' +
+            '<a href="#" data-group-link="' + escapeAttr(g.name) + '" class="hover:text-blue-400">' + escapeHTML(g.name) + '</a></div>' +
             parentText +
-            '<span class="text-xs text-slate-500 font-mono mt-1 block">' + ledgerCount + ' ledgers attached</span>' +
+            '<span class="text-xs text-slate-500 font-mono mt-1 block whitespace-nowrap">' + ledgerCount + ' ledgers attached</span>' +
             '</div>' +
-            '<div class="flex flex-col items-end gap-2">' +
-            '<span class="text-xs px-2 py-0.5 rounded font-mono ' + natureBadge + '">' + g.nature + '</span>' +
+            '<div class="flex flex-col items-end gap-2 whitespace-nowrap">' +
+            '<span class="text-xs px-2 py-0.5 rounded font-mono ' + natureBadge + '">' + escapeHTML(g.nature) + '</span>' +
             '<div class="space-x-2 text-xs">' +
-            '<button onclick="drillIntoGroup(\'' + g.name + '\'); switchTab(\'groupsummary\');" class="text-purple-400 hover:underline">Summary</button>' +
+            '<button data-group-link="' + escapeAttr(g.name) + '" class="text-purple-400 hover:underline">Summary</button>' +
             '<button onclick="openGroupModal(' + g.id + ')" class="text-blue-400 hover:underline">Edit</button>' +
             '<button onclick="deleteGroup(' + g.id + ')" class="text-red-400 hover:underline">Delete</button>' +
             '</div></div></div>';
@@ -2486,17 +2920,17 @@
 
       table.innerHTML = masterData.ledgers.map(l => {
         const natureClass = l.nature === 'Asset' ? 'bg-blue-900 text-blue-300 border border-blue-700' : (l.nature === 'Liability' ? 'bg-red-900 text-red-300 border border-red-700' : (l.nature === 'Income' ? 'bg-green-900 text-green-300 border border-green-700' : 'bg-yellow-900 text-yellow-300 border border-yellow-700'));
-        const ccInfo = l.group === 'Credit Cards' ? '<div class="text-xs text-yellow-400 font-mono mt-0.5">Bill Day: ' + (l.billingDay || 15) + 'th • Grace: ' + (l.gracePeriodDays || 20) + 'd</div>' : '';
+        const ccInfo = (l.group || '').toLowerCase().includes('card') ? '<div class="text-xs text-yellow-400 font-mono mt-0.5 whitespace-nowrap">Bill Day: ' + (l.billingDay || 15) + 'th • Grace: ' + (l.gracePeriodDays || 20) + 'd</div>' : '';
 
         return '<div class="bg-slate-800 border border-slate-700 p-4 rounded-xl flex justify-between items-start">' +
-          '<div><div class="font-semibold text-sm text-white">' +
-          '<a href="javascript:void(0)" onclick="openLedgerStatement(\'' + l.name + '\')" class="hover:text-blue-400">' + l.name + '</a></div>' +
-          '<div class="text-xs text-slate-400"><a href="javascript:void(0)" onclick="drillIntoGroup(\'' + l.group + '\'); switchTab(\'groupsummary\');" class="hover:underline text-purple-400">' + l.group + '</a></div>' +
-          '<div class="text-xs font-mono text-slate-500 mt-1">Op. Bal: ₹' + Number(l.openingBalance || 0).toFixed(2) + '</div>' + ccInfo + '</div>' +
-          '<div class="flex flex-col items-end gap-2">' +
-          '<span class="text-xs px-2 py-0.5 rounded font-mono ' + natureClass + '">' + l.nature + '</span>' +
+          '<div><div class="font-semibold text-sm text-white whitespace-nowrap">' +
+          '<a href="#" data-ledger-link="' + escapeAttr(l.name) + '" class="hover:text-blue-400">' + escapeHTML(l.name) + '</a></div>' +
+          '<div class="text-xs text-slate-400 whitespace-nowrap"><a href="#" data-group-link="' + escapeAttr(l.group) + '" class="hover:underline text-purple-400">' + escapeHTML(l.group) + '</a></div>' +
+          '<div class="text-xs font-mono text-slate-500 mt-1 whitespace-nowrap">Op. Bal: ₹' + Number(l.openingBalance || 0).toFixed(2) + '</div>' + ccInfo + '</div>' +
+          '<div class="flex flex-col items-end gap-2 whitespace-nowrap">' +
+          '<span class="text-xs px-2 py-0.5 rounded font-mono ' + natureClass + '">' + escapeHTML(l.nature) + '</span>' +
           '<div class="space-x-2 text-xs">' +
-          '<button onclick="openLedgerStatement(\'' + l.name + '\')" class="text-cyan-400 hover:underline">Statement</button>' +
+          '<button data-ledger-link="' + escapeAttr(l.name) + '" class="text-cyan-400 hover:underline">Statement</button>' +
           '<button onclick="openLedgerModal(' + l.id + ')" class="text-blue-400 hover:underline">Edit</button>' +
           '<button onclick="deleteLedger(' + l.id + ')" class="text-red-400 hover:underline">Delete</button>' +
           '</div></div></div>';
