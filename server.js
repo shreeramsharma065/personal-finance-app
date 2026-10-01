@@ -1,12 +1,224 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const PORT = process.env.PORT || 3000;
-const DB_FILE = path.join(__dirname, 'tally_books.json');
+const DB_FILE = path.join(__dirname, 'tally_books.enc');
+const OLD_PLAINTEXT_FILE = path.join(__dirname, 'tally_books.json');
 const TEMPLATE_FILE = path.join(__dirname, 'default_books.json');
+const AUTH_FILE = path.join(__dirname, 'auth_config.json');
 const PUBLIC_DIR = path.join(__dirname, 'public');
 
+// --- IN-MEMORY SECURITY STATE ---
+let MASTER_ENC_KEY = null;
+const SESSIONS = new Map();
+const LOGIN_ATTEMPTS = new Map();
+
+// Session garbage collection
+setInterval(() => {
+  const now = Date.now();
+  for (const [token, data] of SESSIONS.entries()) {
+    if (now > data.expiresAt) SESSIONS.delete(token);
+  }
+}, 30 * 60 * 1000);
+
+// --- CRYPTO HELPERS ---
+function deriveKey(password, salt) {
+  return crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha256');
+}
+
+function hashPassword(password, salt) {
+  return crypto.pbkdf2Sync(password, salt, 200000, 64, 'sha512').toString('hex');
+}
+
+function encryptBooks(dataObj, key) {
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+  const jsonStr = JSON.stringify(dataObj);
+  let encrypted = cipher.update(jsonStr, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  const authTag = cipher.getAuthTag().toString('hex');
+  return JSON.stringify({
+    iv: iv.toString('hex'),
+    authTag,
+    ciphertext: encrypted
+  });
+}
+
+function decryptBooks(encPayloadStr, key) {
+  const parsed = JSON.parse(encPayloadStr);
+  const decipher = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(parsed.iv, 'hex'));
+  decipher.setAuthTag(Buffer.from(parsed.authTag, 'hex'));
+  let decrypted = decipher.update(parsed.ciphertext, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
+  return JSON.parse(decrypted);
+}
+
+// --- PERSISTENCE ---
+function readBooks() {
+  if (MASTER_ENC_KEY && fs.existsSync(DB_FILE)) {
+    try {
+      const encStr = fs.readFileSync(DB_FILE, 'utf8');
+      return decryptBooks(encStr, MASTER_ENC_KEY);
+    } catch (e) {
+      if (fs.existsSync(DB_FILE + '.bak')) {
+        try {
+          return decryptBooks(fs.readFileSync(DB_FILE + '.bak', 'utf8'), MASTER_ENC_KEY);
+        } catch (err) {}
+      }
+    }
+  }
+
+  // Pre-encryption setup fallback
+  if (!fs.existsSync(AUTH_FILE)) {
+    if (fs.existsSync(OLD_PLAINTEXT_FILE)) {
+      try {
+        return JSON.parse(fs.readFileSync(OLD_PLAINTEXT_FILE, 'utf8'));
+      } catch (e) {}
+    }
+    if (fs.existsSync(TEMPLATE_FILE)) {
+      try {
+        return JSON.parse(fs.readFileSync(TEMPLATE_FILE, 'utf8'));
+      } catch (e) {}
+    }
+  }
+
+  return { groups: [], ledgers: [], vouchers: [], budgets: {} };
+}
+
+function writeBooks(data) {
+  if (MASTER_ENC_KEY) {
+    try {
+      if (fs.existsSync(DB_FILE)) {
+        try { fs.copyFileSync(DB_FILE, DB_FILE + '.bak'); } catch (err) {}
+      }
+      const enc = encryptBooks(data, MASTER_ENC_KEY);
+      fs.writeFileSync(DB_FILE, enc, 'utf8');
+      return;
+    } catch (e) {
+      console.error('Error writing encrypted database file:', e);
+    }
+  }
+
+  if (!fs.existsSync(AUTH_FILE)) {
+    try {
+      fs.writeFileSync(OLD_PLAINTEXT_FILE, JSON.stringify(data, null, 2), 'utf8');
+    } catch (e) {
+      console.error('Error writing plaintext database file:', e);
+    }
+  }
+}
+
+// --- RATE LIMITING ---
+function isRateLimited(ip) {
+  const now = Date.now();
+  const record = LOGIN_ATTEMPTS.get(ip);
+  if (!record) return false;
+  if (now > record.resetAt) {
+    LOGIN_ATTEMPTS.delete(ip);
+    return false;
+  }
+  return record.count >= 5;
+}
+
+function recordLoginFailure(ip) {
+  const now = Date.now();
+  const record = LOGIN_ATTEMPTS.get(ip) || { count: 0, resetAt: now + 15 * 60 * 1000 };
+  record.count += 1;
+  LOGIN_ATTEMPTS.set(ip, record);
+}
+
+function clearLoginAttempts(ip) {
+  LOGIN_ATTEMPTS.delete(ip);
+}
+
+// --- SECURITY GUARDS ---
+function applySecurityHeaders(res) {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('Referrer-Policy', 'no-referrer');
+}
+
+function validateOrigin(req, res) {
+  if (['POST', 'DELETE', 'PUT'].includes(req.method)) {
+    const origin = req.headers.origin || req.headers.referer;
+    const host = req.headers.host;
+    if (origin && host) {
+      try {
+        const originUrl = new URL(origin);
+        if (originUrl.host !== host) {
+          res.writeHead(403, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Cross-origin request rejected.' }));
+          return false;
+        }
+      } catch (err) {
+        res.writeHead(403, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Malformed Origin header.' }));
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+function parseCookies(req) {
+  const list = {};
+  const rc = req.headers.cookie;
+  if (rc) {
+    rc.split(';').forEach(cookie => {
+      const parts = cookie.split('=');
+      list[parts.shift().trim()] = decodeURI(parts.join('='));
+    });
+  }
+  return list;
+}
+
+function isAuthenticated(req) {
+  const cookies = parseCookies(req);
+  const token = cookies.session_token;
+  if (!token) return false;
+  const session = SESSIONS.get(token);
+  if (!session) return false;
+  if (Date.now() > session.expiresAt) {
+    SESSIONS.delete(token);
+    return false;
+  }
+  if (!MASTER_ENC_KEY) return false;
+  return true;
+}
+
+function readJsonBody(req, res, maxBytes = 2 * 1024 * 1024) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    let bytesReceived = 0;
+    req.on('data', chunk => {
+      bytesReceived += chunk.length;
+      if (bytesReceived > maxBytes) {
+        if (!res.writableEnded) {
+          res.writeHead(413, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Payload size exceeds safe threshold.' }));
+        }
+        req.destroy();
+        return reject(new Error('Payload too large'));
+      }
+      body += chunk;
+    });
+    req.on('end', () => {
+      try {
+        resolve(body ? JSON.parse(body) : {});
+      } catch (err) {
+        if (!res.writableEnded) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Malformed JSON payload.' }));
+        }
+        reject(err);
+      }
+    });
+  });
+}
+
+// --- ACCOUNTING ENGINE HELPERS ---
 function padZero(n) {
   return String(n).padStart(2, '0');
 }
@@ -15,43 +227,8 @@ function formatLocalDate(d) {
   return `${d.getFullYear()}-${padZero(d.getMonth() + 1)}-${padZero(d.getDate())}`;
 }
 
-function readBooks() {
-  try {
-    if (!fs.existsSync(DB_FILE)) {
-      if (fs.existsSync(TEMPLATE_FILE)) {
-        fs.copyFileSync(TEMPLATE_FILE, DB_FILE);
-      } else {
-        return { groups: [], ledgers: [], vouchers: [], budgets: {} };
-      }
-    }
-    const raw = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-    return {
-      groups: Array.isArray(raw.groups) ? raw.groups : [],
-      ledgers: Array.isArray(raw.ledgers) ? raw.ledgers : [],
-      vouchers: Array.isArray(raw.vouchers) ? raw.vouchers : [],
-      budgets: (raw.budgets && typeof raw.budgets === 'object') ? raw.budgets : {}
-    };
-  } catch (e) {
-    if (fs.existsSync(DB_FILE + '.bak')) {
-      try { return JSON.parse(fs.readFileSync(DB_FILE + '.bak', 'utf8')); } catch (err) {}
-    }
-    return { groups: [], ledgers: [], vouchers: [], budgets: {} };
-  }
-}
-
-function writeBooks(data) {
-  try {
-    if (fs.existsSync(DB_FILE)) {
-      try { fs.copyFileSync(DB_FILE, DB_FILE + '.bak'); } catch (err) {}
-    }
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
-  } catch (e) {
-    console.error('Error writing database file:', e);
-  }
-}
-
 function getGroupNature(groupName, groups) {
-  const grp = groups.find(g => g.name === groupName);
+  const grp = (groups || []).find(g => g.name.toLowerCase() === (groupName || '').toLowerCase());
   if (!grp) return 'Asset';
   if (grp.parentGroup && grp.parentGroup !== 'Primary') {
     return getGroupNature(grp.parentGroup, groups);
@@ -169,13 +346,11 @@ function computeTrialBalance(books, ledgerBalances) {
   };
 }
 
-// DATE-FILTERED CASH FLOW STATEMENT (Direct Method)
 function computeCashFlow(books, fromDate = '', toDate = '') {
   const cashBankLedgers = (books.ledgers || [])
-    .filter(l => l.group.includes('Bank') || l.group.includes('Cash'))
+    .filter(l => (l.group || '').toLowerCase().includes('bank') || (l.group || '').toLowerCase().includes('cash'))
     .map(l => l.name);
 
-  // Compute opening cash balance before fromDate
   let openingCash = 0;
   (books.ledgers || []).filter(l => cashBankLedgers.includes(l.name)).forEach(l => {
     openingCash += parseFloat(l.openingBalance) || 0;
@@ -232,7 +407,7 @@ function computeCashFlow(books, fromDate = '', toDate = '') {
           amount: flowAmount,
           narration: v.narration || ''
         });
-      } else if (group.includes('Investment') || group.includes('Property') || group.includes('Fixed Asset')) {
+      } else if (group.toLowerCase().includes('investment') || group.toLowerCase().includes('property') || group.toLowerCase().includes('fixed asset')) {
         investingTotal += flowAmount;
         investingItems.push({
           date: v.date,
@@ -372,7 +547,10 @@ function computeDues(books, ledgerBalances) {
     const now = new Date();
     const todayStr = formatLocalDate(now);
 
-    (books.ledgers || []).filter(l => l.group === 'Credit Cards').forEach(card => {
+    (books.ledgers || []).filter(l => {
+      const g = (l.group || '').toLowerCase();
+      return g.includes('credit card') || g.includes('card');
+    }).forEach(card => {
       const bal = ledgerBalances[card.name] ? ledgerBalances[card.name].closingBalance : 0;
       const bDay = parseInt(card.billingDay) || 15;
       const grace = parseInt(card.gracePeriodDays) || 20;
@@ -498,7 +676,10 @@ function computeDues(books, ledgerBalances) {
     });
 
     (books.ledgers || [])
-      .filter(l => l.group && (l.group.includes('Debtor') || l.group.includes('Receivable')))
+      .filter(l => {
+        const grp = (l.group || '').toLowerCase();
+        return grp.includes('debtor') || grp.includes('receivable') || grp.includes('friend') || grp.includes('advance') || grp.includes('due');
+      })
       .forEach(debtor => {
         const netBal = ledgerBalances[debtor.name] ? ledgerBalances[debtor.name].closingBalance : 0;
         if (netBal > 0.01) {
@@ -525,61 +706,185 @@ function computeDues(books, ledgerBalances) {
   return { creditCards: cards, receivables };
 }
 
-const server = http.createServer((req, res) => {
+// --- SERVER DISPATCHER ---
+const server = http.createServer(async (req, res) => {
+  applySecurityHeaders(res);
+  if (!validateOrigin(req, res)) return;
+
+  const clientIp = req.socket.remoteAddress || '127.0.0.1';
   const parsed = new URL(req.url, `http://${req.headers.host}`);
   const pathname = parsed.pathname;
 
+  // 1. PUBLIC AUTH GATEWAY ENDPOINTS
+  if (req.method === 'GET' && pathname === '/api/auth/status') {
+    const isConfigured = fs.existsSync(AUTH_FILE);
+    const loggedIn = isAuthenticated(req);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ isConfigured, isAuthenticated: loggedIn }));
+  }
+
+  if (req.method === 'POST' && pathname === '/api/auth/setup') {
+    if (fs.existsSync(AUTH_FILE)) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'Master password has already been established.' }));
+    }
+    try {
+      const { password } = await readJsonBody(req, res);
+      if (!password || password.length < 8) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'Password must be at least 8 characters long.' }));
+      }
+      const salt = crypto.randomBytes(16).toString('hex');
+      const hash = hashPassword(password, salt);
+      fs.writeFileSync(AUTH_FILE, JSON.stringify({ salt, hash }), 'utf8');
+
+      MASTER_ENC_KEY = deriveKey(password, salt);
+
+      let booksData = { groups: [], ledgers: [], vouchers: [], budgets: {} };
+      if (fs.existsSync(OLD_PLAINTEXT_FILE)) {
+        try {
+          booksData = JSON.parse(fs.readFileSync(OLD_PLAINTEXT_FILE, 'utf8'));
+        } catch (e) {}
+      } else if (fs.existsSync(TEMPLATE_FILE)) {
+        try {
+          booksData = JSON.parse(fs.readFileSync(TEMPLATE_FILE, 'utf8'));
+        } catch (e) {}
+      }
+      writeBooks(booksData);
+
+      if (fs.existsSync(OLD_PLAINTEXT_FILE)) {
+        try {
+          fs.unlinkSync(OLD_PLAINTEXT_FILE);
+        } catch (err) {}
+      }
+
+      const token = crypto.randomBytes(32).toString('hex');
+      SESSIONS.set(token, { expiresAt: Date.now() + 24 * 60 * 60 * 1000 });
+
+      res.setHeader('Set-Cookie', `session_token=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=86400`);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: true }));
+    } catch (e) {
+      if (!res.writableEnded) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message || 'Setup encountered an error.' }));
+      }
+      return;
+    }
+  }
+
+  if (req.method === 'POST' && pathname === '/api/auth/login') {
+    if (isRateLimited(clientIp)) {
+      res.writeHead(429, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'Too many failed login attempts. Try again in 15 minutes.' }));
+    }
+    if (!fs.existsSync(AUTH_FILE)) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'App setup required before authentication.' }));
+    }
+
+    try {
+      const { password } = await readJsonBody(req, res);
+      const authConfig = JSON.parse(fs.readFileSync(AUTH_FILE, 'utf8'));
+      const testHash = hashPassword(password, authConfig.salt);
+
+      if (crypto.timingSafeEqual(Buffer.from(testHash), Buffer.from(authConfig.hash))) {
+        clearLoginAttempts(clientIp);
+        MASTER_ENC_KEY = deriveKey(password, authConfig.salt);
+
+        if (!fs.existsSync(DB_FILE) && fs.existsSync(OLD_PLAINTEXT_FILE)) {
+          try {
+            const data = JSON.parse(fs.readFileSync(OLD_PLAINTEXT_FILE, 'utf8'));
+            writeBooks(data);
+            fs.unlinkSync(OLD_PLAINTEXT_FILE);
+          } catch (e) {}
+        }
+
+        const token = crypto.randomBytes(32).toString('hex');
+        SESSIONS.set(token, { expiresAt: Date.now() + 24 * 60 * 60 * 1000 });
+
+        res.setHeader('Set-Cookie', `session_token=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=86400`);
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ success: true }));
+      } else {
+        recordLoginFailure(clientIp);
+        res.writeHead(401, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'Invalid master password.' }));
+      }
+    } catch (e) {
+      if (!res.writableEnded) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message || 'Authentication error.' }));
+      }
+      return;
+    }
+  }
+
+  if (req.method === 'POST' && pathname === '/api/auth/logout') {
+    const cookies = parseCookies(req);
+    if (cookies.session_token) SESSIONS.delete(cookies.session_token);
+    MASTER_ENC_KEY = null;
+    res.setHeader('Set-Cookie', `session_token=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0`);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ success: true }));
+  }
+
+  // 2. PROTECTED API ROUTES
+  if (pathname.startsWith('/api/')) {
+    if (!isAuthenticated(req)) {
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'Unauthorized. Active session required.' }));
+    }
+  }
+
+  // 3. API ROUTES
   if (req.method === 'GET' && pathname === '/api/backup') {
-    const data = fs.readFileSync(DB_FILE, 'utf8');
+    const books = readBooks();
     const dateStr = formatLocalDate(new Date());
     res.writeHead(200, {
       'Content-Type': 'application/json',
       'Content-Disposition': `attachment; filename="tally_backup_${dateStr}.json"`
     });
-    return res.end(data);
+    return res.end(JSON.stringify(books, null, 2));
   }
 
   if (req.method === 'POST' && pathname === '/api/restore') {
-    let body = '';
-    req.on('data', chunk => body += chunk);
-    req.on('end', () => {
-      try {
-        const parsedData = JSON.parse(body);
-        if (!parsedData.ledgers || !Array.isArray(parsedData.vouchers)) {
-          res.writeHead(400, { 'Content-Type': 'application/json' });
-          return res.end(JSON.stringify({ error: 'Invalid structure' }));
-        }
-        writeBooks(parsedData);
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true }));
-      } catch (err) {
+    try {
+      const parsedData = await readJsonBody(req, res, 25 * 1024 * 1024);
+      if (!parsedData.ledgers || !Array.isArray(parsedData.vouchers)) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Corrupt JSON' }));
+        return res.end(JSON.stringify({ error: 'Invalid file structure for accounting books.' }));
       }
-    });
-    return;
+      writeBooks(parsedData);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: true }));
+    } catch (err) {
+      if (!res.writableEnded) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: err.message || 'Restore failed.' }));
+      }
+      return;
+    }
   }
 
   if (req.method === 'POST' && pathname === '/api/budgets') {
-    let body = '';
-    req.on('data', chunk => body += chunk);
-    req.on('end', () => {
-      try {
-        const { ledger, amount } = JSON.parse(body);
-        const books = readBooks();
-        books.budgets = books.budgets || {};
-        const val = parseFloat(amount) || 0;
-        if (val > 0) books.budgets[ledger] = val;
-        else delete books.budgets[ledger];
-        writeBooks(books);
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true }));
-      } catch (e) {
+    try {
+      const { ledger, amount } = await readJsonBody(req, res);
+      const books = readBooks();
+      books.budgets = books.budgets || {};
+      const val = parseFloat(amount) || 0;
+      if (val > 0) books.budgets[ledger] = val;
+      else delete books.budgets[ledger];
+      writeBooks(books);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: true }));
+    } catch (e) {
+      if (!res.writableEnded) {
         res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: e.message }));
+        res.end(JSON.stringify({ error: e.message || 'Saving budget encountered an error.' }));
       }
-    });
-    return;
+      return;
+    }
   }
 
   if (req.method === 'GET' && pathname === '/api/masters') {
@@ -589,53 +894,51 @@ const server = http.createServer((req, res) => {
   }
 
   if (req.method === 'POST' && pathname === '/api/groups') {
-    let body = '';
-    req.on('data', chunk => body += chunk);
-    req.on('end', () => {
-      try {
-        const { id, name, parentGroup, nature } = JSON.parse(body);
-        if (!name) {
-          res.writeHead(400, { 'Content-Type': 'application/json' });
-          return res.end(JSON.stringify({ error: 'Group Name is required' }));
-        }
-        const books = readBooks();
-        const parent = parentGroup && parentGroup !== 'Primary' ? parentGroup : null;
-        const resolvedNature = parent ? getGroupNature(parent, books.groups) : (nature || 'Asset');
+    try {
+      const { id, name, parentGroup, nature } = await readJsonBody(req, res);
+      if (!name || typeof name !== 'string' || !name.trim()) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'Group Name is required' }));
+      }
+      const books = readBooks();
+      const parent = parentGroup && parentGroup !== 'Primary' ? parentGroup : null;
+      const resolvedNature = parent ? getGroupNature(parent, books.groups) : (nature || 'Asset');
 
-        if (id) {
-          const idx = books.groups.findIndex(g => g.id === parseInt(id));
-          if (idx !== -1) {
-            const oldName = books.groups[idx].name;
-            books.groups[idx] = {
-              ...books.groups[idx],
-              name: name.trim(),
-              parentGroup: parent,
-              nature: resolvedNature
-            };
-            books.groups.forEach(g => { if (g.parentGroup === oldName) g.parentGroup = name.trim(); });
-            books.ledgers.forEach(l => { if (l.group === oldName) l.group = name.trim(); });
-          }
-        } else {
-          if (books.groups.some(g => g.name.toLowerCase() === name.trim().toLowerCase())) {
-            res.writeHead(400, { 'Content-Type': 'application/json' });
-            return res.end(JSON.stringify({ error: 'A group with this name already exists' }));
-          }
-          books.groups.push({
-            id: Date.now(),
+      if (id) {
+        const idx = books.groups.findIndex(g => g.id === parseInt(id));
+        if (idx !== -1) {
+          const oldName = books.groups[idx].name;
+          books.groups[idx] = {
+            ...books.groups[idx],
             name: name.trim(),
             parentGroup: parent,
             nature: resolvedNature
-          });
+          };
+          books.groups.forEach(g => { if (g.parentGroup === oldName) g.parentGroup = name.trim(); });
+          books.ledgers.forEach(l => { if (l.group === oldName) l.group = name.trim(); });
         }
-        writeBooks(books);
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true }));
-      } catch (e) {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: e.message }));
+      } else {
+        if (books.groups.some(g => g.name.toLowerCase() === name.trim().toLowerCase())) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ error: 'A group with this name already exists' }));
+        }
+        books.groups.push({
+          id: Date.now(),
+          name: name.trim(),
+          parentGroup: parent,
+          nature: resolvedNature
+        });
       }
-    });
-    return;
+      writeBooks(books);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: true }));
+    } catch (e) {
+      if (!res.writableEnded) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message || 'Modifying group encountered an error.' }));
+      }
+      return;
+    }
   }
 
   if (req.method === 'DELETE' && pathname.startsWith('/api/groups/')) {
@@ -646,12 +949,12 @@ const server = http.createServer((req, res) => {
       res.writeHead(404, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ error: 'Group not found' }));
     }
-    const hasSubgroups = books.groups.some(g => g.parentGroup === grp.name);
+    const hasSubgroups = books.groups.some(g => (g.parentGroup || '').toLowerCase() === grp.name.toLowerCase());
     if (hasSubgroups) {
       res.writeHead(400, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ error: 'Cannot delete group with active sub-groups' }));
     }
-    const hasLedgers = books.ledgers.some(l => l.group === grp.name);
+    const hasLedgers = books.ledgers.some(l => (l.group || '').toLowerCase() === grp.name.toLowerCase());
     if (hasLedgers) {
       res.writeHead(400, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ error: 'Cannot delete group with active ledger accounts' }));
@@ -663,57 +966,59 @@ const server = http.createServer((req, res) => {
   }
 
   if (req.method === 'POST' && pathname === '/api/ledgers') {
-    let body = '';
-    req.on('data', chunk => body += chunk);
-    req.on('end', () => {
-      try {
-        const { id, name, group, openingBalance, billingDay, gracePeriodDays } = JSON.parse(body);
-        const books = readBooks();
-        const nature = getGroupNature(group, books.groups);
-        const op = parseFloat(openingBalance) || 0;
+    try {
+      const { id, name, group, openingBalance, billingDay, gracePeriodDays } = await readJsonBody(req, res);
+      if (!name || typeof name !== 'string' || !name.trim()) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'Ledger account name is required.' }));
+      }
+      const books = readBooks();
+      const nature = getGroupNature(group, books.groups);
+      const op = parseFloat(openingBalance) || 0;
 
-        if (id) {
-          const idx = books.ledgers.findIndex(l => l.id === parseInt(id));
-          if (idx !== -1) {
-            const oldName = books.ledgers[idx].name;
-            books.ledgers[idx] = {
-              ...books.ledgers[idx],
-              id: parseInt(id),
-              name: name.trim(),
-              group,
-              nature,
-              openingBalance: op,
-              billingDay: parseInt(billingDay) || 15,
-              gracePeriodDays: parseInt(gracePeriodDays) || 20
-            };
-            books.vouchers.forEach(v => {
-              if (v.entries) {
-                v.entries.forEach(e => { if (e.ledger === oldName) e.ledger = name.trim(); });
-              }
-              if (v.dr_ledger === oldName) v.dr_ledger = name.trim();
-              if (v.cr_ledger === oldName) v.cr_ledger = name.trim();
-            });
-          }
-        } else {
-          books.ledgers.push({
-            id: Date.now(),
+      if (id) {
+        const idx = books.ledgers.findIndex(l => l.id === parseInt(id));
+        if (idx !== -1) {
+          const oldName = books.ledgers[idx].name;
+          books.ledgers[idx] = {
+            ...books.ledgers[idx],
+            id: parseInt(id),
             name: name.trim(),
             group,
             nature,
             openingBalance: op,
             billingDay: parseInt(billingDay) || 15,
             gracePeriodDays: parseInt(gracePeriodDays) || 20
+          };
+          books.vouchers.forEach(v => {
+            if (v.entries) {
+              v.entries.forEach(e => { if (e.ledger === oldName) e.ledger = name.trim(); });
+            }
+            if (v.dr_ledger === oldName) v.dr_ledger = name.trim();
+            if (v.cr_ledger === oldName) v.cr_ledger = name.trim();
           });
         }
-        writeBooks(books);
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true }));
-      } catch (e) {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: e.message }));
+      } else {
+        books.ledgers.push({
+          id: Date.now(),
+          name: name.trim(),
+          group,
+          nature,
+          openingBalance: op,
+          billingDay: parseInt(billingDay) || 15,
+          gracePeriodDays: parseInt(gracePeriodDays) || 20
+        });
       }
-    });
-    return;
+      writeBooks(books);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: true }));
+    } catch (e) {
+      if (!res.writableEnded) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message || 'Modifying ledger encountered an error.' }));
+      }
+      return;
+    }
   }
 
   if (req.method === 'DELETE' && pathname.startsWith('/api/ledgers/')) {
@@ -726,88 +1031,86 @@ const server = http.createServer((req, res) => {
   }
 
   if (req.method === 'POST' && pathname === '/api/vouchers') {
-    let body = '';
-    req.on('data', chunk => body += chunk);
-    req.on('end', () => {
-      try {
-        const payload = JSON.parse(body);
-        const books = readBooks();
+    try {
+      const payload = await readJsonBody(req, res);
+      const books = readBooks();
 
-        const vDate = payload.date || formatLocalDate(new Date());
-        const vType = payload.voucher_type || 'Payment';
-        let entries = [];
+      const vDate = payload.date || formatLocalDate(new Date());
+      const vType = payload.voucher_type || 'Payment';
+      let entries = [];
 
-        if (Array.isArray(payload.entries) && payload.entries.length >= 2) {
-          entries = payload.entries.map(e => ({
-            type: e.type === 'Cr' ? 'Cr' : 'Dr',
-            ledger: e.ledger,
-            amount: parseFloat(e.amount) || 0
-          }));
-        } else {
-          const amt = parseFloat(payload.amount) || 0;
-          entries = [
-            { type: 'Dr', ledger: payload.dr_ledger, amount: amt },
-            { type: 'Cr', ledger: payload.cr_ledger, amount: amt }
-          ];
-        }
+      if (Array.isArray(payload.entries) && payload.entries.length >= 2) {
+        entries = payload.entries.map(e => ({
+          type: e.type === 'Cr' ? 'Cr' : 'Dr',
+          ledger: e.ledger,
+          amount: parseFloat(e.amount) || 0
+        }));
+      } else {
+        const amt = parseFloat(payload.amount) || 0;
+        entries = [
+          { type: 'Dr', ledger: payload.dr_ledger, amount: amt },
+          { type: 'Cr', ledger: payload.cr_ledger, amount: amt }
+        ];
+      }
 
-        let totalDr = 0;
-        let totalCr = 0;
-        entries.forEach(e => {
-          if (e.type === 'Dr') totalDr += e.amount;
-          else totalCr += e.amount;
-        });
+      let totalDr = 0;
+      let totalCr = 0;
+      entries.forEach(e => {
+        if (e.type === 'Dr') totalDr += e.amount;
+        else totalCr += e.amount;
+      });
 
-        if (Math.abs(totalDr - totalCr) > 0.01) {
-          res.writeHead(400, { 'Content-Type': 'application/json' });
-          return res.end(JSON.stringify({
-            error: `Debit and Credit totals must match! Total Dr: ₹${totalDr.toFixed(2)}, Total Cr: ₹${totalCr.toFixed(2)}`
-          }));
-        }
+      if (Math.abs(totalDr - totalCr) > 0.01) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({
+          error: `Debit and Credit totals must match! Dr: ₹${totalDr.toFixed(2)}, Cr: ₹${totalCr.toFixed(2)}`
+        }));
+      }
 
-        const totalAmount = totalDr;
-        const drLedgers = entries.filter(e => e.type === 'Dr').map(e => e.ledger).join(', ');
-        const crLedgers = entries.filter(e => e.type === 'Cr').map(e => e.ledger).join(', ');
+      const totalAmount = totalDr;
+      const drLedgers = entries.filter(e => e.type === 'Dr').map(e => e.ledger).join(', ');
+      const crLedgers = entries.filter(e => e.type === 'Cr').map(e => e.ledger).join(', ');
 
-        if (payload.id) {
-          const idx = books.vouchers.findIndex(v => v.id === parseInt(payload.id));
-          if (idx !== -1) {
-            books.vouchers[idx] = {
-              ...books.vouchers[idx],
-              date: vDate,
-              voucher_type: vType,
-              voucher_no: books.vouchers[idx].voucher_no || generateVoucherNumber(books, vType, vDate),
-              entries,
-              dr_ledger: drLedgers,
-              cr_ledger: crLedgers,
-              amount: totalAmount,
-              narration: payload.narration || ''
-            };
-          }
-        } else {
-          const vNo = generateVoucherNumber(books, vType, vDate);
-          books.vouchers.push({
-            id: Date.now(),
-            voucher_no: vNo,
+      if (payload.id) {
+        const idx = books.vouchers.findIndex(v => v.id === parseInt(payload.id));
+        if (idx !== -1) {
+          books.vouchers[idx] = {
+            ...books.vouchers[idx],
             date: vDate,
             voucher_type: vType,
+            voucher_no: books.vouchers[idx].voucher_no || generateVoucherNumber(books, vType, vDate),
             entries,
             dr_ledger: drLedgers,
             cr_ledger: crLedgers,
             amount: totalAmount,
-            narration: payload.narration || ''
-          });
+            narration: typeof payload.narration === 'string' ? payload.narration.slice(0, 500) : ''
+          };
         }
-
-        writeBooks(books);
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true }));
-      } catch (e) {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: e.message }));
+      } else {
+        const vNo = generateVoucherNumber(books, vType, vDate);
+        books.vouchers.push({
+          id: Date.now(),
+          voucher_no: vNo,
+          date: vDate,
+          voucher_type: vType,
+          entries,
+          dr_ledger: drLedgers,
+          cr_ledger: crLedgers,
+          amount: totalAmount,
+          narration: typeof payload.narration === 'string' ? payload.narration.slice(0, 500) : ''
+        });
       }
-    });
-    return;
+
+      writeBooks(books);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ success: true }));
+    } catch (e) {
+      if (!res.writableEnded) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: e.message || 'Recording voucher encountered an error.' }));
+      }
+      return;
+    }
   }
 
   if (req.method === 'DELETE' && pathname.startsWith('/api/vouchers/')) {
@@ -858,17 +1161,21 @@ const server = http.createServer((req, res) => {
 
       Object.values(balances).forEach(l => {
         const bal = l.closingBalance || 0;
+        const grp = (l.group || '').toLowerCase();
+        
         if (l.nature === 'Asset') {
           totalAssets += bal;
           assetList.push({ name: l.name, group: l.group, balance: bal });
-          if (l.group.includes('Bank') || l.group.includes('Cash')) liquidCashBank += bal;
+          if (grp.includes('bank') || grp.includes('cash')) liquidCashBank += bal;
         } else if (l.nature === 'Liability') {
-          if (l.group === 'Capital Account' || (l.group && l.group.includes('Capital'))) {
+          if (grp.includes('capital')) {
             totalCapitalEquity += bal;
           } else {
             totalThirdPartyDebt += bal;
             liabList.push({ name: l.name, group: l.group, balance: bal });
-            if (l.group.includes('Credit Card') || l.group.includes('Loan')) totalUnsecuredDebt += bal;
+            if (grp.includes('credit card') || grp.includes('loan') || grp.includes('borrowing')) {
+              totalUnsecuredDebt += bal;
+            }
           }
         } else if (l.nature === 'Income') {
           totalIncome += bal;
@@ -876,36 +1183,32 @@ const server = http.createServer((req, res) => {
         } else if (l.nature === 'Expense') {
           totalExpenses += bal;
           expList.push({ name: l.name, group: l.group, balance: bal });
-          // Essential living burn items for Emergency Runway Meter
-          if (l.group.includes('Living') || l.group.includes('Household') || l.group.includes('Utilities') || l.group.includes('Education')) {
+          if (grp.includes('living') || grp.includes('household') || grp.includes('utilities') || grp.includes('education')) {
             monthlyBurnRate += bal;
           }
         }
       });
 
-      // Calculate monthly emergency runway
       const distinctMonths = Math.max(1, new Set((books.vouchers || []).map(v => (v.date || '').slice(0, 7))).size);
       const avgMonthlyBurn = Math.max(1, (monthlyBurnRate > 0 ? monthlyBurnRate / distinctMonths : totalExpenses / distinctMonths));
       const runwayMonths = parseFloat((liquidCashBank / avgMonthlyBurn).toFixed(1));
 
-      // Build Friends / Shared Balances list
+      // Enhanced friend / sundry debtors matcher (matches Sundry Debtors, Friends, or any receivable)
       const friendsList = (books.ledgers || [])
-        .filter(l => l.group && (l.group.includes('Debtor') || l.group.includes('Receivable')))
+        .filter(l => {
+          const grp = (l.group || '').toLowerCase();
+          return grp.includes('debtor') || grp.includes('receivable') || grp.includes('friend') || grp.includes('advance') || grp.includes('due');
+        })
         .map(f => {
           const bal = balances[f.name] ? balances[f.name].closingBalance : 0;
-          return {
-            id: f.id,
-            name: f.name,
-            group: f.group,
-            balance: bal
-          };
+          return { id: f.id, name: f.name, group: f.group, balance: bal };
         });
 
-      const trueNetWorth = totalAssets - totalThirdPartyDebt;
       const netSurplus = totalIncome - totalExpenses;
+      const trueNetWorth = totalAssets - totalThirdPartyDebt;
 
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({
+      return res.end(JSON.stringify({
         metrics: {
           netWorth: trueNetWorth,
           liquidCashBank,
@@ -924,8 +1227,8 @@ const server = http.createServer((req, res) => {
         comparativePnL,
         budgets,
         friendsList,
-        balanceSheet: { 
-          assets: assetList, 
+        balanceSheet: {
+          assets: assetList,
           liabilities: liabList,
           capital: totalCapitalEquity,
           netSurplus
@@ -935,19 +1238,28 @@ const server = http.createServer((req, res) => {
         dues
       }));
     } catch (err) {
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: err.message }));
+      if (!res.writableEnded) {
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: err.message || 'Report generation failed.' }));
+      }
+      return;
     }
-    return;
   }
 
-  let filePath = path.join(PUBLIC_DIR, pathname === '/' ? 'index.html' : pathname);
+  // 4. STATIC FILE RESOLUTION
+  const safeFilename = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
+  let filePath = path.join(PUBLIC_DIR, safeFilename);
+
+  if (!fs.existsSync(filePath)) {
+    filePath = path.join(__dirname, safeFilename);
+  }
+
   const ext = path.extname(filePath);
   const contentType = {
-    '.html': 'text/html',
-    '.css': 'text/css',
-    '.js': 'text/javascript',
-    '.json': 'application/json'
+    '.html': 'text/html; charset=utf-8',
+    '.css': 'text/css; charset=utf-8',
+    '.js': 'text/javascript; charset=utf-8',
+    '.json': 'application/json; charset=utf-8'
   }[ext] || 'text/plain';
 
   fs.readFile(filePath, (err, content) => {
@@ -962,5 +1274,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server permanently live on http://0.0.0.0:${PORT}`);
+  console.log(`Server running securely on http://localhost:${PORT}`);
 });
