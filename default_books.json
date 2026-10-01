@@ -1,73 +1,24 @@
 {
   "groups": [
-    { "id": 1, "name": "Primary", "parentGroup": null, "nature": "Asset" },
-    { "id": 2, "name": "Current Assets", "parentGroup": "Primary", "nature": "Asset" },
-    { "id": 3, "name": "Bank Accounts", "parentGroup": "Current Assets", "nature": "Asset" },
-    { "id": 4, "name": "Cash-in-Hand", "parentGroup": "Current Assets", "nature": "Asset" },
-    { "id": 5, "name": "Sundry Debtors (Receivables)", "parentGroup": "Current Assets", "nature": "Asset" },
-    { "id": 6, "name": "Fixed Assets", "parentGroup": "Primary", "nature": "Asset" },
-    { "id": 7, "name": "Current Liabilities", "parentGroup": "Primary", "nature": "Liability" },
+    { "id": 1, "name": "Current Assets", "parentGroup": null, "nature": "Asset" },
+    { "id": 2, "name": "Bank Accounts", "parentGroup": "Current Assets", "nature": "Asset" },
+    { "id": 3, "name": "Cash-in-Hand", "parentGroup": "Current Assets", "nature": "Asset" },
+    { "id": 4, "name": "Sundry Debtors", "parentGroup": "Current Assets", "nature": "Asset" },
+    { "id": 5, "name": "Fixed Assets", "parentGroup": null, "nature": "Asset" },
+    { "id": 6, "name": "Investments", "parentGroup": null, "nature": "Asset" },
+    { "id": 7, "name": "Current Liabilities", "parentGroup": null, "nature": "Liability" },
     { "id": 8, "name": "Credit Cards", "parentGroup": "Current Liabilities", "nature": "Liability" },
-    { "id": 9, "name": "Loans & Borrowings", "parentGroup": "Primary", "nature": "Liability" },
-    { "id": 10, "name": "Capital Account", "parentGroup": "Primary", "nature": "Liability" },
-    { "id": 11, "name": "Direct Incomes", "parentGroup": "Primary", "nature": "Income" },
-    { "id": 12, "name": "Indirect Incomes", "parentGroup": "Primary", "nature": "Income" },
-    { "id": 13, "name": "Living & Household Expenses", "parentGroup": "Primary", "nature": "Expense" },
-    { "id": 14, "name": "Utilities & Bills", "parentGroup": "Primary", "nature": "Expense" },
-    { "id": 15, "name": "Education Expenses", "parentGroup": "Primary", "nature": "Expense" }
+    { "id": 9, "name": "Sundry Creditors", "parentGroup": "Current Liabilities", "nature": "Liability" },
+    { "id": 10, "name": "Loans & Borrowings", "parentGroup": null, "nature": "Liability" },
+    { "id": 11, "name": "Capital Account", "parentGroup": null, "nature": "Liability" },
+    { "id": 12, "name": "Direct Incomes", "parentGroup": null, "nature": "Income" },
+    { "id": 13, "name": "Indirect Incomes", "parentGroup": null, "nature": "Income" },
+    { "id": 14, "name": "Direct Expenses", "parentGroup": null, "nature": "Expense" },
+    { "id": 15, "name": "Indirect Expenses", "parentGroup": null, "nature": "Expense" }
   ],
   "ledgers": [
-    {
-      "id": 1,
-      "name": "Cash Wallet",
-      "group": "Cash-in-Hand",
-      "nature": "Asset",
-      "openingBalance": 0
-    },
-    {
-      "id": 2,
-      "name": "Salary Bank Account",
-      "group": "Bank Accounts",
-      "nature": "Asset",
-      "openingBalance": 0
-    },
-    {
-      "id": 3,
-      "name": "Primary Credit Card",
-      "group": "Credit Cards",
-      "nature": "Liability",
-      "openingBalance": 0,
-      "billingDay": 15,
-      "gracePeriodDays": 20
-    },
-    {
-      "id": 4,
-      "name": "Salary Income",
-      "group": "Direct Incomes",
-      "nature": "Income",
-      "openingBalance": 0
-    },
-    {
-      "id": 5,
-      "name": "Groceries & Provisions",
-      "group": "Living & Household Expenses",
-      "nature": "Expense",
-      "openingBalance": 0
-    },
-    {
-      "id": 6,
-      "name": "Electricity & Internet",
-      "group": "Utilities & Bills",
-      "nature": "Expense",
-      "openingBalance": 0
-    },
-    {
-      "id": 7,
-      "name": "Miscellaneous Expenses",
-      "group": "Living & Household Expenses",
-      "nature": "Expense",
-      "openingBalance": 0
-    }
+    { "id": 101, "name": "Cash Wallet", "group": "Cash-in-Hand", "nature": "Asset", "openingBalance": 0 },
+    { "id": 102, "name": "Capital / Equity", "group": "Capital Account", "nature": "Liability", "openingBalance": 0 }
   ],
   "vouchers": [],
   "budgets": {}
