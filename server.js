@@ -60,7 +60,11 @@ function readBooks() {
   if (MASTER_ENC_KEY && fs.existsSync(DB_FILE)) {
     try {
       const encStr = fs.readFileSync(DB_FILE, 'utf8');
-      return decryptBooks(encStr, MASTER_ENC_KEY);
+      const decrypted = decryptBooks(encStr, MASTER_ENC_KEY);
+      if (decrypted && !Array.isArray(decrypted.templates)) {
+        decrypted.templates = [];
+      }
+      return decrypted;
     } catch (e) {
       if (fs.existsSync(DB_FILE + '.bak')) {
         try {
@@ -84,10 +88,11 @@ function readBooks() {
     }
   }
 
-  return { groups: [], ledgers: [], vouchers: [], budgets: {} };
+  return { groups: [], ledgers: [], vouchers: [], budgets: {}, templates: [] };
 }
 
 function writeBooks(data) {
+  if (data && !Array.isArray(data.templates)) data.templates = [];
   if (MASTER_ENC_KEY) {
     try {
       if (fs.existsSync(DB_FILE)) {
@@ -227,11 +232,13 @@ function formatLocalDate(d) {
   return `${d.getFullYear()}-${padZero(d.getMonth() + 1)}-${padZero(d.getDate())}`;
 }
 
-function getGroupNature(groupName, groups) {
+function getGroupNature(groupName, groups, visited = new Set()) {
+  if (!groupName || visited.has(groupName.toLowerCase())) return 'Asset';
+  visited.add(groupName.toLowerCase());
   const grp = (groups || []).find(g => g.name.toLowerCase() === (groupName || '').toLowerCase());
   if (!grp) return 'Asset';
-  if (grp.parentGroup && grp.parentGroup !== 'Primary') {
-    return getGroupNature(grp.parentGroup, groups);
+  if (grp.parentGroup && grp.parentGroup !== 'Primary' && grp.parentGroup.toLowerCase() !== groupName.toLowerCase()) {
+    return getGroupNature(grp.parentGroup, groups, visited);
   }
   return grp.nature || 'Asset';
 }
@@ -740,7 +747,7 @@ const server = http.createServer(async (req, res) => {
 
       MASTER_ENC_KEY = deriveKey(password, salt);
 
-      let booksData = { groups: [], ledgers: [], vouchers: [], budgets: {} };
+      let booksData = { groups: [], ledgers: [], vouchers: [], budgets: {}, templates: [] };
       if (fs.existsSync(OLD_PLAINTEXT_FILE)) {
         try {
           booksData = JSON.parse(fs.readFileSync(OLD_PLAINTEXT_FILE, 'utf8'));
@@ -838,6 +845,53 @@ const server = http.createServer(async (req, res) => {
   }
 
   // 3. API ROUTES
+
+  // --- TEMPLATES API ---
+  if (req.method === 'GET' && pathname === '/api/templates') {
+    const books = readBooks();
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify(books.templates || []));
+  }
+
+  if (req.method === 'POST' && pathname === '/api/templates') {
+    const body = await readJsonBody(req, res);
+    if (!body) return; // readJsonBody handles errors internally
+
+    const books = readBooks();
+    if (!books.templates) books.templates = [];
+
+    const newTpl = {
+      id: body.id || ('tpl_' + Date.now()),
+      name: (body.name || 'Custom Template').trim(),
+      type: body.type || 'Payment',
+      narration: body.narration || '',
+      legs: body.legs || []
+    };
+
+    const existingIdx = books.templates.findIndex(t => t.id === newTpl.id);
+    if (existingIdx >= 0) {
+      books.templates[existingIdx] = newTpl;
+    } else {
+      books.templates.push(newTpl);
+    }
+
+    writeBooks(books);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ success: true, template: newTpl }));
+  }
+
+  if (req.method === 'DELETE' && pathname.startsWith('/api/templates/')) {
+    const tplId = pathname.replace('/api/templates/', '');
+    const books = readBooks();
+    if (books.templates) {
+      books.templates = books.templates.filter(t => t.id !== tplId);
+      writeBooks(books);
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ success: true }));
+  }
+  // --- END TEMPLATES API ---
+
   if (req.method === 'GET' && pathname === '/api/backup') {
     const books = readBooks();
     const dateStr = formatLocalDate(new Date());
