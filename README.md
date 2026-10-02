@@ -4,13 +4,13 @@
 ![Node.js](https://img.shields.io/badge/node-%3E%3D14.0-brightgreen)
 ![Status: Active](https://img.shields.io/badge/Status-Active-success)
 
-A **zero-dependency, end-to-end encrypted** double-entry accounting system designed for personal finance management. Built with vanilla Node.js and runs seamlessly on **Termux (Android), Windows, macOS, and Linux**.
+A **zero-dependency, end-to-end encrypted** double-entry accounting system designed for personal finance management. Built with vanilla Node.js and runs seamlessly on **Termux (Android), Windows, macOS, and Linux**. All data stays local on your device.
 
 ---
 
 ## 🎯 Overview
 
-This application implements a complete double-entry bookkeeping engine with military-grade encryption, audit trails, and comprehensive financial analytics. It's designed for users who want complete control over their financial data without relying on cloud services or third-party integrations.
+This application implements a complete double-entry bookkeeping engine with military-grade encryption, audit trails, and comprehensive financial analytics. It's designed for users who want complete control over their finances without relying on cloud services.
 
 **Key Differentiators:**
 - ✅ 100% local execution—no external servers or API calls
@@ -55,13 +55,14 @@ This application implements a complete double-entry bookkeeping engine with mili
 ### Prerequisites
 - **Node.js 14+** ([Download](https://nodejs.org/))
 - **Git** (optional, for cloning)
+- **OpenSSL** (required because the app auto-generates a local HTTPS certificate on first launch)
 
 ### Installation & Setup
 
 #### Option 1: Android (Termux)
 ```bash
 # Install Node.js and Git
-pkg update && pkg install nodejs-lts git -y
+pkg update && pkg install nodejs-lts git openssl -y
 
 # Clone repository
 git clone https://github.com/shreeramsharma065/personal-finance-app.git finance-app
@@ -70,7 +71,7 @@ cd finance-app
 # Start the server
 node server.js
 ```
-Open your browser: http://localhost:3000
+Open your browser: `https://localhost:3000`
 
 **Quick Launch Shortcut:**
 ```bash
@@ -85,11 +86,12 @@ Now simply type: `finance`
 #### Option 2: Windows
 ```powershell
 # 1. Install Node.js from https://nodejs.org/
-# 2. Clone the repository
+# 2. Install OpenSSL if needed
+# 3. Clone the repository
 git clone https://github.com/shreeramsharma065/personal-finance-app.git finance-app
 cd finance-app
 
-# 3. Start server
+# 4. Start server
 node server.js
 ```
 
@@ -97,7 +99,7 @@ node server.js
 Create `start.bat` in your finance-app folder:
 ```batch
 @echo off
-start http://localhost:3000
+start https://localhost:3000
 node server.js
 pause
 ```
@@ -106,7 +108,7 @@ Double-click to launch automatically.
 #### Option 3: macOS
 ```bash
 # Install Node.js (via Homebrew)
-brew install node git
+brew install node git openssl
 
 # Clone repository
 git clone https://github.com/shreeramsharma065/personal-finance-app.git finance-app
@@ -115,12 +117,12 @@ cd finance-app
 # Start server
 node server.js
 ```
-Open: http://localhost:3000
+Open: `https://localhost:3000`
 
 #### Option 4: Linux (Ubuntu/Debian/Raspberry Pi)
 ```bash
 # Install dependencies
-sudo apt update && sudo apt install -y nodejs git
+sudo apt update && sudo apt install -y nodejs git openssl
 
 # Clone repository
 git clone https://github.com/shreeramsharma065/personal-finance-app.git finance-app
@@ -129,7 +131,73 @@ cd finance-app
 # Start server
 node server.js
 ```
-Open: http://localhost:3000
+Open: `https://localhost:3000`
+
+---
+
+## 🔐 First-Time Setup (Required)
+
+This app requires a one-time master-password setup before it can be used.
+
+### Step 1: Start the server
+From the project root:
+```bash
+node server.js
+```
+
+On first launch, the app will automatically generate a local SSL certificate in the `ssl/` folder if it does not already exist:
+- `ssl/server.key`
+- `ssl/server.crt`
+
+This is required because the app runs on HTTPS for secure local access.
+
+### Step 2: Open the app in the browser
+Use one of these URLs:
+- `https://localhost:3000`
+- `https://ledger.local:3000` (after adding the hosts entry below)
+
+### Step 3: Trust the local certificate
+Because the certificate is self-signed, the browser will show a warning the first time. You must trust it to proceed.
+
+#### Windows
+1. Copy `ssl/server.crt` from the project folder to your machine.
+2. Double-click the certificate.
+3. Choose `Install Certificate`.
+4. Select `Current User`.
+5. Place it in `Trusted Root Certification Authorities`.
+6. Open `C:\Windows\System32\drivers\etc\hosts` as Administrator and add:
+```text
+127.0.0.1    ledger.local
+```
+7. Then open: `https://ledger.local:3000`
+
+#### Android / Termux
+1. Copy `ssl/server.crt` to your phone storage.
+2. Go to Settings -> Security -> Encryption & credentials -> Install a certificate.
+3. Install it as a CA certificate.
+4. Then open `https://<your-server-ip>:3000` in the browser.
+
+#### macOS / Linux
+If the browser complains about the certificate, import the generated certificate into the system or browser trust store, or open the app using `https://localhost:3000` after trusting the local CA.
+
+### Step 4: Create the master password
+When the app detects no password is set yet, it will show the setup screen.
+
+Enter a master password with these rules:
+- Minimum 8 characters
+- Use a strong password you will remember
+- Confirm it on the next field
+
+After submission, the app will:
+- create `auth_config.json`
+- generate the encrypted ledger file `tally_books.enc`
+- initialize the default accounting structure
+- log you in automatically for the first session
+
+### Step 5: Login later
+After the password is set, reopen the app and sign in with the same master password. The app will use the stored password hash and encryption key to unlock your local ledger.
+
+> Important: The master password is not recoverable. If you forget it, the encrypted data cannot be decrypted.
 
 ---
 
@@ -137,9 +205,12 @@ Open: http://localhost:3000
 
 ### Initial Setup
 When launched for the first time, the application will:
-1. Prompt you to set a master password (minimum 8 characters)
-2. Initialize accounts and groups from `default_books.json`
-3. Create encrypted database file (`tally_books.enc`)
+1. Generate a local HTTPS certificate if needed
+2. Detect that no master password is configured
+3. Ask you to create a master password (minimum 8 characters)
+4. Initialize accounts and groups from `default_books.json`
+5. Create encrypted database file (`tally_books.enc`)
+6. Save authentication details in `auth_config.json`
 
 ### Chart of Accounts Setup
 
@@ -274,8 +345,10 @@ personal-finance-app/
 ├── default_books.json        # Template chart of accounts
 ├── tally_books.enc          # Encrypted ledger database
 ├── auth_config.json         # Password hash + salt
+├── ssl/                     # Generated local HTTPS certificate files
 ├── README.md                # This file
-└── .gitignore               # Git configuration
+├── .gitignore               # Git configuration
+└── LICENSE                  # MIT license
 ```
 
 ### File Descriptions
@@ -283,6 +356,7 @@ personal-finance-app/
 - **public/** — Responsive single-page app (SPA) with real-time calculations
 - **default_books.json** — Starter chart of accounts for Indian rupees (₹)
 - **tally_books.enc** — Encrypted ledger (created on first save)
+- **ssl/** — Local certificate generated automatically for secure HTTPS access
 
 ---
 
@@ -321,7 +395,9 @@ The accounting engine exposes core functions:
 | Issue | Solution |
 |-------|----------|
 | **"Server already in use"** | Change port: `PORT=3001 node server.js` |
-| **"Invalid master password"** | Verify 8+ character password set on first run |
+| **Browser says certificate is unsafe** | Trust the generated `ssl/server.crt` certificate or use `https://localhost:3000` after installation |
+| **App asks to set up password** | This is normal for first launch. Create a master password with at least 8 characters |
+| **Invalid master password** | Verify 8+ character password set on first run |
 | **Books not loading** | Check `auth_config.json` and `tally_books.enc` exist |
 | **Trial balance not zeroing** | Ensure all entries have matching Dr/Cr amounts |
 | **Session expires on refresh** | Clear cookies and re-login; sessions have 24h TTL |
