@@ -1,3 +1,8 @@
-tally_books.json
-tally_books.json.bak
 node_modules/
+auth_config.json
+*.json
+!package.json
+!package-lock.json
+!default_books.json
+*.enc
+*.bak
