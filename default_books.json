@@ -3,22 +3,155 @@
     { "id": 1, "name": "Current Assets", "parentGroup": null, "nature": "Asset" },
     { "id": 2, "name": "Bank Accounts", "parentGroup": "Current Assets", "nature": "Asset" },
     { "id": 3, "name": "Cash-in-Hand", "parentGroup": "Current Assets", "nature": "Asset" },
-    { "id": 4, "name": "Sundry Debtors", "parentGroup": "Current Assets", "nature": "Asset" },
-    { "id": 5, "name": "Fixed Assets", "parentGroup": null, "nature": "Asset" },
-    { "id": 6, "name": "Investments", "parentGroup": null, "nature": "Asset" },
-    { "id": 7, "name": "Current Liabilities", "parentGroup": null, "nature": "Liability" },
-    { "id": 8, "name": "Credit Cards", "parentGroup": "Current Liabilities", "nature": "Liability" },
-    { "id": 9, "name": "Sundry Creditors", "parentGroup": "Current Liabilities", "nature": "Liability" },
-    { "id": 10, "name": "Loans & Borrowings", "parentGroup": null, "nature": "Liability" },
-    { "id": 11, "name": "Capital Account", "parentGroup": null, "nature": "Liability" },
-    { "id": 12, "name": "Direct Incomes", "parentGroup": null, "nature": "Income" },
-    { "id": 13, "name": "Indirect Incomes", "parentGroup": null, "nature": "Income" },
-    { "id": 14, "name": "Direct Expenses", "parentGroup": null, "nature": "Expense" },
-    { "id": 15, "name": "Indirect Expenses", "parentGroup": null, "nature": "Expense" }
+    { "id": 4, "name": "Sundry Debtors (Receivables)", "parentGroup": "Current Assets", "nature": "Asset" },
+    { "id": 5, "name": "Prepaid Expenses", "parentGroup": "Current Assets", "nature": "Asset" },
+    { "id": 6, "name": "Fixed Assets", "parentGroup": null, "nature": "Asset" },
+    { "id": 7, "name": "Properties", "parentGroup": "Fixed Assets", "nature": "Asset" },
+    { "id": 8, "name": "Investments (MF/Stocks/FD)", "parentGroup": null, "nature": "Asset" },
+    { "id": 9, "name": "Current Liabilities", "parentGroup": null, "nature": "Liability" },
+    { "id": 10, "name": "Credit Cards", "parentGroup": "Current Liabilities", "nature": "Liability" },
+    { "id": 11, "name": "Sundry Creditors (Payables)", "parentGroup": "Current Liabilities", "nature": "Liability" },
+    { "id": 12, "name": "Outstanding Expenses", "parentGroup": "Current Liabilities", "nature": "Liability" },
+    { "id": 13, "name": "Loans & Borrowings", "parentGroup": null, "nature": "Liability" },
+    { "id": 14, "name": "Capital Account", "parentGroup": null, "nature": "Liability" },
+    { "id": 15, "name": "Direct Income", "parentGroup": null, "nature": "Income" },
+    { "id": 16, "name": "Salary Income", "parentGroup": "Direct Income", "nature": "Income" },
+    { "id": 17, "name": "Indirect Income", "parentGroup": null, "nature": "Income" },
+    { "id": 18, "name": "Indirect Expenses", "parentGroup": null, "nature": "Expense" },
+    { "id": 19, "name": "Living & Household Expenses", "parentGroup": "Indirect Expenses", "nature": "Expense" },
+    { "id": 20, "name": "Utilities & Bills", "parentGroup": "Indirect Expenses", "nature": "Expense" },
+    { "id": 21, "name": "Loan EMI & Interest", "parentGroup": "Indirect Expenses", "nature": "Expense" },
+    { "id": 22, "name": "Education Expenses", "parentGroup": "Indirect Expenses", "nature": "Expense" },
+    { "id": 23, "name": "Healthcare & Insurance", "parentGroup": "Indirect Expenses", "nature": "Expense" },
+    { "id": 24, "name": "Food & Kitchen Expenses", "parentGroup": "Indirect Expenses", "nature": "Expense" },
+    { "id": 25, "name": "Vehicle & Fuel Expenses", "parentGroup": "Indirect Expenses", "nature": "Expense" },
+    { "id": 26, "name": "Leisure & Lifestyle Expenses", "parentGroup": "Indirect Expenses", "nature": "Expense" },
+    { "id": 27, "name": "General Household Expenses", "parentGroup": "Indirect Expenses", "nature": "Expense" },
+    { "id": 28, "name": "Monthly Rentals", "parentGroup": "Indirect Expenses", "nature": "Expense" }
   ],
   "ledgers": [
-    { "id": 101, "name": "Cash Wallet", "group": "Cash-in-Hand", "nature": "Asset", "openingBalance": 0 },
-    { "id": 102, "name": "Capital / Equity", "group": "Capital Account", "nature": "Liability", "openingBalance": 0 }
+    { "id": 101, "name": "Cash Wallet A/c", "group": "Cash-in-Hand", "nature": "Asset", "openingBalance": 0 },
+    { "id": 102, "name": "Primary Bank A/c", "group": "Bank Accounts", "nature": "Asset", "openingBalance": 0 },
+    { "id": 103, "name": "Secondary Bank A/c", "group": "Bank Accounts", "nature": "Asset", "openingBalance": 0 },
+    { "id": 104, "name": "Primary Credit Card A/c", "group": "Credit Cards", "nature": "Liability", "openingBalance": 0, "billingDay": 1, "gracePeriodDays": 20 },
+    { "id": 105, "name": "Secondary Credit Card A/c", "group": "Credit Cards", "nature": "Liability", "openingBalance": 0, "billingDay": 15, "gracePeriodDays": 20 },
+    { "id": 106, "name": "Customer / Client Receivables A/c", "group": "Sundry Debtors (Receivables)", "nature": "Asset", "openingBalance": 0 },
+    { "id": 107, "name": "Employer / Company Receivables A/c", "group": "Sundry Debtors (Receivables)", "nature": "Asset", "openingBalance": 0 },
+    { "id": 108, "name": "Personal Loan A/c", "group": "Loans & Borrowings", "nature": "Liability", "openingBalance": 0 },
+    { "id": 109, "name": "Vehicle / Home Loan A/c", "group": "Loans & Borrowings", "nature": "Liability", "openingBalance": 0 },
+    { "id": 110, "name": "Residential Property A/c", "group": "Properties", "nature": "Asset", "openingBalance": 0 },
+    { "id": 111, "name": "Prepaid Insurance A/c", "group": "Prepaid Expenses", "nature": "Asset", "openingBalance": 0 },
+    { "id": 112, "name": "Prepaid Subscriptions & Recharge A/c", "group": "Prepaid Expenses", "nature": "Asset", "openingBalance": 0 },
+    { "id": 113, "name": "Loan EMI Payable A/c", "group": "Current Liabilities", "nature": "Liability", "openingBalance": 0 },
+    { "id": 114, "name": "Rent Payable A/c", "group": "Current Liabilities", "nature": "Liability", "openingBalance": 0 },
+    { "id": 115, "name": "Utility Bills Payable A/c", "group": "Current Liabilities", "nature": "Liability", "openingBalance": 0 },
+    { "id": 116, "name": "Outstanding Expenses Payable A/c", "group": "Outstanding Expenses", "nature": "Liability", "openingBalance": 0 },
+    { "id": 117, "name": "Salary Income A/c", "group": "Salary Income", "nature": "Income", "openingBalance": 0 },
+    { "id": 118, "name": "Daily Allowance & Travel Reimbursement A/c", "group": "Indirect Income", "nature": "Income", "openingBalance": 0 },
+    { "id": 119, "name": "Interest & Dividend Income A/c", "group": "Indirect Income", "nature": "Income", "openingBalance": 0 },
+    { "id": 120, "name": "Loan Interest Expense A/c", "group": "Loan EMI & Interest", "nature": "Expense", "openingBalance": 0 },
+    { "id": 121, "name": "Electricity, Water & Utility Bills A/c", "group": "Utilities & Bills", "nature": "Expense", "openingBalance": 0 },
+    { "id": 122, "name": "Mobile & Internet Recharge A/c", "group": "Utilities & Bills", "nature": "Expense", "openingBalance": 0 },
+    { "id": 123, "name": "Fuel & Commute Expense A/c", "group": "Vehicle & Fuel Expenses", "nature": "Expense", "openingBalance": 0 },
+    { "id": 124, "name": "Vehicle Insurance Expense A/c", "group": "Vehicle & Fuel Expenses", "nature": "Expense", "openingBalance": 0 },
+    { "id": 125, "name": "Vehicle Maintenance & Repairs A/c", "group": "Vehicle & Fuel Expenses", "nature": "Expense", "openingBalance": 0 },
+    { "id": 126, "name": "House Rent Expense A/c", "group": "Monthly Rentals", "nature": "Expense", "openingBalance": 0 },
+    { "id": 127, "name": "Groceries & Provisions A/c", "group": "Food & Kitchen Expenses", "nature": "Expense", "openingBalance": 0 },
+    { "id": 128, "name": "Vegetables & Fresh Produce A/c", "group": "Food & Kitchen Expenses", "nature": "Expense", "openingBalance": 0 },
+    { "id": 129, "name": "Dairy & Daily Essentials A/c", "group": "Food & Kitchen Expenses", "nature": "Expense", "openingBalance": 0 },
+    { "id": 130, "name": "Kitchenware & Cooking Gas A/c", "group": "Food & Kitchen Expenses", "nature": "Expense", "openingBalance": 0 },
+    { "id": 131, "name": "Personal Care & Grooming A/c", "group": "Living & Household Expenses", "nature": "Expense", "openingBalance": 0 },
+    { "id": 132, "name": "Clothing & Apparel A/c", "group": "Living & Household Expenses", "nature": "Expense", "openingBalance": 0 },
+    { "id": 133, "name": "House Maintenance & Cleaning A/c", "group": "Living & Household Expenses", "nature": "Expense", "openingBalance": 0 },
+    { "id": 134, "name": "General Miscellaneous Expense A/c", "group": "General Household Expenses", "nature": "Expense", "openingBalance": 0 },
+    { "id": 135, "name": "Tuition & School Fees A/c", "group": "Education Expenses", "nature": "Expense", "openingBalance": 0 },
+    { "id": 136, "name": "Books & Stationery A/c", "group": "Education Expenses", "nature": "Expense", "openingBalance": 0 },
+    { "id": 137, "name": "Medical, Healthcare & Pharmacy A/c", "group": "Healthcare & Insurance", "nature": "Expense", "openingBalance": 0 },
+    { "id": 138, "name": "Dining Out & Leisure A/c", "group": "Leisure & Lifestyle Expenses", "nature": "Expense", "openingBalance": 0 }
+  ],
+  "templates": [
+    {
+      "id": "tpl_salary_receipt",
+      "name": "Monthly Salary Receipt",
+      "type": "Receipt",
+      "narration": "Monthly salary credited for [Month Year]",
+      "legs": [
+        { "type": "Dr", "ledger": "Primary Bank A/c", "amount": 0 },
+        { "type": "Cr", "ledger": "Salary Income A/c", "amount": 0 }
+      ]
+    },
+    {
+      "id": "tpl_fuel_expense",
+      "name": "Vehicle Fuel Refill",
+      "type": "Payment",
+      "narration": "Fuel refill for personal/commute vehicle",
+      "legs": [
+        { "type": "Dr", "ledger": "Fuel & Commute Expense A/c", "amount": 0 },
+        { "type": "Cr", "ledger": "Primary Bank A/c", "amount": 0 }
+      ]
+    },
+    {
+      "id": "tpl_travel_claim",
+      "name": "Daily Official Travel Claim",
+      "type": "Journal",
+      "narration": "Official travel allowance claim for [Month Year]",
+      "legs": [
+        { "type": "Dr", "ledger": "Employer / Company Receivables A/c", "amount": 0 },
+        { "type": "Cr", "ledger": "Daily Allowance & Travel Reimbursement A/c", "amount": 0 },
+        { "type": "Cr", "ledger": "Fuel & Commute Expense A/c", "amount": 0 }
+      ]
+    },
+    {
+      "id": "tpl_claim_reimbursement",
+      "name": "Travel Claim Reimbursement",
+      "type": "Receipt",
+      "narration": "Reimbursement received from employer for [Month Year]",
+      "legs": [
+        { "type": "Dr", "ledger": "Primary Bank A/c", "amount": 0 },
+        { "type": "Cr", "ledger": "Employer / Company Receivables A/c", "amount": 0 }
+      ]
+    },
+    {
+      "id": "tpl_loan_emi_provision",
+      "name": "Monthly Loan EMI Booking",
+      "type": "Journal",
+      "narration": "Loan EMI breakdown (Principal + Interest) for [Month Year]",
+      "legs": [
+        { "type": "Dr", "ledger": "Personal Loan A/c", "amount": 0 },
+        { "type": "Dr", "ledger": "Loan Interest Expense A/c", "amount": 0 },
+        { "type": "Cr", "ledger": "Loan EMI Payable A/c", "amount": 0 }
+      ]
+    },
+    {
+      "id": "tpl_loan_emi_payout",
+      "name": "Loan EMI Auto-Debit",
+      "type": "Payment",
+      "narration": "Bank auto-debit for Loan EMI [Month Year]",
+      "legs": [
+        { "type": "Dr", "ledger": "Loan EMI Payable A/c", "amount": 0 },
+        { "type": "Cr", "ledger": "Primary Bank A/c", "amount": 0 }
+      ]
+    },
+    {
+      "id": "tpl_rent_booking",
+      "name": "Monthly House Rent Provision",
+      "type": "Journal",
+      "narration": "House rent provision for [Month Year]",
+      "legs": [
+        { "type": "Dr", "ledger": "House Rent Expense A/c", "amount": 0 },
+        { "type": "Cr", "ledger": "Rent Payable A/c", "amount": 0 }
+      ]
+    },
+    {
+      "id": "tpl_credit_card_payment",
+      "name": "Credit Card Bill Settlement",
+      "type": "Payment",
+      "narration": "Credit card monthly statement clearance",
+      "legs": [
+        { "type": "Dr", "ledger": "Primary Credit Card A/c", "amount": 0 },
+        { "type": "Cr", "ledger": "Primary Bank A/c", "amount": 0 }
+      ]
+    }
   ],
   "vouchers": [],
   "budgets": {}
