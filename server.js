@@ -1,3 +1,6 @@
+const { execSync } = require('child_process');
+const os = require('os');
+const https = require('https');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -714,7 +717,70 @@ function computeDues(books, ledgerBalances) {
 }
 
 // --- SERVER DISPATCHER ---
-const server = http.createServer(async (req, res) => {
+// --- AUTOMATIC SSL CERTIFICATE INITIALIZATION ---
+const sslDir = path.join(__dirname, 'ssl');
+const keyPath = path.join(sslDir, 'server.key');
+const certPath = path.join(sslDir, 'server.crt');
+
+let certWasGenerated = false;
+
+if (!fs.existsSync(keyPath) || !fs.existsSync(certPath)) {
+  certWasGenerated = true;
+  console.log('\n=============================================================');
+  console.log('⚡ SSL certificates not detected in ssl/ directory.');
+  console.log('⚡ Generating local high-security SAN SSL certificate...');
+  console.log('=============================================================');
+
+  if (!fs.existsSync(sslDir)) {
+    fs.mkdirSync(sslDir, { recursive: true });
+  }
+
+  const cnfPath = path.join(sslDir, 'openssl_init.cnf');
+  const opensslConfig = `[req]
+default_bits = 2048
+prompt = no
+default_md = sha256
+distinguished_name = dn
+x509_extensions = v3_req
+
+[dn]
+C = IN
+ST = UP
+L = Local
+O = Ledgerly
+CN = ledger.local
+
+[v3_req]
+subjectAltName = @alt_names
+basicConstraints = CA:TRUE
+
+[alt_names]
+DNS.1 = ledger.local
+DNS.2 = localhost
+IP.1 = 127.0.0.1
+`;
+
+  try {
+    fs.writeFileSync(cnfPath, opensslConfig, 'utf8');
+    execSync(
+      `openssl req -x509 -nodes -days 825 -newkey rsa:2048 -keyout "${keyPath}" -out "${certPath}" -config "${cnfPath}" -extensions v3_req`,
+      { stdio: 'pipe' }
+    );
+    if (fs.existsSync(cnfPath)) fs.unlinkSync(cnfPath);
+    console.log('✅ Certificate and private key created successfully in ssl/\n');
+  } catch (err) {
+    console.error('❌ Failed to auto-generate SSL certificate:', err.message);
+    console.error('Please ensure openssl is installed (`sudo apt install openssl`).');
+    process.exit(1);
+  }
+}
+
+const sslOptions = {
+  key: fs.readFileSync(keyPath),
+  cert: fs.readFileSync(certPath)
+};
+
+const server = https.createServer(sslOptions, async (req, res) => {
   applySecurityHeaders(res);
   if (!validateOrigin(req, res)) return;
 
@@ -1328,5 +1394,40 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running securely on http://localhost:${PORT}`);
+  const nets = os.networkInterfaces();
+  const detectedIps = [];
+  for (const name of Object.keys(nets)) {
+    for (const net of nets[name]) {
+      if (net.family === 'IPv4' && !net.internal) {
+        detectedIps.push(net.address);
+      }
+    }
+  }
+
+  console.log(`\n🔒 Secure Ledger HTTPS Server Online on Port ${PORT}`);
+  console.log(`   • Local Phone:   https://localhost:${PORT}`);
+  console.log(`   • Domain URL:    https://ledger.local:${PORT}`);
+  if (detectedIps.length > 0) {
+    detectedIps.forEach(ip => {
+      console.log(`   • Direct IP:     https://${ip}:${PORT}`);
+    });
+  }
+
+  if (certWasGenerated) {
+    console.log('\n-------------------------------------------------------------');
+    console.log('📋 FIRST TIME SETUP GUIDE FOR CLIENT ACCESS:');
+    console.log('-------------------------------------------------------------');
+    console.log('1. On Client Laptop (Windows):');
+    console.log('   - Copy "ssl/server.crt" to the laptop.');
+    console.log('   - Double-click server.crt -> Install Certificate -> Current User');
+    console.log('     -> Place all certificates in "Trusted Root Certification Authorities".');
+    console.log('   - Open C:\\Windows\\System32\\drivers\\etc\\hosts as Administrator and add:');
+    const primaryIp = detectedIps[0] || '127.0.0.1';
+    console.log(`     ${primaryIp}    ledger.local`);
+    console.log('   - Open https://ledger.local:' + PORT + ' in your browser.');
+    console.log('\n2. On Client Phone (Android):');
+    console.log('   - Copy "ssl/server.crt" to internal storage.');
+    console.log('   - Settings -> Security -> Encryption & credentials -> Install CA certificate.');
+    console.log('-------------------------------------------------------------\n');
+  }
 });
