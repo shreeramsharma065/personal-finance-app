@@ -1367,7 +1367,10 @@ const server = https.createServer(sslOptions, async (req, res) => {
   }
 
   // 4. STATIC FILE RESOLUTION
-  const safeFilename = pathname === '/' ? 'index.html' : pathname.replace(/^\/+/, '');
+  let targetPath = pathname;
+  if (targetPath === '/') targetPath = 'index.html';
+  else if (targetPath === '/favicon.ico') targetPath = 'favicon.svg';
+  const safeFilename = targetPath.replace(/^\/+/, '');
   let filePath = path.join(PUBLIC_DIR, safeFilename);
 
   if (!fs.existsSync(filePath)) {
