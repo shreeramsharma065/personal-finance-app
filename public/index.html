@@ -2,6 +2,8 @@
 <html lang="en" class="h-full bg-slate-950">
 <head>
   <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="shortcut icon" href="/favicon.svg">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>TallyPersonal • Protected Ledger & Net Worth Engine</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
@@ -266,6 +268,49 @@
     }
   </style>
 
+
+  
+  <style id="sidebar-equal-fill">
+    aside#appSidebar {
+      height: 100vh !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
+      overflow: hidden !important;
+    }
+
+    aside#appSidebar nav {
+      flex: 1 1 auto !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-evenly !important;
+      padding-top: 0.5rem !important;
+      padding-bottom: 0.5rem !important;
+      overflow: hidden !important;
+    }
+
+    /* Distribute buttons equally across available height */
+    aside#appSidebar nav .nav-btn {
+      flex: 0 1 auto !important;
+      padding-top: 0.5rem !important;
+      padding-bottom: 0.5rem !important;
+      font-size: 0.875rem !important; /* Standard text-sm */
+    }
+
+    /* Keep section category markers neat and compact */
+    aside#appSidebar nav .tracking-wider {
+      padding-top: 0.25rem !important;
+      padding-bottom: 0.1rem !important;
+      font-size: 0.65rem !important;
+    }
+
+    /* Solvency card pinned cleanly to the bottom */
+    aside#appSidebar #solvencyCard {
+      flex-shrink: 0 !important;
+      margin-top: 0 !important;
+      margin-bottom: 0.75rem !important;
+    }
+  </style>
 </head>
 <body class="h-full flex overflow-hidden text-slate-100 font-sans">
 
@@ -303,7 +348,7 @@
 
   <!-- SIDEBAR -->
   <aside id="appSidebar" class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col flex-shrink-0 z-40 fixed inset-y-0 left-0 transform -translate-x-full transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static">
-    <div class="h-16 flex items-center px-6 border-b border-slate-800 gap-3">
+    <div class="h-14 flex items-center px-4 border-b border-slate-800 gap-3">
       <div class="w-8 h-8 rounded-lg bg-blue-900 text-blue-400 flex items-center justify-center font-bold">
         <i class="fa-solid fa-receipt"></i>
       </div>
@@ -313,63 +358,63 @@
       </div>
     </div>
 
-    <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
-      <div class="text-xs font-bold uppercase tracking-wider text-slate-500 px-3 pb-1">Reports & Analysis</div>
-      <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition bg-blue-600 text-white text-left whitespace-nowrap">
+    <nav class="flex-1 px-3 py-2 space-y-0.5 overflow-hidden">
+      <div class="text-xs font-bold uppercase tracking-wider text-slate-500 px-3 pb-0.5">Reports & Analysis</div>
+      <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-sm font-medium transition bg-blue-600 text-white text-left whitespace-nowrap">
         <i class="fa-solid fa-chart-pie w-5 text-center"></i>
         <span>Financial Summary</span>
       </button>
-      <button onclick="switchTab('cashflow')" id="nav-cashflow" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
+      <button onclick="switchTab('cashflow')" id="nav-cashflow" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
         <i class="fa-solid fa-money-bill-transfer w-5 text-center text-emerald-400"></i>
         <span>Cash Flow Statement</span>
       </button>
-      <button onclick="switchTab('comparativepnl')" id="nav-comparativepnl" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
+      <button onclick="switchTab('comparativepnl')" id="nav-comparativepnl" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
         <i class="fa-solid fa-chart-line w-5 text-center text-teal-400"></i>
         <span>MoM Variance P&L</span>
       </button>
-      <button onclick="switchTab('budgets')" id="nav-budgets" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
+      <button onclick="switchTab('budgets')" id="nav-budgets" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
         <i class="fa-solid fa-bullseye w-5 text-center text-indigo-400"></i>
         <span>Budgets vs Actuals</span>
       </button>
-      <button onclick="switchTab('trialbalance')" id="nav-trialbalance" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
+      <button onclick="switchTab('trialbalance')" id="nav-trialbalance" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
         <i class="fa-solid fa-balance-scale w-5 text-center text-amber-400"></i>
         <span>Trial Balance (Audit)</span>
       </button>
-      <button onclick="switchTab('groupsummary')" id="nav-groupsummary" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
+      <button onclick="switchTab('groupsummary')" id="nav-groupsummary" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
         <i class="fa-solid fa-sitemap w-5 text-center text-purple-400"></i>
         <span>Group Summary</span>
       </button>
-      <button onclick="switchTab('ledgerstatement')" id="nav-ledgerstatement" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
+      <button onclick="switchTab('ledgerstatement')" id="nav-ledgerstatement" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
         <i class="fa-solid fa-file-invoice-dollar w-5 text-center text-cyan-400"></i>
         <span>Ledger Statement</span>
       </button>
-      <button onclick="switchTab('dues')" id="nav-dues" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
+      <button onclick="switchTab('dues')" id="nav-dues" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
         <i class="fa-solid fa-clock-rotate-left w-5 text-center text-yellow-400"></i>
         <span>Dues & Outstandings</span>
       </button>
-      <button onclick="switchTab('balancesheet')" id="nav-balancesheet" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
+      <button onclick="switchTab('balancesheet')" id="nav-balancesheet" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
         <i class="fa-solid fa-scale-balanced w-5 text-center text-blue-400"></i>
         <span>Balance Sheet</span>
       </button>
-      <button onclick="switchTab('pnl')" id="nav-pnl" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
+      <button onclick="switchTab('pnl')" id="nav-pnl" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
         <i class="fa-solid fa-calculator w-5 text-center text-green-400"></i>
         <span>Profit & Loss</span>
       </button>
 
-      <div class="text-xs font-bold uppercase tracking-wider text-slate-500 px-3 pt-4 pb-1">Transactions</div>
-      <button onclick="switchTab('daybook')" id="nav-daybook" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
+      <div class="text-xs font-bold uppercase tracking-wider text-slate-500 px-3 pt-2 pb-0.5">Transactions</div>
+      <button onclick="switchTab('daybook')" id="nav-daybook" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
         <i class="fa-solid fa-book-journal-whills w-5 text-center text-indigo-400"></i>
         <span>Day Book (Vouchers)</span>
       </button>
 
-      <div class="text-xs font-bold uppercase tracking-wider text-slate-500 px-3 pt-4 pb-1">Gateway of Masters</div>
-      <button onclick="switchTab('masters')" id="nav-masters" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
+      <div class="text-xs font-bold uppercase tracking-wider text-slate-500 px-3 pt-2 pb-0.5">Gateway of Masters</div>
+      <button onclick="switchTab('masters')" id="nav-masters" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap">
         <i class="fa-solid fa-folder-tree w-5 text-center text-purple-400"></i>
         <span>Chart of Accounts</span>
       </button>
     </nav>
 
-    <div id="solvencyCard" class="m-4 p-3.5 rounded-xl border border-slate-800 bg-slate-950 text-xs space-y-1">
+    <div id="solvencyCard" class="mx-3 my-2 p-2.5 rounded-lg border border-slate-800 bg-slate-950 text-xs space-y-1">
       <div class="flex items-center justify-between font-bold">
         <span class="flex items-center gap-1.5 whitespace-nowrap"><i class="fa-solid fa-shield-halved"></i> Solvency Check</span>
         <span id="solvencyBadge" class="px-1.5 py-0.5 rounded text-xs uppercase font-mono whitespace-nowrap">Good</span>
@@ -433,7 +478,7 @@
     <div class="flex-1 overflow-y-auto p-3.5 md:p-8 space-y-4 md:space-y-6">
 
       <!-- TOP METRICS -->
-      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 no-print">
+      <section class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 md:gap-4 no-print">
         <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
           <div class="text-xs text-slate-400 font-medium flex justify-between whitespace-nowrap">
             <span>Net Worth (Capital)</span>
@@ -481,29 +526,107 @@
       </section>
 
       <!-- TAB 1: SUMMARY -->
-      <section id="tab-dashboard" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
-          <h3 class="font-semibold text-sm text-slate-200 border-b border-slate-800 pb-3 flex items-center justify-between">
-            <span class="whitespace-nowrap">Liquid & Debt Positions</span>
-            <span class="text-xs text-slate-500 font-normal whitespace-nowrap">Real-Time</span>
-          </h3>
-          <div id="quickBalancesList" class="divide-y divide-slate-800 mt-2"></div>
+      <section id="tab-dashboard" class="space-y-6">
+        <!-- ROW 1: POSITIONS, FRIENDS & VOUCHERS -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+          <!-- Col 1: Liquid Cash & Bank Accounts -->
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between shadow-sm">
+            <div>
+              <h3 class="font-semibold text-sm text-slate-200 border-b border-slate-800 pb-3 flex items-center justify-between">
+                <span class="whitespace-nowrap flex items-center gap-2">
+                  <i class="fa-solid fa-building-columns text-green-400"></i> Liquid Cash & Bank
+                </span>
+                <span id="quickBalancesTotalTop" class="font-mono font-bold text-green-400 text-sm whitespace-nowrap">₹0.00</span>
+              </h3>
+              <div id="quickBalancesList" class="divide-y divide-slate-800 mt-2"></div>
+            </div>
+            <div id="quickBalancesViewAllContainer" class="pt-3 border-t border-slate-800/80 mt-3 hidden text-center">
+              <button onclick="toggleExpandList('quickBalancesList', this)" class="text-xs text-blue-400 hover:text-blue-300 font-medium">View All Accounts</button>
+            </div>
+          </div>
+
+          <!-- Col 2: Friends & Shared Outstandings -->
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between shadow-sm">
+            <div>
+              <h3 class="font-semibold text-sm text-slate-200 border-b border-slate-800 pb-3 flex items-center justify-between">
+                <span class="whitespace-nowrap flex items-center gap-2">
+                  <i class="fa-solid fa-users text-amber-400"></i> Friends & Shared Outstandings
+                </span>
+                <span class="text-xs text-slate-500 font-normal whitespace-nowrap">Sundry Debtors</span>
+              </h3>
+              <div id="quickFriendsList" class="divide-y divide-slate-800 mt-2"></div>
+            </div>
+            <div id="quickFriendsViewAllContainer" class="pt-3 border-t border-slate-800/80 mt-3 hidden text-center">
+              <button onclick="toggleExpandList('quickFriendsList', this)" class="text-xs text-blue-400 hover:text-blue-300 font-medium">View All Debtors</button>
+            </div>
+          </div>
+
+          <!-- Col 3: Recent Vouchers (Day Book) -->
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between shadow-sm">
+            <div>
+              <h3 class="font-semibold text-sm text-slate-200 border-b border-slate-800 pb-3 flex items-center justify-between">
+                <span class="whitespace-nowrap flex items-center gap-2">
+                  <i class="fa-solid fa-book text-indigo-400"></i> Recent Vouchers (Day Book)
+                </span>
+                <button onclick="switchTab('daybook')" class="text-xs text-blue-400 hover:underline whitespace-nowrap">Open Daybook</button>
+              </h3>
+              <div id="quickVouchersList" class="divide-y divide-slate-800 mt-2"></div>
+            </div>
+            <div id="quickVouchersViewAllContainer" class="pt-3 border-t border-slate-800/80 mt-3 hidden text-center">
+              <button onclick="switchTab('daybook')" class="text-xs text-blue-400 hover:text-blue-300 font-medium">View All Vouchers</button>
+            </div>
+          </div>
         </div>
 
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
-          <h3 class="font-semibold text-sm text-slate-200 border-b border-slate-800 pb-3 flex items-center justify-between">
-            <span class="whitespace-nowrap">Friends & Shared Outstandings</span>
-            <span class="text-xs text-slate-500 font-normal whitespace-nowrap">Sundry Debtors</span>
-          </h3>
-          <div id="quickFriendsList" class="divide-y divide-slate-800 mt-2"></div>
-        </div>
+        <!-- ROW 2: MONTHLY CARDS, TOTAL DEBTS & GROUP CLOSING BALANCES -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
+          <!-- Col 4: Current Month Card Dues -->
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between shadow-sm">
+            <div>
+              <h3 class="font-semibold text-sm text-slate-200 border-b border-slate-800 pb-3 flex items-center justify-between">
+                <span class="whitespace-nowrap flex items-center gap-2">
+                  <i class="fa-regular fa-credit-card text-red-400"></i> Month Card Dues
+                </span>
+                <span id="gridCardDuesTotalTop" class="font-mono font-bold text-red-400 text-sm whitespace-nowrap">₹0.00</span>
+              </h3>
+              <div id="gridCardDuesList" class="divide-y divide-slate-800 mt-2"></div>
+            </div>
+            <div id="gridCardDuesViewAllContainer" class="pt-3 border-t border-slate-800/80 mt-3 hidden text-center">
+              <button onclick="toggleExpandList('gridCardDuesList', this)" class="text-xs text-blue-400 hover:text-blue-300 font-medium">View All Cards</button>
+            </div>
+          </div>
 
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5">
-          <h3 class="font-semibold text-sm text-slate-200 border-b border-slate-800 pb-3 flex items-center justify-between">
-            <span class="whitespace-nowrap">Recent Vouchers (Day Book)</span>
-            <button onclick="switchTab('daybook')" class="text-xs text-blue-400 hover:underline whitespace-nowrap">View All</button>
-          </h3>
-          <div id="quickVouchersList" class="divide-y divide-slate-800 mt-2"></div>
+          <!-- Col 5: Total Debt Dues Line-Wise -->
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between shadow-sm">
+            <div>
+              <h3 class="font-semibold text-sm text-slate-200 border-b border-slate-800 pb-3 flex items-center justify-between">
+                <span class="whitespace-nowrap flex items-center gap-2">
+                  <i class="fa-solid fa-hand-holding-dollar text-yellow-400"></i> Outstanding Debt Due
+                </span>
+                <span id="gridTotalDebtTop" class="font-mono font-bold text-yellow-400 text-sm whitespace-nowrap">₹0.00</span>
+              </h3>
+              <div id="gridTotalDebtList" class="divide-y divide-slate-800 mt-2"></div>
+            </div>
+            <div id="gridTotalDebtViewAllContainer" class="pt-3 border-t border-slate-800/80 mt-3 hidden text-center">
+              <button onclick="toggleExpandList('gridTotalDebtList', this)" class="text-xs text-blue-400 hover:text-blue-300 font-medium">View All Debts</button>
+            </div>
+          </div>
+
+          <!-- Col 6: Unbilled Credit Card Spends Card-Wise -->
+          <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between shadow-sm">
+            <div>
+              <h3 class="font-semibold text-sm text-slate-200 border-b border-slate-800 pb-3 flex items-center justify-between">
+                <span class="whitespace-nowrap flex items-center gap-2">
+                  <i class="fa-solid fa-clock text-sky-400"></i> Unbilled Card Spends
+                </span>
+                <span id="gridUnbilledCardsTotalTop" class="font-mono font-bold text-sky-400 text-sm whitespace-nowrap">₹0.00</span>
+              </h3>
+              <div id="gridUnbilledCardsList" class="divide-y divide-slate-800 mt-2"></div>
+            </div>
+            <div id="gridUnbilledCardsViewAllContainer" class="pt-3 border-t border-slate-800/80 mt-3 hidden text-center">
+              <button onclick="toggleExpandList('gridUnbilledCardsList', this)" class="text-xs text-blue-400 hover:text-blue-300 font-medium">View All Cards</button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1071,7 +1194,8 @@
         </div>
 
         <div class="border border-slate-800 rounded-xl overflow-hidden">
-          <table class="w-full text-left text-xs whitespace-nowrap">
+          <div class="overflow-x-auto w-full">
+            <table class="w-full text-left text-xs whitespace-nowrap">
             <thead class="bg-slate-800 text-slate-300 uppercase font-mono text-[10px] border-b border-slate-700">
               <tr>
                 <th class="p-3">Date</th>
@@ -1083,6 +1207,7 @@
             </thead>
             <tbody id="stmtModalTableBody" class="divide-y divide-slate-800 text-slate-200"></tbody>
           </table>
+          </div>
         </div>
       </div>
     </div>
@@ -1162,6 +1287,7 @@
             </button>
           </div>
 
+          <datalist id="ledgerDatalistOptions"></datalist>
           <div id="voucherEntriesContainer" class="space-y-2 max-h-56 overflow-y-auto pr-1"></div>
 
           <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800 text-xs font-mono">
@@ -1735,10 +1861,10 @@
       }
       activeTab = tab;
       document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.className = 'nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap';
+        btn.className = 'nav-btn w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-sm font-medium transition text-slate-400 hover:bg-slate-800 text-left whitespace-nowrap';
       });
       const activeBtn = document.getElementById('nav-' + tab);
-      if (activeBtn) activeBtn.className = 'nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition bg-blue-600 text-white text-left whitespace-nowrap';
+      if (activeBtn) activeBtn.className = 'nav-btn w-full flex items-center gap-3 px-3.5 py-2 rounded-lg text-sm font-medium transition bg-blue-600 text-white text-left whitespace-nowrap';
 
       ['dashboard', 'cashflow', 'comparativepnl', 'budgets', 'trialbalance', 'groupsummary', 'ledgerstatement', 'dues', 'balancesheet', 'pnl', 'daybook', 'masters'].forEach(t => {
         const el = document.getElementById('tab-' + t);
@@ -1993,13 +2119,18 @@
         '</tr>';
     }
 
+    function populateLedgerDatalist() {
+      const dl = document.getElementById('ledgerDatalistOptions');
+      if (!dl || !masterData.ledgers) return;
+      dl.innerHTML = (masterData.ledgers || []).map(l => {
+        return '<option value="' + escapeAttr(l.name) + '">' + escapeHTML(l.group) + ' • ' + escapeHTML(l.nature) + '</option>';
+      }).join('');
+    }
+
     function addVoucherEntryRow(type = 'Dr', ledger = '', amount = '') {
+      populateLedgerDatalist();
       const container = document.getElementById('voucherEntriesContainer');
       const rowId = 'ventry_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
-
-      const opts = (masterData.ledgers || []).map(l => {
-        return '<option value="' + escapeHTML(l.name) + '"' + (l.name === ledger ? ' selected' : '') + '>' + escapeHTML(l.name) + ' [' + escapeHTML(l.group) + ']</option>';
-      }).join('');
 
       const div = document.createElement('div');
       div.className = 'flex items-center gap-2 bg-slate-900 p-2 rounded border border-slate-800';
@@ -2008,9 +2139,7 @@
         '<option value="Dr"' + (type === 'Dr' ? ' selected' : '') + '>Dr (Debit)</option>' +
         '<option value="Cr"' + (type === 'Cr' ? ' selected' : '') + '>Cr (Credit)</option>' +
         '</select>' +
-        '<select class="ventry-ledger flex-1 bg-slate-800 border border-slate-700 px-2 py-1.5 rounded text-xs text-slate-200 outline-none focus:border-blue-500">' +
-        opts +
-        '</select>' +
+        '<input list="ledgerDatalistOptions" class="ventry-ledger flex-1 bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded text-xs text-slate-200 outline-none focus:border-blue-500 placeholder-slate-500 font-medium" placeholder="Type to search ledger..." value="' + escapeAttr(ledger || '') + '" autocomplete="off">' +
         '<input type="number" step="0.01" class="ventry-amount w-28 bg-slate-800 border border-slate-700 px-2 py-1.5 rounded text-xs font-mono text-slate-200 outline-none text-right focus:border-blue-500" placeholder="0.00" value="' + (amount || '') + '" oninput="updateVoucherMeter()">' +
         '<button type="button" onclick="removeVoucherEntryRow(\'' + rowId + '\')" class="text-red-400 hover:text-red-300 px-2 text-xs" title="Remove line"><i class="fa-solid fa-trash"></i></button>';
 
@@ -2064,6 +2193,7 @@
     }
 
     function openVoucherModal(vId = null, prefillData = null) {
+      if (typeof populateLedgerDatalist === "function") populateLedgerDatalist();
       if (typeof renderTemplateDropdownOptions === 'function') {
         renderTemplateDropdownOptions(); // Populate templates
       }
@@ -2100,8 +2230,8 @@
       } else {
         const exp = masterData.ledgers.find(l => l.nature === 'Expense');
         const bank = masterData.ledgers.find(l => (l.group || '').toLowerCase().includes('bank') || (l.group || '').toLowerCase().includes('card'));
-        addVoucherEntryRow('Dr', exp ? exp.name : '', '');
-        addVoucherEntryRow('Cr', bank ? bank.name : '', '');
+        addVoucherEntryRow('Dr', '', '');
+        addVoucherEntryRow('Cr', '', '');
       }
 
       const modal = document.getElementById('voucherModal');
@@ -2793,6 +2923,7 @@
           renderTrialBalance();
           renderDues();
           renderFriendsDashboard();
+          renderSecondaryGrid();
           renderDaybook(daybookCurrentPage);
           renderBalanceSheet();
           renderPnL();
@@ -2803,6 +2934,167 @@
         console.error('Failed to load reports:', e);
       }
     }
+
+    
+    function toggleExpandList(containerId, btn) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      const hiddenItems = container.querySelectorAll('.extra-collapsed-item');
+      if (hiddenItems.length === 0) return;
+      
+      const isExpanding = hiddenItems[0].classList.contains('hidden');
+      hiddenItems.forEach(el => {
+        if (isExpanding) el.classList.remove('hidden');
+        else el.classList.add('hidden');
+      });
+      btn.innerText = isExpanding ? 'Show Less' : 'View All Items';
+    }
+
+    function renderSecondaryGrid() {
+      if (!reportData || !masterData) return;
+
+      const now = new Date();
+      const curYear = now.getFullYear();
+      const curMonth = now.getMonth();
+      const curMonthPrefix = `${curYear}-${padZero(curMonth + 1)}`;
+
+      // --- 1. CURRENT MONTH CREDIT CARD DUES (STRICTLY BILLED ONLY) ---
+      const ccListContainer = document.getElementById('gridCardDuesList');
+      const ccTotalTop = document.getElementById('gridCardDuesTotalTop');
+      const ccViewAllBtn = document.getElementById('gridCardDuesViewAllContainer');
+
+      const allCards = (reportData.dues && reportData.dues.creditCards) ? reportData.dues.creditCards : [];
+      let totalMonthCardDue = 0;
+
+      // Strictly filter cards where statement has generated (billedAmount > 0) AND dueDate falls in current month
+      const currentMonthCards = allCards.filter(c => {
+        const dueDate = c.dueDate || '';
+        const billed = parseFloat(c.billedAmount) || 0;
+        return dueDate.startsWith(curMonthPrefix) && billed > 0.01;
+      });
+
+      currentMonthCards.forEach(c => {
+        totalMonthCardDue += (parseFloat(c.billedAmount) || 0);
+      });
+
+      if (ccTotalTop) ccTotalTop.innerText = '₹' + totalMonthCardDue.toFixed(2);
+
+      if (ccListContainer) {
+        if (currentMonthCards.length === 0) {
+          ccListContainer.innerHTML = '<div class="text-xs text-slate-500 py-4 text-center">No billed card payments due in this month.</div>';
+          if (ccViewAllBtn) ccViewAllBtn.classList.add('hidden');
+        } else {
+          ccListContainer.innerHTML = currentMonthCards.map((c, idx) => {
+            const isExtra = idx >= 10;
+            const billed = parseFloat(c.billedAmount) || 0;
+            return `<div class="py-2.5 flex justify-between items-center text-xs ${isExtra ? 'hidden extra-collapsed-item' : ''}">
+              <div>
+                <a href="#" data-ledger-link="${escapeAttr(c.name)}" class="font-medium text-slate-200 hover:text-blue-400 whitespace-nowrap">${escapeHTML(c.name)}</a>
+                <span class="text-[11px] text-slate-500 block font-mono">Due: ${escapeHTML(c.dueDate || 'N/A')} (${c.daysLeft}d left)</span>
+              </div>
+              <span class="font-mono font-semibold whitespace-nowrap text-red-400">₹${billed.toFixed(2)}</span>
+            </div>`;
+          }).join('');
+
+          if (ccViewAllBtn) {
+            if (currentMonthCards.length > 10) ccViewAllBtn.classList.remove('hidden');
+            else ccViewAllBtn.classList.add('hidden');
+          }
+        }
+      }
+
+      // --- 2. OUTSTANDING DEBT DUE (EXCLUDE ZERO CLOSING BALANCES) ---
+      const debtContainer = document.getElementById('gridTotalDebtList');
+      const debtTotalTop = document.getElementById('gridTotalDebtTop');
+      const debtViewAllBtn = document.getElementById('gridTotalDebtViewAllContainer');
+
+      const liabilities = (reportData.balanceSheet && reportData.balanceSheet.liabilities) ? reportData.balanceSheet.liabilities : [];
+      
+      // Filter out ledgers with 0.00 closing balance
+      const activeDebts = liabilities.filter(l => (parseFloat(l.balance) || 0) > 0.01);
+      
+      let totalDebtSum = 0;
+      activeDebts.forEach(l => {
+        totalDebtSum += parseFloat(l.balance);
+      });
+
+      if (debtTotalTop) debtTotalTop.innerText = '₹' + totalDebtSum.toFixed(2);
+
+      if (debtContainer) {
+        if (activeDebts.length === 0) {
+          debtContainer.innerHTML = '<div class="text-xs text-slate-500 py-4 text-center">All debt accounts cleared (₹0 balance).</div>';
+          if (debtViewAllBtn) debtViewAllBtn.classList.add('hidden');
+        } else {
+          debtContainer.innerHTML = activeDebts.map((l, idx) => {
+            const isExtra = idx >= 10;
+            const bal = parseFloat(l.balance) || 0;
+            const isLoanOrEmi = (l.name || '').toLowerCase().includes('emi') || (l.group || '').toLowerCase().includes('loan');
+            
+            // Check if ledger has billingDay or default EMI cycle
+            const ledgerMeta = (masterData.ledgers || []).find(m => m.name === l.name);
+            const billDay = ledgerMeta && ledgerMeta.billingDay ? ledgerMeta.billingDay : null;
+            const subTag = isLoanOrEmi 
+              ? (billDay ? 'EMI Cycle: ' + billDay + 'th' : 'Loan Commitment')
+              : escapeHTML(l.group);
+
+            return `<div class="py-2.5 flex justify-between items-center text-xs ${isExtra ? 'hidden extra-collapsed-item' : ''}">
+              <div>
+                <a href="#" data-ledger-link="${escapeAttr(l.name)}" class="font-medium text-slate-200 hover:text-blue-400 whitespace-nowrap">${escapeHTML(l.name)}</a>
+                <span class="text-[11px] text-slate-500 block font-mono">${subTag}</span>
+              </div>
+              <span class="font-mono font-semibold whitespace-nowrap text-yellow-400">₹${bal.toFixed(2)}</span>
+            </div>`;
+          }).join('');
+
+          if (debtViewAllBtn) {
+            if (activeDebts.length > 10) debtViewAllBtn.classList.remove('hidden');
+            else debtViewAllBtn.classList.add('hidden');
+          }
+        }
+      }
+
+      // --- 3. UNBILLED CREDIT CARD SPENDS CARD-WISE ---
+      const unbilledListContainer = document.getElementById('gridUnbilledCardsList');
+      const unbilledTotalTop = document.getElementById('gridUnbilledCardsTotalTop');
+      const unbilledViewAllBtn = document.getElementById('gridUnbilledCardsViewAllContainer');
+
+      const cardsData = (reportData.dues && reportData.dues.creditCards) ? reportData.dues.creditCards : [];
+      
+      // Filter cards that have unbilled spends > 0
+      const activeUnbilledCards = cardsData.filter(c => (parseFloat(c.unbilledAmount) || 0) > 0.01);
+      
+      let totalUnbilledSum = 0;
+      activeUnbilledCards.forEach(c => {
+        totalUnbilledSum += (parseFloat(c.unbilledAmount) || 0);
+      });
+
+      if (unbilledTotalTop) unbilledTotalTop.innerText = '₹' + totalUnbilledSum.toFixed(2);
+
+      if (unbilledListContainer) {
+        if (activeUnbilledCards.length === 0) {
+          unbilledListContainer.innerHTML = '<div class="text-xs text-slate-500 py-4 text-center">No unbilled card transactions.</div>';
+          if (unbilledViewAllBtn) unbilledViewAllBtn.classList.add('hidden');
+        } else {
+          unbilledListContainer.innerHTML = activeUnbilledCards.map((c, idx) => {
+            const isExtra = idx >= 10;
+            const unbilled = parseFloat(c.unbilledAmount) || 0;
+            return `<div class="py-2.5 flex justify-between items-center text-xs ${isExtra ? 'hidden extra-collapsed-item' : ''}">
+              <div>
+                <a href="#" data-ledger-link="${escapeAttr(c.name)}" class="font-medium text-slate-200 hover:text-blue-400 whitespace-nowrap">${escapeHTML(c.name)}</a>
+                <span class="text-[11px] text-slate-500 block font-mono">Bill date: ${escapeHTML(c.nextStatementDate || 'N/A')}</span>
+              </div>
+              <span class="font-mono font-semibold whitespace-nowrap text-sky-400">₹${unbilled.toFixed(2)}</span>
+            </div>`;
+          }).join('');
+
+          if (unbilledViewAllBtn) {
+            if (activeUnbilledCards.length > 10) unbilledViewAllBtn.classList.remove('hidden');
+            else unbilledViewAllBtn.classList.add('hidden');
+          }
+        }
+      }
+    }
+
 
     function renderMetrics() {
       if (!reportData || !reportData.metrics) return;
@@ -2853,18 +3145,50 @@
       }
 
       const qb = document.getElementById('quickBalancesList');
+      const qbTotalTop = document.getElementById('quickBalancesTotalTop');
+      const qbViewAll = document.getElementById('quickBalancesViewAllContainer');
+
       if (qb && masterData.ledgers) {
-        const assetsAndLiabs = [...((reportData.balanceSheet && reportData.balanceSheet.assets) || []), ...((reportData.balanceSheet && reportData.balanceSheet.liabilities) || [])];
-        qb.innerHTML = masterData.ledgers
-          .filter(l => l.nature === 'Asset' || l.nature === 'Liability')
-          .map(l => {
-            const match = assetsAndLiabs.find(x => x.name === l.name);
-            const bal = match ? match.balance : 0;
-            return '<div class="py-2.5 flex justify-between items-center text-xs"><div>' +
-              '<a href="#" data-ledger-link="' + escapeAttr(l.name) + '" class="font-medium text-slate-200 hover:text-blue-400 whitespace-nowrap">' + escapeHTML(l.name) + '</a>' +
-              '<span class="text-slate-500 block text-xs whitespace-nowrap">' + escapeHTML(l.group) + '</span></div>' +
-              '<span class="font-mono font-semibold whitespace-nowrap ' + (l.nature === 'Asset' ? 'text-green-400' : 'text-red-400') + '">₹' + (bal || 0).toFixed(2) + '</span></div>';
-          }).join('') || '<div class="text-xs text-slate-500 py-3">No balances found.</div>';
+        const assetsList = (reportData.balanceSheet && reportData.balanceSheet.assets) ? reportData.balanceSheet.assets : [];
+        
+        // Filter strictly for Cash and Bank ledgers (excluding debts, credit cards, and debtors)
+        const liquidLedgers = masterData.ledgers.filter(l => {
+          const g = (l.group || '').toLowerCase();
+          const isCashOrBank = g.includes('bank') || g.includes('cash') || g.includes('wallet') || g.includes('liquid');
+          const isCardOrLoan = g.includes('credit card') || g.includes('card') || g.includes('loan') || g.includes('borrowing');
+          return l.nature === 'Asset' && isCashOrBank && !isCardOrLoan;
+        });
+
+        let totalLiquid = 0;
+        liquidLedgers.forEach(l => {
+          const match = assetsList.find(x => x.name === l.name);
+          totalLiquid += match ? (parseFloat(match.balance) || 0) : 0;
+        });
+
+        if (qbTotalTop) qbTotalTop.innerText = '₹' + totalLiquid.toFixed(2);
+
+        if (liquidLedgers.length === 0) {
+          qb.innerHTML = '<div class="text-xs text-slate-500 py-4 text-center">No cash or bank accounts found.</div>';
+          if (qbViewAll) qbViewAll.classList.add('hidden');
+        } else {
+          qb.innerHTML = liquidLedgers.map((l, idx) => {
+            const isExtra = idx >= 10;
+            const match = assetsList.find(x => x.name === l.name);
+            const bal = match ? (parseFloat(match.balance) || 0) : 0;
+            return `<div class="py-2.5 flex justify-between items-center text-xs ${isExtra ? 'hidden extra-collapsed-item' : ''}">
+              <div>
+                <a href="#" data-ledger-link="${escapeAttr(l.name)}" class="font-medium text-slate-200 hover:text-blue-400 whitespace-nowrap">${escapeHTML(l.name)}</a>
+                <span class="text-slate-500 block text-[11px] whitespace-nowrap">${escapeHTML(l.group)}</span>
+              </div>
+              <span class="font-mono font-semibold whitespace-nowrap text-green-400">₹${bal.toFixed(2)}</span>
+            </div>`;
+          }).join('');
+
+          if (qbViewAll) {
+            if (liquidLedgers.length > 10) qbViewAll.classList.remove('hidden');
+            else qbViewAll.classList.add('hidden');
+          }
+        }
       }
 
       const qv = document.getElementById('quickVouchersList');
@@ -2885,39 +3209,47 @@
 
     function renderFriendsDashboard() {
       const container = document.getElementById('quickFriendsList');
+      const viewAllBtn = document.getElementById('quickFriendsViewAllContainer');
       if (!container || !reportData || !reportData.friendsList) return;
 
       if (reportData.friendsList.length === 0) {
         container.innerHTML = '<div class="text-xs text-slate-500 py-4 text-center">No debtor accounts found.</div>';
+        if (viewAllBtn) viewAllBtn.classList.add('hidden');
         return;
       }
 
-      container.innerHTML = reportData.friendsList.map(f => {
+      container.innerHTML = reportData.friendsList.map((f, idx) => {
+        const isExtra = idx >= 10;
         const bal = f.balance || 0;
         let badge = '';
         if (bal > 0.01) {
-          badge = `<span class="text-amber-400 font-mono font-bold whitespace-nowrap">Owes ₹${bal.toFixed(2)}</span>`;
+          badge = '<span class="text-amber-400 font-mono font-bold whitespace-nowrap">Owes ₹' + bal.toFixed(2) + '</span>';
         } else if (bal < -0.01) {
-          badge = `<span class="text-red-400 font-mono font-semibold whitespace-nowrap">Advance ₹${Math.abs(bal).toFixed(2)}</span>`;
+          badge = '<span class="text-red-400 font-mono font-semibold whitespace-nowrap">Advance ₹' + Math.abs(bal).toFixed(2) + '</span>';
         } else {
           badge = '<span class="text-emerald-400 font-mono text-[11px] bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-800 whitespace-nowrap">Settled (₹0)</span>';
         }
 
-        return `<div class="py-2.5 flex justify-between items-center text-xs">
-          <div>
-            <a href="#" data-ledger-link="${escapeAttr(f.name)}" class="font-medium text-slate-200 hover:text-blue-400 whitespace-nowrap">${escapeHTML(f.name)}</a>
-            <div class="mt-0.5">${badge}</div>
-          </div>
-          <div class="flex items-center gap-1.5 whitespace-nowrap">
-            <button data-share-friend="${escapeAttr(f.name)}" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded text-[11px] font-medium border border-slate-700 transition" title="Generate Shareable Statement">
-              <i class="fa-solid fa-file-invoice mr-1 text-blue-400"></i>Share
-            </button>
-            <button data-settle-friend="${escapeAttr(f.name)}" data-settle-bal="${bal}" class="bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded text-[11px] font-semibold transition" title="1-Click Settle">
-              Settle
-            </button>
-          </div>
-        </div>`;
+        return '<div class="py-2.5 flex justify-between items-center text-xs ' + (isExtra ? 'hidden extra-collapsed-item' : '') + '">' +
+          '<div>' +
+            '<a href="#" data-ledger-link="' + escapeAttr(f.name) + '" class="font-medium text-slate-200 hover:text-blue-400 whitespace-nowrap">' + escapeHTML(f.name) + '</a>' +
+            '<div class="mt-0.5">' + badge + '</div>' +
+          '</div>' +
+          '<div class="flex items-center gap-1.5 whitespace-nowrap">' +
+            '<button data-share-friend="' + escapeAttr(f.name) + '" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded text-[11px] font-medium border border-slate-700 transition" title="Generate Shareable Statement">' +
+              '<i class="fa-solid fa-file-invoice mr-1 text-blue-400"></i>Share' +
+            '</button>' +
+            '<button data-settle-friend="' + escapeAttr(f.name) + '" data-settle-bal="' + bal + '" class="bg-blue-600 hover:bg-blue-500 text-white px-2 py-1 rounded text-[11px] font-semibold transition" title="1-Click Settle">' +
+              'Settle' +
+            '</button>' +
+          '</div>' +
+        '</div>';
       }).join('');
+
+      if (viewAllBtn) {
+        if (reportData.friendsList.length > 10) viewAllBtn.classList.remove('hidden');
+        else viewAllBtn.classList.add('hidden');
+      }
     }
 
     function renderDues() {
